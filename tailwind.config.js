@@ -7,18 +7,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        bgDark: '#050505',
+        bgPrimary: '#050505',
+        bgSurface: '#0d0d0d',
         primaryGreen: '#00ff88',
-        secondaryGreen: '#00cc66',
+        mediumGreen: '#00cc66',
         darkGreen: '#004422',
         traceGreen: '#001a0d',
-        primaryBlue: '#3b82f6',
-        accentPink: '#ff007f',
         primaryText: '#f0f0f0',
         secondaryText: '#888888',
-        surface: '#0d0d0d'
+        blueAccent: '#00aaff',
+        purpleAccent: '#8b5cf6',
+        pinkOutput: '#ff007f'
       },
       fontFamily: {
+        delta: ['Cinzel', 'serif'],
         sans: ['Space Grotesk', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace']
       }

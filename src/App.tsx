@@ -160,8 +160,8 @@ export default function App() {
   return (
     <div className="w-screen h-screen relative bg-[#050505] text-[#f0f0f0] overflow-hidden select-none font-sans">
       
-      {/* Centered Top Header */}
-      <HeaderHUD />
+      {/* Responsive Camera-Aware Top Header */}
+      <HeaderHUD currentView={currentView} isModalOpen={isAnyModalOpen} />
 
       {/* Sleek Compact Navigation & FPS Widget */}
       <CompactNavigationHUD />
@@ -170,7 +170,7 @@ export default function App() {
       {currentView !== 'main' && !isAnyModalOpen && (
         <button
           onClick={handleBackpropagation}
-          className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-400/50 hover:bg-amber-500/30 text-amber-300 text-xs font-mono font-bold tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all animate-bounce"
+          className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-400/50 hover:bg-amber-500/25 text-amber-300 text-xs font-mono font-bold tracking-wider flex items-center gap-2 shadow-md transition-all cursor-pointer backdrop-blur-md"
         >
           <CornerDownLeft className="w-4 h-4" /> ← Back (Backpropagation)
         </button>

@@ -16,7 +16,7 @@ export const BackgroundParticles: React.FC<BackgroundParticlesProps> = ({ isModa
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
 
-    const cGreen = new THREE.Color(DESIGN_TOKENS.colors.greenBright);
+    const cGreen = new THREE.Color(DESIGN_TOKENS.colors.primaryGreen);
     const cBlue = new THREE.Color(DESIGN_TOKENS.colors.blueAccent);
     const cPurple = new THREE.Color(DESIGN_TOKENS.colors.purpleAccent);
 
