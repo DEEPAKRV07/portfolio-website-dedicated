@@ -7,13 +7,13 @@ interface HeaderHUDProps {
 }
 
 export const HeaderHUD: React.FC<HeaderHUDProps> = ({ currentView = 'main', isModalOpen = false }) => {
-  // Compute responsive position & visibility classes based on camera / viewport zoom state
+  // Compute dynamic position & scaling based on view state & modal focus
   const getHeaderStyle = () => {
     if (isModalOpen) {
-      return 'opacity-0 -translate-y-10 pointer-events-none';
+      return 'opacity-0 -translate-y-8 scale-95 pointer-events-none';
     }
     if (currentView !== 'main') {
-      return 'opacity-70 -translate-y-3 scale-90 pointer-events-none';
+      return 'opacity-75 -translate-y-4 scale-90 pointer-events-none';
     }
     return 'opacity-100 translate-y-0 scale-100 pointer-events-none';
   };

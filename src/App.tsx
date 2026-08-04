@@ -8,7 +8,7 @@ import { NodeDetailModal } from './components/Modals/NodeDetailModal';
 import { MAIN_NODES, MAIN_EDGES } from './data/graphData';
 import { SKILLS_SUB_NODES, SKILLS_SUB_EDGES, TIMELINE_SUB_NODES, TIMELINE_SUB_EDGES, RESEARCH_PROJECTS, ProjectDetail } from './data/subNetworksData';
 import { NodeData, EdgeData } from './types/neural';
-import { CornerDownLeft, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export type SubNetworkType = 'main' | 'skills' | 'projects' | 'timeline';
 
@@ -16,7 +16,7 @@ export type SubNetworkType = 'main' | 'skills' | 'projects' | 'timeline';
 const PROJECTS_SUB_NODES: NodeData[] = [
   {
     id: 'proj-football',
-    label: 'Football Analysis Engine',
+    label: 'Football Analysis',
     subLabel: 'YOLOv8 + ByteTrack IEEE Report',
     layer: 'hidden',
     position: [-5, 2, 0],
@@ -27,7 +27,7 @@ const PROJECTS_SUB_NODES: NodeData[] = [
   },
   {
     id: 'proj-sightmate',
-    label: 'SightMate Assistive AI',
+    label: 'SightMate AI',
     subLabel: 'Flutter + Edge AI Mobile Report',
     layer: 'hidden',
     position: [0, 0, 0],
@@ -38,7 +38,7 @@ const PROJECTS_SUB_NODES: NodeData[] = [
   },
   {
     id: 'proj-virtualmouse',
-    label: 'Virtual Mouse Control',
+    label: 'Virtual Mouse',
     subLabel: 'OpenCV + MediaPipe HCI Report',
     layer: 'hidden',
     position: [5, -2, 0],
@@ -163,18 +163,13 @@ export default function App() {
       {/* Responsive Camera-Aware Top Header */}
       <HeaderHUD currentView={currentView} isModalOpen={isAnyModalOpen} />
 
-      {/* Sleek Compact Navigation & FPS Widget */}
-      <CompactNavigationHUD />
-
-      {/* Backpropagation Return Button (Active when inside sub-network) */}
-      {currentView !== 'main' && !isAnyModalOpen && (
-        <button
-          onClick={handleBackpropagation}
-          className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-400/50 hover:bg-amber-500/25 text-amber-300 text-xs font-mono font-bold tracking-wider flex items-center gap-2 shadow-md transition-all cursor-pointer backdrop-blur-md"
-        >
-          <CornerDownLeft className="w-4 h-4" /> ← Back (Backpropagation)
-        </button>
-      )}
+      {/* Sleek Compact Navigation HUD with Floating Bottom-Center Backpropagation Button */}
+      <CompactNavigationHUD
+        currentView={currentView}
+        selectedNode={selectedNode}
+        onBackpropagation={handleBackpropagation}
+        isModalOpen={isAnyModalOpen}
+      />
 
       {/* Inference Journey Pulse Banner */}
       {isInferenceRunning && (
@@ -190,21 +185,6 @@ export default function App() {
         onNodeClick={handleNodeClick}
         isModalOpen={isAnyModalOpen}
       />
-
-      {/* Selected Active Neuron Toast */}
-      {selectedNode && !isAnyModalOpen && (
-        <div className="absolute bottom-6 right-6 z-30 px-4 py-2 rounded-xl bg-[#0d0d0d]/90 border border-[#00ff88]/50 backdrop-blur-md text-xs font-mono text-[#00ff88] shadow-lg flex items-center gap-3">
-          <span>
-            Neuron: <strong className="text-white">{selectedNode.label}</strong>
-          </span>
-          <button
-            onClick={() => setSelectedNode(null)}
-            className="text-gray-400 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* Node Detail Modal (About Me, Resume, Experience, Timeline) */}
       <NodeDetailModal

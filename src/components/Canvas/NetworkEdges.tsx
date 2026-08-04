@@ -12,7 +12,6 @@ interface PulseData {
   edgeId: string;
   source: THREE.Vector3;
   target: THREE.Vector3;
-  curve: THREE.QuadraticBezierCurve3;
   progress: number;
   speed: number;
   color: string;
@@ -26,8 +25,8 @@ export const NetworkEdges: React.FC<NetworkEdgesProps> = ({ nodes, edges }) => {
     return map;
   }, [nodes]);
 
-  // Compute curve paths for each edge
-  const edgeCurves = useMemo(() => {
+  // Compute clean straight segment geometries for each edge
+  const straightEdges = useMemo(() => {
     return edges.map(edge => {
       const srcNode = nodeMap.get(edge.source);
       const tgtNode = nodeMap.get(edge.target);
@@ -36,50 +35,44 @@ export const NetworkEdges: React.FC<NetworkEdgesProps> = ({ nodes, edges }) => {
       const srcPos = new THREE.Vector3(...srcNode.position);
       const tgtPos = new THREE.Vector3(...tgtNode.position);
 
-      // Slight quadratic arch in 3D for elegant neural wiring
-      const midPoint = new THREE.Vector3().addVectors(srcPos, tgtPos).multiplyScalar(0.5);
-      const distance = srcPos.distanceTo(tgtPos);
-      midPoint.z += (Math.random() - 0.5) * 1.5;
-
-      const curve = new THREE.QuadraticBezierCurve3(srcPos, midPoint, tgtPos);
-      const points = curve.getPoints(30);
+      // Clean straight segment geometry
+      const points = [srcPos, tgtPos];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
       return {
         edge,
         srcPos,
         tgtPos,
-        curve,
-        geometry: new THREE.BufferGeometry().setFromPoints(points),
+        geometry,
         color: edge.color || '#00ff88'
       };
     }).filter(Boolean);
   }, [edges, nodeMap]);
 
-  // Activation pulses traveling continuously across edges
+  // Calm activation pulses traveling continuously across straight edges
   const pulsesRef = useRef<PulseData[]>([]);
   const pulseGroupRef = useRef<THREE.Group>(null!);
 
   useMemo(() => {
-    if (edgeCurves.length === 0) return;
+    if (straightEdges.length === 0) return;
     const initialPulses: PulseData[] = [];
 
-    edgeCurves.forEach(ec => {
-      if (!ec) return;
-      // 2 pulses per edge staggered
+    straightEdges.forEach(se => {
+      if (!se) return;
+      // Staggered pulses traveling along straight lines (25% slower travel speed)
       initialPulses.push({
-        edgeId: ec.edge.id,
-        source: ec.srcPos,
-        target: ec.tgtPos,
-        curve: ec.curve,
+        edgeId: se.edge.id,
+        source: se.srcPos,
+        target: se.tgtPos,
         progress: Math.random(),
-        speed: 0.25 + Math.random() * 0.35,
-        color: ec.color,
-        size: 0.12 + Math.random() * 0.08
+        speed: 0.15 + Math.random() * 0.18, // 25% slower speed for calm motion
+        color: se.color,
+        size: 0.08 + Math.random() * 0.05
       });
     });
 
     pulsesRef.current = initialPulses;
-  }, [edgeCurves]);
+  }, [straightEdges]);
 
   useFrame((_, delta) => {
     if (!pulseGroupRef.current) return;
@@ -90,7 +83,8 @@ export const NetworkEdges: React.FC<NetworkEdgesProps> = ({ nodes, edges }) => {
         pulse.progress = 0;
       }
 
-      const point = pulse.curve.getPoint(pulse.progress);
+      // Linear interpolation along straight segment
+      const point = new THREE.Vector3().lerpVectors(pulse.source, pulse.target, pulse.progress);
       const mesh = pulseGroupRef.current.children[idx];
       if (mesh) {
         mesh.position.copy(point);
@@ -100,34 +94,34 @@ export const NetworkEdges: React.FC<NetworkEdgesProps> = ({ nodes, edges }) => {
 
   return (
     <group>
-      {/* Edge lines */}
-      {edgeCurves.map((ec, i) => {
-        if (!ec) return null;
+      {/* Clean straight edge lines (45% opacity for crisp non-intrusive support) */}
+      {straightEdges.map((se, i) => {
+        if (!se) return null;
         return (
           <primitive
-            key={ec.edge.id || i}
+            key={se.edge.id || i}
             object={new THREE.Line(
-              ec.geometry,
+              se.geometry,
               new THREE.LineBasicMaterial({
-                color: new THREE.Color(ec.color),
+                color: new THREE.Color(se.color),
                 transparent: true,
-                opacity: 0.35,
-                linewidth: 1.5
+                opacity: 0.45,
+                linewidth: 1.0
               })
             )}
           />
         );
       })}
 
-      {/* Traveling energy pulses */}
+      {/* Electrical signal activation pulses traveling straight */}
       <group ref={pulseGroupRef}>
         {pulsesRef.current.map((pulse, i) => (
           <mesh key={i}>
-            <sphereGeometry args={[pulse.size, 16, 16]} />
+            <sphereGeometry args={[pulse.size, 12, 12]} />
             <meshBasicMaterial
               color={pulse.color}
               transparent
-              opacity={0.9}
+              opacity={0.5}
             />
           </mesh>
         ))}

@@ -20,21 +20,21 @@ test.describe('3D Neural Network Portfolio — E2E Test Suite', () => {
 
   test('2. Sub-Network Traversal (Skills & Backpropagation)', async ({ page }) => {
     // Click Skills node chip inside 3D scene
-    await page.click('text=Skills');
+    await page.click('text=SKILLS');
     
-    // Backpropagation button should appear
-    await expect(page.locator('text=Back (Backpropagation)')).toBeVisible();
+    // Backpropagation button should appear in bottom-center
+    await expect(page.locator('text=BACKPROPAGATION (ESC)')).toBeVisible();
 
     // Click Backpropagation to return to main graph
-    await page.click('text=Back (Backpropagation)');
+    await page.click('text=BACKPROPAGATION (ESC)');
 
     // Should return to main graph
-    await expect(page.locator('text=About Me')).toBeVisible();
+    await expect(page.locator('text=ABOUT ME')).toBeVisible();
   });
 
   test('3. Modal Open & Backdrop Layering Test', async ({ page }) => {
     // Click About Me chip
-    await page.click('text=About Me');
+    await page.click('text=ABOUT ME');
 
     // Modal should be visible
     await expect(page.locator('text=About Deepak R V')).toBeVisible();

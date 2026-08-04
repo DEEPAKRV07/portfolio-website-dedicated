@@ -20,20 +20,20 @@ export const NeuralScene: React.FC<NeuralSceneProps> = ({ nodes, edges, onNodeCl
   return (
     <div className={`w-full h-full relative bg-[#050505] overflow-hidden transition-all duration-500 ${isModalOpen ? 'brightness-75 blur-[2px]' : 'brightness-100 blur-none'}`}>
       <Canvas
-        camera={{ position: [0, 0, 16.5], fov: 50 }}
+        camera={{ position: [0, 0, 19.5], fov: 48 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         className="w-full h-full"
       >
         {/* Background color & ambient fog for depth */}
         <color attach="background" args={['#050505']} />
-        <fog attach="fog" args={['#050505', 16, 45]} />
+        <fog attach="fog" args={['#050505', 18, 50]} />
 
         {/* Ambient & Directional Lighting */}
         <ambientLight intensity={0.4} />
-        <directionalLight position={[10, 10, 10]} intensity={1.0} color="#ffffff" />
-        <directionalLight position={[-10, -10, -10]} intensity={0.5} color="#00ff88" />
+        <directionalLight position={[10, 10, 10]} intensity={0.9} color="#ffffff" />
+        <directionalLight position={[-10, -10, -10]} intensity={0.4} color="#00ff88" />
 
-        {/* Floating volumetric particles - 180 dust particles */}
+        {/* Floating volumetric particles - 180 calm space dust particles */}
         <BackgroundParticles isModalOpen={isModalOpen} />
 
         {/* 3D Neural Edges & Activation Pulses */}
@@ -51,10 +51,10 @@ export const NeuralScene: React.FC<NeuralSceneProps> = ({ nodes, edges, onNodeCl
         {/* Orbit Camera Controls */}
         <CameraController />
 
-        {/* Restrained Bloom Glow & Vignette (Apple / Linear style) */}
+        {/* Restrained Bloom Glow & Vignette */}
         <EffectComposer enableNormalPass={false}>
           <Bloom
-            intensity={0.7}
+            intensity={0.6}
             luminanceThreshold={0.35}
             luminanceSmoothing={0.9}
             mipmapBlur
