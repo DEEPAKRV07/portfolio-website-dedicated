@@ -1,26 +1,21 @@
 import React from 'react';
-import { SubNetworkType } from '../../App';
+import { LayoutState, LAYOUT_STATE_CONFIGS } from '../../utils/layoutManager';
 
 interface HeaderHUDProps {
-  currentView?: SubNetworkType;
-  isModalOpen?: boolean;
+  layoutState?: LayoutState;
 }
 
-export const HeaderHUD: React.FC<HeaderHUDProps> = ({ currentView = 'main', isModalOpen = false }) => {
-  // Compute dynamic position & scaling based on view state & modal focus
-  const getHeaderStyle = () => {
-    if (isModalOpen) {
-      return 'opacity-0 -translate-y-8 scale-95 pointer-events-none';
-    }
-    if (currentView !== 'main') {
-      return 'opacity-75 -translate-y-4 scale-90 pointer-events-none';
-    }
-    return 'opacity-100 translate-y-0 scale-100 pointer-events-none';
-  };
+export const HeaderHUD: React.FC<HeaderHUDProps> = ({ layoutState = 'HOME' }) => {
+  const config = LAYOUT_STATE_CONFIGS[layoutState].hero;
 
   return (
     <div
-      className={`absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center text-center transition-all duration-500 ease-out ${getHeaderStyle()}`}
+      className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center text-center transition-all duration-500 ease-out"
+      style={{
+        opacity: config.opacity,
+        transform: `translate(-50%, ${config.translateY}) scale(${config.scale})`,
+        pointerEvents: config.pointerEvents
+      }}
     >
       {/* Small top sub-header */}
       <span className="text-[11px] font-mono tracking-[0.35em] text-[#00ff88] uppercase mb-1 font-semibold opacity-90">

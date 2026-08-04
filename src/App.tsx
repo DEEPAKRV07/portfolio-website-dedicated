@@ -8,6 +8,7 @@ import { NodeDetailModal } from './components/Modals/NodeDetailModal';
 import { MAIN_NODES, MAIN_EDGES } from './data/graphData';
 import { SKILLS_SUB_NODES, SKILLS_SUB_EDGES, TIMELINE_SUB_NODES, TIMELINE_SUB_EDGES, RESEARCH_PROJECTS, ProjectDetail } from './data/subNetworksData';
 import { NodeData, EdgeData } from './types/neural';
+import { getLayoutState } from './utils/layoutManager';
 import { Sparkles } from 'lucide-react';
 
 export type SubNetworkType = 'main' | 'skills' | 'projects' | 'timeline';
@@ -65,8 +66,11 @@ export default function App() {
   const [isContactModalOpen, setIsContactModalOpen] = useState<boolean>(false);
   const [isInferenceRunning, setIsInferenceRunning] = useState<boolean>(false);
 
-  // Modal open flag to cleanly dim backdrop canvas & hide floating 3D labels
+  // Modal open flag
   const isAnyModalOpen = activeDetailNode !== null || activeProject !== null || isContactModalOpen;
+
+  // Compute centralized LayoutState (HOME, SUBNETWORK, DETAIL, MODAL)
+  const layoutState = getLayoutState(currentView, isAnyModalOpen, activeDetailNode !== null);
 
   // Backpropagation recovery handler
   const handleBackpropagation = useCallback(() => {
@@ -160,15 +164,15 @@ export default function App() {
   return (
     <div className="w-screen h-screen relative bg-[#050505] text-[#f0f0f0] overflow-hidden select-none font-sans">
       
-      {/* Responsive Camera-Aware Top Header */}
-      <HeaderHUD currentView={currentView} isModalOpen={isAnyModalOpen} />
+      {/* Dynamic Layout-Aware Top Header */}
+      <HeaderHUD layoutState={layoutState} />
 
-      {/* Sleek Compact Navigation HUD with Floating Bottom-Center Backpropagation Button */}
+      {/* Dynamic Layout-Aware Compact Navigation HUD */}
       <CompactNavigationHUD
+        layoutState={layoutState}
         currentView={currentView}
         selectedNode={selectedNode}
         onBackpropagation={handleBackpropagation}
-        isModalOpen={isAnyModalOpen}
       />
 
       {/* Inference Journey Pulse Banner */}
@@ -178,7 +182,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Main 3D Interactive Viewport - Occupies 85-90% of screen */}
+      {/* Main 3D Interactive Viewport with Auto Camera Fit */}
       <NeuralScene
         nodes={activeNodes}
         edges={activeEdges}

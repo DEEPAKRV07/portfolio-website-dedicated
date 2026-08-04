@@ -1,30 +1,35 @@
 import React, { useState } from 'react';
-import { Activity, CornerDownLeft, RotateCw, ZoomIn, MousePointer, Power } from 'lucide-react';
-import { SubNetworkType } from '../../App';
+import { Activity, CornerDownLeft, RotateCw, ZoomIn, MousePointer } from 'lucide-react';
+import { LayoutState, LAYOUT_STATE_CONFIGS } from '../../utils/layoutManager';
 import { NodeData } from '../../types/neural';
 
 interface CompactNavigationHUDProps {
-  currentView?: SubNetworkType;
+  layoutState?: LayoutState;
+  currentView?: 'main' | 'skills' | 'projects' | 'timeline';
   selectedNode?: NodeData | null;
   onBackpropagation?: () => void;
-  isModalOpen?: boolean;
 }
 
 export const CompactNavigationHUD: React.FC<CompactNavigationHUDProps> = ({
+  layoutState = 'HOME',
   currentView = 'main',
   selectedNode = null,
-  onBackpropagation,
-  isModalOpen = false
+  onBackpropagation
 }) => {
   const [recruiterMode, setRecruiterMode] = useState<boolean>(true);
-
-  // Auto fade/hide HUD when modal is open
-  const hudVisibilityClass = isModalOpen ? 'opacity-0 pointer-events-none transition-opacity duration-300' : 'opacity-100 transition-opacity duration-300';
+  const config = LAYOUT_STATE_CONFIGS[layoutState];
 
   return (
     <>
-      {/* 1. Top Right Status Behavior (60 FPS | GPU ACTIVE | RECRUITER MODE: ON) */}
-      <div className={`absolute top-4 right-6 z-20 flex items-center gap-3 ${hudVisibilityClass}`}>
+      {/* 1. Top Right Status (60 FPS | GPU ACTIVE | RECRUITER MODE: ON) */}
+      <div
+        className="absolute top-4 right-6 z-20 flex items-center gap-3 transition-all duration-500 ease-out"
+        style={{
+          opacity: config.statusBadge.opacity,
+          transform: `translateY(${config.statusBadge.translateY})`,
+          pointerEvents: config.statusBadge.pointerEvents
+        }}
+      >
         <div className="px-3 py-1 rounded-full glass-panel border border-[#00ff88]/30 text-[#00ff88] text-[10px] font-mono font-bold tracking-wider flex items-center gap-2 shadow-lg backdrop-blur-md">
           <Activity className="w-3.5 h-3.5 text-[#00ff88] animate-pulse" />
           <span>60 FPS &nbsp;|&nbsp; GPU ACTIVE</span>
@@ -42,19 +47,35 @@ export const CompactNavigationHUD: React.FC<CompactNavigationHUDProps> = ({
         </button>
       </div>
 
-      {/* 2. Bottom-Center Floating Backpropagation Button (Fixed bottom-center as specified in reference image) */}
-      {currentView !== 'main' && !isModalOpen && (
-        <button
-          onClick={onBackpropagation}
-          className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 px-5 py-2.5 rounded-full bg-[#050505]/90 border border-amber-400/60 hover:border-amber-400 text-amber-300 hover:text-amber-200 text-xs font-mono font-bold tracking-wider flex items-center gap-2.5 shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all cursor-pointer backdrop-blur-xl"
+      {/* 2. Bottom-Center Floating Backpropagation Action Button (Permanently at bottom-center) */}
+      {currentView !== 'main' && (
+        <div
+          className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 transition-all duration-500 ease-out"
+          style={{
+            opacity: config.backpropagationFab.opacity,
+            transform: `translate(-50%, ${config.backpropagationFab.translateY})`,
+            pointerEvents: config.backpropagationFab.pointerEvents
+          }}
         >
-          <CornerDownLeft className="w-4 h-4 text-amber-400" />
-          <span>BACKPROPAGATION (ESC)</span>
-        </button>
+          <button
+            onClick={onBackpropagation}
+            className="px-5 py-2.5 rounded-full bg-[#050505]/90 border border-amber-400/60 hover:border-amber-400 text-amber-300 hover:text-amber-200 text-xs font-mono font-bold tracking-wider flex items-center gap-2.5 shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all cursor-pointer backdrop-blur-xl"
+          >
+            <CornerDownLeft className="w-4 h-4 text-amber-400" />
+            <span>BACKPROPAGATION (ESC)</span>
+          </button>
+        </div>
       )}
 
       {/* 3. Bottom Left Navigation Guide */}
-      <div className={`absolute bottom-6 left-6 z-20 flex flex-col gap-2 p-3.5 rounded-2xl glass-panel text-xs text-[#f0f0f0] border border-white/10 shadow-xl backdrop-blur-md max-w-xs font-mono ${hudVisibilityClass}`}>
+      <div
+        className="absolute bottom-6 left-6 z-20 flex flex-col gap-2 p-3.5 rounded-2xl glass-panel text-xs text-[#f0f0f0] border border-white/10 shadow-xl backdrop-blur-md max-w-xs font-mono transition-all duration-500 ease-out"
+        style={{
+          opacity: config.navigationGuide.opacity,
+          transform: `translateY(${config.navigationGuide.translateY})`,
+          pointerEvents: config.navigationGuide.pointerEvents
+        }}
+      >
         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pb-1 border-b border-white/10">
           NAVIGATION GUIDE
         </div>
@@ -80,7 +101,14 @@ export const CompactNavigationHUD: React.FC<CompactNavigationHUDProps> = ({
       </div>
 
       {/* 4. Bottom Right Neuron Indicator */}
-      <div className={`absolute bottom-6 right-6 z-20 flex items-center gap-2.5 px-4 py-2 rounded-full glass-panel border border-[#00ff88]/40 text-xs font-mono shadow-lg backdrop-blur-md ${hudVisibilityClass}`}>
+      <div
+        className="absolute bottom-6 right-6 z-20 flex items-center gap-2.5 px-4 py-2 rounded-full glass-panel border border-[#00ff88]/40 text-xs font-mono shadow-lg backdrop-blur-md transition-all duration-500 ease-out"
+        style={{
+          opacity: config.neuronIndicator.opacity,
+          transform: `translateY(${config.neuronIndicator.translateY})`,
+          pointerEvents: config.neuronIndicator.pointerEvents
+        }}
+      >
         <div className="w-2.5 h-2.5 rounded-full bg-[#00ff88] animate-pulse" />
         <span className="text-gray-400 uppercase tracking-wider text-[11px]">NEURON:</span>
         <span className="text-[#00ff88] font-bold uppercase tracking-wider">

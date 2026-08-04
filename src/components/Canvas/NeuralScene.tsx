@@ -33,7 +33,7 @@ export const NeuralScene: React.FC<NeuralSceneProps> = ({ nodes, edges, onNodeCl
         <directionalLight position={[10, 10, 10]} intensity={0.9} color="#ffffff" />
         <directionalLight position={[-10, -10, -10]} intensity={0.4} color="#00ff88" />
 
-        {/* Floating volumetric particles - 180 calm space dust particles */}
+        {/* Floating volumetric particles - 120 calm space dust particles */}
         <BackgroundParticles isModalOpen={isModalOpen} />
 
         {/* 3D Neural Edges & Activation Pulses */}
@@ -48,13 +48,13 @@ export const NeuralScene: React.FC<NeuralSceneProps> = ({ nodes, edges, onNodeCl
           isModalOpen={isModalOpen}
         />
 
-        {/* Orbit Camera Controls */}
-        <CameraController />
+        {/* Auto Camera Fit Controller */}
+        <CameraController nodes={nodes} />
 
         {/* Restrained Bloom Glow & Vignette */}
         <EffectComposer enableNormalPass={false}>
           <Bloom
-            intensity={0.6}
+            intensity={0.55}
             luminanceThreshold={0.35}
             luminanceSmoothing={0.9}
             mipmapBlur
