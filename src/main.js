@@ -823,6 +823,8 @@ function createLogoTexture(type, imgElement = null) {
   return texture;
 }
 
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
 const logoDataList = [
   {
     id: 'logo-resume',
@@ -833,7 +835,7 @@ const logoDataList = [
     phase: 0.0,
     speedX: 0.35, speedY: 0.45, speedZ: 0.30,
     ampX: 2.2, ampY: 1.2, ampZ: 2.8,
-    url: '/my_resume.pdf',
+    url: `${BASE_URL}my_resume.pdf`,
   },
   {
     id: 'logo-github',
@@ -926,7 +928,7 @@ for (const item of logoDataList) {
 
 // Load uploaded official GitHub PNG asset from public/gitlogo.png
 const gitLogoImg = new Image();
-gitLogoImg.src = '/gitlogo.png';
+gitLogoImg.src = `${BASE_URL}gitlogo.png`;
 gitLogoImg.onload = () => {
   const githubObj = ambientLogoObjects.find(item => item.type === 'github');
   if (githubObj) {
@@ -1034,7 +1036,7 @@ const combinedAboutData = {
   ],
   tags: ['AI/ML Engineer', 'Computer Vision', 'B.Tech AI&DS', 'Real-Time Vision', 'PyTorch', 'YOLOv8', 'FastAPI'],
   actions: [
-    { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+    { label: 'VIEW RESUME PDF', type: 'primary', url: `${BASE_URL}my_resume.pdf` },
   ],
 };
 
@@ -1453,7 +1455,7 @@ const subnetDefinitions = {
         id: 'resume',
         label: 'RESUME',
         position: [6.2, -2.0, -2.0],
-        actionUrl: '/my_resume.pdf',
+        actionUrl: `${BASE_URL}my_resume.pdf`,
       },
     ],
   },
