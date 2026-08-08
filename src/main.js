@@ -5,18 +5,48 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — SELECTIVE DETAIL SYSTEM + SUBNETWORK FOCUS REFINEMENT
+ * SPRINT — SKILLS SPATIAL REFINEMENT + DETAIL PANEL CLEANUP + LOADING SCREEN
  *
- * Interaction Architecture:
- * 1. ABOUT: Clicking ABOUT node opens ONE combined profile presentation. (No subnodes).
- * 2. SKILLS: Clicking a skill opens a SMALL contextual tooltip panel showing project usages
- *    and highlights related nodes in 3D.
- * 3. PROJECTS: Clicking a project node opens a LARGE research-paper / case-study presentation.
- * 4. EXPERIENCE: Clicking an experience node opens a LARGE experience presentation.
- * 5. CONTACT: Clicking a contact node triggers DIRECT external action immediately (NO MODAL!).
- * 6. SUBNETWORK FOCUS: Active subnet is 100% visual priority; Home network is heavily faded (8% opacity).
+ * Refinements:
+ * 1. Controlled 3D Radial Clustering Layout for Skills Subnetwork (Deterministic, clean separation).
+ * 2. Category nodes do NOT open empty boxes (Structural grouping anchors only).
+ * 3. Only individual skill nodes open the Small Contextual Tooltip Panel.
+ * 4. Project & Experience panels cleaned up: Removed "Research Paper Mode" text & REMOVED ALL RESUME CTAs!
+ * 5. Resume Action exists ONLY in ABOUT.
+ * 6. Keyboard navigation (ArrowUp, ArrowDown, PageUp, PageDown) scrolls detail panel content internally.
+ * 7. Neural Initialization Screen prevents white flash on refresh and smoothly fades out when ready.
  * ============================================================
  */
+
+/* ============================================================
+   NEURAL INITIALIZATION SCREEN HANDLER
+   ============================================================ */
+
+const loaderEl = document.getElementById('neuralLoader');
+const loaderStatusEl = document.getElementById('loaderStatus');
+const loaderBarFillEl = document.getElementById('loaderBarFill');
+
+let loadProgress = 0;
+const loadInterval = setInterval(() => {
+  loadProgress += 15;
+  if (loaderBarFillEl) loaderBarFillEl.style.width = `${Math.min(loadProgress, 90)}%`;
+
+  if (loadProgress === 30 && loaderStatusEl) {
+    loaderStatusEl.textContent = 'CONSTRUCTING COMPUTATIONAL GRAPH...';
+  } else if (loadProgress === 60 && loaderStatusEl) {
+    loaderStatusEl.textContent = 'CONNECTING NEURAL NODES...';
+  } else if (loadProgress >= 90 && loaderStatusEl) {
+    loaderStatusEl.textContent = 'SYSTEM ONLINE';
+  }
+
+  if (loadProgress >= 100) {
+    clearInterval(loadInterval);
+    if (loaderBarFillEl) loaderBarFillEl.style.width = '100%';
+    setTimeout(() => {
+      if (loaderEl) loaderEl.classList.add('hidden');
+    }, 280);
+  }
+}, 45);
 
 /* ============================================================
    SCENE & RENDERER SETUP
@@ -217,7 +247,7 @@ function showDetailPresentation(data) {
 
   hideSkillContextPanel();
 
-  panelKickerEl.textContent = data.kicker || 'TECHNICAL CASE STUDY';
+  panelKickerEl.textContent = data.kicker || 'PRESENTATION';
   panelTitleEl.textContent = data.title || 'PRESENTATION';
   panelSubtitleEl.textContent = data.subtitle || '';
 
@@ -264,7 +294,7 @@ function showDetailPresentation(data) {
     }
   }
 
-  // Render Actions
+  // Render Actions (RESUME BUTTON REMOVED FROM PROJECTS & EXPERIENCE!)
   panelActionsEl.innerHTML = '';
   if (Array.isArray(data.actions)) {
     for (const act of data.actions) {
@@ -283,7 +313,7 @@ function showDetailPresentation(data) {
   // Enable Focus Mode (dims background graph & hides 2D labels)
   document.body.classList.add('detail-panel-open');
   if (activeSubnet) {
-    setWorldOpacity(activeSubnet.group, 0.22);
+    setWorldOpacity(activeSubnet.group, 0.20);
   }
   if (mainGraph) {
     setWorldOpacity(mainGraph, 0.04);
@@ -291,6 +321,7 @@ function showDetailPresentation(data) {
 
   detailPanelEl.classList.add('active');
   detailPanelEl.setAttribute('aria-hidden', 'false');
+  detailPanelEl.focus();
 }
 
 function hideDetailPresentation() {
@@ -407,15 +438,6 @@ function createLabel(text, type, mode = 'main', extraClass = '') {
 
   labels.push(label);
   return label;
-}
-
-function removeLabel(label) {
-  if (!label) return;
-  label.element.remove();
-  const index = labels.indexOf(label);
-  if (index !== -1) {
-    labels.splice(index, 1);
-  }
 }
 
 function setLabelMode(mode) {
@@ -675,11 +697,11 @@ connectMain('contact', 'experience', 0.32);
 connectMain('experience', 'about', 0.32);
 
 /* ============================================================
-   ONE COMBINED ABOUT PRESENTATION DATA
+   ONE COMBINED ABOUT PRESENTATION DATA (RESUME PDF CTA HERE ONLY)
    ============================================================ */
 
 const combinedAboutData = {
-  kicker: 'ABOUT ME — PROFILE & CAPABILITIES',
+  kicker: 'PROFILE & CAPABILITIES',
   title: 'Deepak R V',
   subtitle: 'AI / ML Engineer & Computer Vision Specialist',
   sections: [
@@ -709,7 +731,7 @@ const combinedAboutData = {
 };
 
 /* ============================================================
-   SUBNETWORK DEFINITIONS
+   SUBNETWORK DEFINITIONS (DETERMINISTIC 3D LAYOUT FOR SKILLS)
    ============================================================ */
 
 const subnetDefinitions = {
@@ -721,46 +743,46 @@ const subnetDefinitions = {
       {
         id: 'cv-category',
         label: 'COMPUTER VISION',
-        position: [-5.2, 3.2, 2.5],
+        position: [-6.8, 3.8, 1.8],
         skills: [
-          { id: 'yolov8', label: 'YOLOv8', position: [-7.5, 4.8, 3.2], name: 'YOLOv8', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System'], tags: ['Object Detection', 'Real-Time Vision'] },
-          { id: 'bytetrack', label: 'ByteTrack', position: [-6.8, 1.4, 1.8], name: 'ByteTrack', category: 'Computer Vision', usedIn: ['Football Analysis System'], tags: ['Multi-Object Tracking', 'Re-ID'] },
-          { id: 'opencv', label: 'OpenCV', position: [-3.8, 5.0, 3.5], name: 'OpenCV', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System', 'Virtual Mouse Control'], tags: ['Image Geometry', 'Frame Processing'] },
-          { id: 'fast-scnn', label: 'Fast-SCNN', position: [-8.2, 2.8, -1.2], name: 'Fast-SCNN', category: 'Computer Vision', usedIn: ['SightMate'], tags: ['Semantic Segmentation', 'Real-Time'] },
-          { id: 'mediapipe', label: 'MediaPipe', position: [-3.2, 2.0, -2.5], name: 'MediaPipe Hands', category: 'Computer Vision', usedIn: ['Virtual Mouse Control'], tags: ['3D Landmarks', 'Hand Tracking'] },
+          { id: 'yolov8', label: 'YOLOv8', position: [-9.8, 5.5, 2.5], name: 'YOLOv8', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System'], tags: ['Object Detection', 'Real-Time Vision'] },
+          { id: 'bytetrack', label: 'ByteTrack', position: [-9.2, 2.2, 0.8], name: 'ByteTrack', category: 'Computer Vision', usedIn: ['Football Analysis System'], tags: ['Multi-Object Tracking', 'Re-ID'] },
+          { id: 'opencv', label: 'OpenCV', position: [-5.2, 6.2, 3.2], name: 'OpenCV', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System', 'Virtual Mouse Control'], tags: ['Image Geometry', 'Frame Processing'] },
+          { id: 'fast-scnn', label: 'Fast-SCNN', position: [-10.5, 3.6, -1.0], name: 'Fast-SCNN', category: 'Computer Vision', usedIn: ['SightMate'], tags: ['Semantic Segmentation', 'Real-Time'] },
+          { id: 'mediapipe', label: 'MediaPipe', position: [-4.2, 2.0, -2.2], name: 'MediaPipe Hands', category: 'Computer Vision', usedIn: ['Virtual Mouse Control'], tags: ['3D Landmarks', 'Hand Tracking'] },
         ],
       },
       {
         id: 'dl-category',
         label: 'DEEP LEARNING & AI',
-        position: [-1.4, 5.6, -3.0],
+        position: [6.8, 3.8, -1.8],
         skills: [
-          { id: 'pytorch', label: 'PyTorch', position: [-2.8, 7.2, -4.2], name: 'PyTorch', category: 'Deep Learning & AI', usedIn: ['Kaatchi Media Engine', 'Custom Vision Models'], tags: ['Model Training', 'Neural Networks'] },
-          { id: 'tensorflow', label: 'TensorFlow', position: [0.5, 7.5, -2.5], name: 'TensorFlow', category: 'Deep Learning & AI', usedIn: ['SightMate (TFLite)', 'Deep Neural Networks'], tags: ['Deep Learning', 'TFLite'] },
-          { id: 'cnns', label: 'CNNs', position: [-4.2, 7.0, -1.8], name: 'CNNs', category: 'Deep Learning & AI', usedIn: ['SightMate', 'Football Analysis'], tags: ['Classification', 'Feature Extraction'] },
-          { id: 'kmeans', label: 'K-Means', position: [1.2, 5.2, -4.5], name: 'K-Means Clustering', category: 'Deep Learning & AI', usedIn: ['Football Analysis System'], tags: ['Color Clustering', 'Team Assignment'] },
+          { id: 'pytorch', label: 'PyTorch', position: [5.2, 6.2, -3.2], name: 'PyTorch', category: 'Deep Learning & AI', usedIn: ['Kaatchi Media Engine', 'Custom Vision Models'], tags: ['Model Training', 'Neural Networks'] },
+          { id: 'tensorflow', label: 'TensorFlow', position: [9.8, 5.5, -2.5], name: 'TensorFlow', category: 'Deep Learning & AI', usedIn: ['SightMate (TFLite)', 'Deep Neural Networks'], tags: ['Deep Learning', 'TFLite'] },
+          { id: 'cnns', label: 'CNNs', position: [4.2, 2.0, 2.2], name: 'CNNs', category: 'Deep Learning & AI', usedIn: ['SightMate', 'Football Analysis'], tags: ['Classification', 'Feature Extraction'] },
+          { id: 'kmeans', label: 'K-Means', position: [9.2, 2.2, -0.8], name: 'K-Means Clustering', category: 'Deep Learning & AI', usedIn: ['Football Analysis System'], tags: ['Color Clustering', 'Team Assignment'] },
         ],
       },
       {
         id: 'systems-category',
         label: 'SYSTEMS & DEPLOYMENT',
-        position: [5.2, 3.5, 2.5],
+        position: [-6.8, -3.8, -1.8],
         skills: [
-          { id: 'fastapi', label: 'FastAPI', position: [7.2, 5.2, 3.2], name: 'FastAPI', category: 'Systems & Deployment', usedIn: ['Kaatchi Media Engine'], tags: ['REST Endpoints', 'Async Python'] },
-          { id: 'docker', label: 'Docker', position: [6.8, 1.8, 1.5], name: 'Docker', category: 'Systems & Deployment', usedIn: ['Kaatchi Media Engine'], tags: ['Containerization', 'Microservices'] },
-          { id: 'onnx', label: 'ONNX Runtime', position: [4.2, 5.8, 4.2], name: 'ONNX Runtime', category: 'Systems & Deployment', usedIn: ['Edge AI Optimization'], tags: ['Cross-Platform Inference'] },
-          { id: 'cpp', label: 'C++', position: [8.5, 3.2, -1.2], name: 'C++', category: 'Systems & Deployment', usedIn: ['Algorithmic Systems'], tags: ['High Performance', 'Low Latency'] },
+          { id: 'fastapi', label: 'FastAPI', position: [-9.8, -5.5, -2.5], name: 'FastAPI', category: 'Systems & Deployment', usedIn: ['Kaatchi Media Engine'], tags: ['REST Endpoints', 'Async Python'] },
+          { id: 'docker', label: 'Docker', position: [-9.2, -2.2, -0.8], name: 'Docker', category: 'Systems & Deployment', usedIn: ['Kaatchi Media Engine'], tags: ['Containerization', 'Microservices'] },
+          { id: 'onnx', label: 'ONNX Runtime', position: [-5.2, -6.2, -3.2], name: 'ONNX Runtime', category: 'Systems & Deployment', usedIn: ['Edge AI Optimization'], tags: ['Cross-Platform Inference'] },
+          { id: 'cpp', label: 'C++', position: [-4.2, -2.0, 2.2], name: 'C++', category: 'Systems & Deployment', usedIn: ['Algorithmic Systems'], tags: ['High Performance', 'Low Latency'] },
         ],
       },
       {
         id: 'lang-category',
         label: 'LANGUAGES & TOOLS',
-        position: [5.6, -1.8, -3.2],
+        position: [6.8, -3.8, 1.8],
         skills: [
-          { id: 'python', label: 'Python', position: [7.5, -0.2, -2.2], name: 'Python', category: 'Languages & Tools', usedIn: ['SightMate', 'Football Analysis System', 'Kaatchi Media Engine', 'Virtual Mouse Control'], tags: ['Core Language', 'AI/ML Engineering'] },
-          { id: 'flutter', label: 'Flutter / Dart', position: [4.2, -3.8, -4.5], name: 'Flutter / Dart', category: 'Languages & Tools', usedIn: ['SightMate Mobile App'], tags: ['Cross-Platform UI', 'Mobile Apps'] },
-          { id: 'sql', label: 'SQL', position: [8.2, -3.2, -1.5], name: 'SQL', category: 'Languages & Tools', usedIn: ['Quality Threads Analytics'], tags: ['Relational DB', 'Data Pipelines'] },
-          { id: 'git', label: 'Git & Linux', position: [2.8, -2.5, -1.8], name: 'Git & Linux', category: 'Languages & Tools', usedIn: ['All Projects & Systems'], tags: ['Version Control', 'DevOps'] },
+          { id: 'python', label: 'Python', position: [9.8, -5.5, 2.5], name: 'Python', category: 'Languages & Tools', usedIn: ['SightMate', 'Football Analysis System', 'Kaatchi Media Engine', 'Virtual Mouse Control'], tags: ['Core Language', 'AI/ML Engineering'] },
+          { id: 'flutter', label: 'Flutter / Dart', position: [5.2, -6.2, 3.2], name: 'Flutter / Dart', category: 'Languages & Tools', usedIn: ['SightMate Mobile App'], tags: ['Cross-Platform UI', 'Mobile Apps'] },
+          { id: 'sql', label: 'SQL', position: [9.2, -2.2, 0.8], name: 'SQL', category: 'Languages & Tools', usedIn: ['Quality Threads Analytics'], tags: ['Relational DB', 'Data Pipelines'] },
+          { id: 'git', label: 'Git & Linux', position: [4.2, -2.0, -2.2], name: 'Git & Linux', category: 'Languages & Tools', usedIn: ['All Projects & Systems'], tags: ['Version Control', 'DevOps'] },
         ],
       },
     ],
@@ -775,7 +797,7 @@ const subnetDefinitions = {
         id: 'sightmate',
         label: 'SIGHTMATE',
         position: [-5.2, 2.8, 3.2],
-        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
+        kicker: 'PROJECT PRESENTATION',
         title: 'SightMate',
         subtitle: 'AI Navigation & Spoken Assistance System',
         sections: [
@@ -823,7 +845,6 @@ const subnetDefinitions = {
         tags: ['Flutter', 'YOLOv8', 'Fast-SCNN', 'Tesseract OCR', 'Accessibility'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/SightMate' },
-          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
 
@@ -831,7 +852,7 @@ const subnetDefinitions = {
         id: 'football',
         label: 'FOOTBALL ANALYSIS',
         position: [-1.4, 5.6, -3.0],
-        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
+        kicker: 'PROJECT PRESENTATION',
         title: 'Football Analysis System',
         subtitle: 'AI Sports Analytics & Video Tracking Pipeline',
         sections: [
@@ -879,7 +900,6 @@ const subnetDefinitions = {
         tags: ['YOLOv8', 'ByteTrack', 'K-Means', 'OpenCV', 'Python Analytics'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Football-Analysis-System' },
-          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
 
@@ -887,7 +907,7 @@ const subnetDefinitions = {
         id: 'kaatchi',
         label: 'KAATCHI MEDIA',
         position: [5.2, 3.5, 2.5],
-        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
+        kicker: 'PROJECT PRESENTATION',
         title: 'Kaatchi Media Engine',
         subtitle: 'Media Processing & AI Content Indexing Microservice',
         sections: [
@@ -934,7 +954,6 @@ const subnetDefinitions = {
         tags: ['PyTorch', 'FastAPI', 'FFmpeg', 'Docker', 'Microservices'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Kaatchi-Media' },
-          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
 
@@ -942,7 +961,7 @@ const subnetDefinitions = {
         id: 'virtual-mouse',
         label: 'VIRTUAL MOUSE',
         position: [5.6, -1.8, -3.2],
-        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
+        kicker: 'PROJECT PRESENTATION',
         title: 'Virtual Mouse Control System',
         subtitle: 'Gesture HCI Control System',
         sections: [
@@ -988,7 +1007,6 @@ const subnetDefinitions = {
         tags: ['MediaPipe Hands', 'OpenCV', 'PyAutoGUI', 'Touchless HCI'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Virtual-Mouse-Controll' },
-          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
     ],
@@ -1024,7 +1042,6 @@ const subnetDefinitions = {
         tags: ['PyTorch', 'FastAPI', 'FFmpeg', 'Docker'],
         actions: [
           { label: 'VIEW CODE ON GITHUB', type: 'primary', url: 'https://github.com/DEEPAKRV07/Kaatchi-Media' },
-          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
       {
@@ -1049,9 +1066,7 @@ const subnetDefinitions = {
           },
         ],
         tags: ['YOLOv8', 'OpenCV', 'Python', 'Edge AI'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
-        ],
+        actions: [],
       },
       {
         id: 'quality-exp',
@@ -1075,9 +1090,7 @@ const subnetDefinitions = {
           },
         ],
         tags: ['Python', 'SQL', 'Data Analytics'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
-        ],
+        actions: [],
       },
       {
         id: 'forcrux-exp',
@@ -1100,9 +1113,7 @@ const subnetDefinitions = {
           },
         ],
         tags: ['JavaScript', 'HTML/CSS', 'Web APIs'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
-        ],
+        actions: [],
       },
     ],
   },
@@ -1191,7 +1202,7 @@ function createSubnetWorld(subnetId) {
 
     node.group.position.set(...category.position);
     node.nucleusMesh.userData = {
-      type: 'terminal-node',
+      type: 'category-node',
       id: category.id,
       subnetId,
       label: category.label,
@@ -1452,14 +1463,14 @@ function getPointerObject() {
     }
   }
 
-  /* Subnet Layer Terminal Nodes */
+  /* Subnet Layer Category / Terminal Nodes */
   if (activeSubnet) {
     const hits = raycaster.intersectObjects(
       activeSubnet.categories.map(node => node.mesh),
       false
     );
     if (hits.length) {
-      return { type: 'terminal-node', object: hits[0].object };
+      return { type: 'category-node', object: hits[0].object };
     }
   }
 
@@ -1518,7 +1529,7 @@ renderer.domElement.addEventListener('click', () => {
     return;
   }
 
-  if (hit.type === 'terminal-node') {
+  if (hit.type === 'category-node') {
     const categoryObj = activeSubnet.categories.find(node => node.mesh === hit.object);
     if (categoryObj) {
       const nodeData = categoryObj.nodeData || categoryObj;
@@ -1528,6 +1539,10 @@ renderer.domElement.addEventListener('click', () => {
           nodeData.actionUrl,
           nodeData.actionUrl.startsWith('http') ? '_blank' : '_self'
         );
+      } else if (activeSubnet.subnetId === 'skills') {
+        // SKILLS CATEGORY NODE: MUST NOT OPEN EMPTY BOX! (Grouping anchor only)
+        // Focus or highlight category branch without opening a modal
+        return;
       } else {
         // PROJECTS & EXPERIENCE: LARGE DETAIL PRESENTATION
         showDetailPresentation(nodeData);
@@ -1537,7 +1552,7 @@ renderer.domElement.addEventListener('click', () => {
   }
 
   if (hit.type === 'skill-node') {
-    // SKILLS SECTION: SMALL CONTEXTUAL TOOLTIP PANEL (No giant box)
+    // SKILLS SECTION: SMALL CONTEXTUAL TOOLTIP PANEL
     const skillData = hit.object.userData.skillData;
     if (skillData) {
       showSkillContextPanel(skillData);
@@ -1562,13 +1577,43 @@ function updateHover() {
 }
 
 /* ============================================================
-   KEYBOARD NAVIGATION
+   KEYBOARD NAVIGATION & DETAIL PANEL SCROLLING
    ============================================================ */
 
 window.addEventListener('keydown', event => {
+  const isDetailOpen = document.body.classList.contains('detail-panel-open');
+
+  if (isDetailOpen && panelBodyEl) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      panelBodyEl.scrollTop += 60;
+      return;
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      panelBodyEl.scrollTop -= 60;
+      return;
+    } else if (event.key === 'PageDown') {
+      event.preventDefault();
+      panelBodyEl.scrollTop += 320;
+      return;
+    } else if (event.key === 'PageUp') {
+      event.preventDefault();
+      panelBodyEl.scrollTop -= 320;
+      return;
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      panelBodyEl.scrollTop = 0;
+      return;
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      panelBodyEl.scrollTop = panelBodyEl.scrollHeight;
+      return;
+    }
+  }
+
   if (event.key === 'Escape') {
     exitLayer();
-  } else if (event.key === 'Home') {
+  } else if (event.key === 'Home' && !isDetailOpen) {
     returnToCore();
   }
 });

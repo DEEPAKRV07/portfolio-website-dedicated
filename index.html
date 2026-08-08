@@ -9,9 +9,108 @@
       content="Deepak R V — AI/ML Engineer & Computer Vision Specialist portfolio built as an interactive 3D neural network."
     />
     <title>Deepak R V — Inside My Neural Network</title>
+    <!-- Inline Critical CSS for Neural Initialization Screen (Eliminating White Flash) -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #050505;
+        color: #f0f0f0;
+        font-family: monospace, system-ui, sans-serif;
+        overflow: hidden;
+      }
+      #neuralLoader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #050505;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 500ms ease, visibility 500ms ease;
+      }
+      #neuralLoader.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .loader-core {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 22px;
+      }
+      .loader-dot {
+        width: 12px;
+        height: 12px;
+        background: #00ff88;
+        border-radius: 50%;
+        box-shadow: 0 0 18px #00ff88;
+      }
+      .loader-ring {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(0, 255, 136, 0.35);
+        border-top-color: #00ff88;
+        border-radius: 50%;
+        animation: loaderSpin 1.2s linear infinite;
+      }
+      @keyframes loaderSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loader-kicker {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        color: #00ff88;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .loader-status {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: #aaaaaa;
+        margin-bottom: 16px;
+      }
+      .loader-bar-bg {
+        width: 180px;
+        height: 2px;
+        background: rgba(0, 255, 136, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+      .loader-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: #00ff88;
+        box-shadow: 0 0 10px #00ff88;
+        transition: width 180ms ease;
+      }
+    </style>
   </head>
 
   <body>
+    <!-- Neural Initialization Screen (Eliminating White Flash) -->
+    <div id="neuralLoader" aria-label="Loading neural network system">
+      <div class="loader-core">
+        <div class="loader-ring"></div>
+        <div class="loader-dot"></div>
+      </div>
+      <div class="loader-kicker">INSIDE MY NEURAL NETWORK</div>
+      <div class="loader-status" id="loaderStatus">INITIALIZING SYSTEM...</div>
+      <div class="loader-bar-bg">
+        <div class="loader-bar-fill" id="loaderBarFill"></div>
+      </div>
+    </div>
+
     <main id="portfolio" aria-label="Interactive neural network portfolio">
       <div class="atmosphere"></div>
 
@@ -98,17 +197,17 @@
         </div>
 
         <!-- Large Technical Detail Presentation Overlay (Projects & Experience & About) -->
-        <article class="node-detail-panel" id="detailPanel" aria-hidden="true">
+        <article class="node-detail-panel" id="detailPanel" aria-hidden="true" tabindex="-1">
           <button class="panel-close-btn" id="panelCloseBtn" aria-label="Close presentation">✕</button>
 
           <header class="panel-header">
-            <div class="panel-kicker" id="panelKicker">TECHNICAL CASE STUDY</div>
+            <div class="panel-kicker" id="panelKicker">PROJECT PRESENTATION</div>
             <h2 class="panel-title" id="panelTitle">PROJECT TITLE</h2>
             <div class="panel-subtitle" id="panelSubtitle">SUBTITLE</div>
           </header>
 
           <div class="panel-body" id="panelBody">
-            <!-- Dynamic structured technical content (Overview, Problem, Architecture, Results, etc.) -->
+            <!-- Dynamic structured content -->
           </div>
 
           <footer class="panel-footer">
