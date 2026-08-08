@@ -794,11 +794,28 @@ body.detail-panel-open .network-lab-panel {
 }
 
 .graph-label.skill {
-  color: var(--green-bright);
-  font-family: var(--font-display);
-  font-size: 9px;
+  color: #ffffff !important;
+  font-family: var(--font-display) !important;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.35);
+}
+
+.graph-label.ambient-hover {
+  color: #ffffff !important;
+  font-family: var(--font-display) !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 16px rgba(0, 255, 136, 0.85);
+  background: rgba(5, 15, 10, 0.88);
+  padding: 3px 8px;
+  border: 1px solid rgba(0, 255, 136, 0.42);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 40;
+  transition: opacity 120ms ease;
 }
 
 .graph-label.project {

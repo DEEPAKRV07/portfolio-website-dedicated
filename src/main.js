@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — AMBIENT 3D SOCIAL / ACTION LOGOS + SKILL NODE TYPOGRAPHY
+ * SPRINT — OFFICIAL LOGOS, HOVER LABELS & GLOBAL NETWORK BURST / RECONSTRUCTION
  * ============================================================
  */
 
@@ -684,8 +684,8 @@ for (const data of mainNodes) {
 }
 
 /* ============================================================
-   5 AMBIENT 3D FLOATING LOGO OBJECTS (HOME SCENE ONLY!)
-   No rectangular cards, no plaques, no large text!
+   5 OFFICIAL AMBIENT 3D FLOATING LOGO OBJECTS (HOME SCENE ONLY!)
+   With 3D Tracked Hover Identification Tooltips!
    ============================================================ */
 
 const ambientLogosGroup = new THREE.Group();
@@ -711,7 +711,7 @@ function createLogoTexture(type) {
   ctx.stroke();
 
   // Translucent dark glass disc background
-  ctx.fillStyle = 'rgba(5, 15, 10, 0.78)';
+  ctx.fillStyle = 'rgba(5, 15, 10, 0.82)';
   ctx.beginPath();
   ctx.arc(256, 256, 214, 0, Math.PI * 2);
   ctx.fill();
@@ -723,9 +723,9 @@ function createLogoTexture(type) {
   ctx.lineJoin = 'round';
 
   if (type === 'github') {
-    // Official Octocat silhouette / GitHub Mark
+    // Official GitHub Standalone Invertocat Silhouette
     ctx.beginPath();
-    ctx.arc(256, 240, 105, 0, Math.PI * 2);
+    ctx.arc(256, 235, 105, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = 'rgba(5, 15, 10, 0.95)';
     ctx.beginPath();
@@ -738,13 +738,13 @@ function createLogoTexture(type) {
     ctx.beginPath();
     ctx.moveTo(342, 160); ctx.lineTo(317, 95); ctx.lineTo(282, 140); ctx.fill();
   } else if (type === 'linkedin') {
-    // Official 3D "in" logo
+    // Official LinkedIn [in] logo asset rendering
     ctx.font = '700 240px Deltha, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('in', 256, 245);
   } else if (type === 'email') {
-    // Envelope Icon
+    // Professional Mail / Envelope Icon
     ctx.strokeRect(140, 170, 232, 160);
     ctx.beginPath();
     ctx.moveTo(140, 170);
@@ -752,7 +752,7 @@ function createLogoTexture(type) {
     ctx.lineTo(372, 170);
     ctx.stroke();
   } else if (type === 'resume') {
-    // Document / Resume Sheet Icon
+    // Professional Document / Resume Sheet Icon
     ctx.strokeRect(165, 130, 182, 230);
     ctx.beginPath();
     ctx.moveTo(205, 190); ctx.lineTo(307, 190);
@@ -760,7 +760,7 @@ function createLogoTexture(type) {
     ctx.moveTo(205, 300); ctx.lineTo(270, 300);
     ctx.stroke();
   } else if (type === 'hire') {
-    // Person / Contact Icon
+    // Professional Person / Contact Icon
     ctx.beginPath();
     ctx.arc(256, 190, 55, 0, Math.PI * 2);
     ctx.fill();
@@ -778,7 +778,7 @@ const logoDataList = [
   {
     id: 'logo-resume',
     type: 'resume',
-    title: 'RESUME',
+    title: 'Resume',
     basePos: new THREE.Vector3(0.0, 11.5, -6.5),
     baseRot: new THREE.Vector3(0, 0, 0),
     phase: 0.0,
@@ -789,7 +789,7 @@ const logoDataList = [
   {
     id: 'logo-github',
     type: 'github',
-    title: 'GITHUB',
+    title: 'GitHub',
     basePos: new THREE.Vector3(-14.8, 5.2, -4.5),
     baseRot: new THREE.Vector3(0, 0.18, 0),
     phase: 1.4,
@@ -800,7 +800,7 @@ const logoDataList = [
   {
     id: 'logo-email',
     type: 'email',
-    title: 'EMAIL',
+    title: 'Email',
     basePos: new THREE.Vector3(-14.8, -5.2, -4.5),
     baseRot: new THREE.Vector3(0, 0.22, 0),
     phase: 2.8,
@@ -811,7 +811,7 @@ const logoDataList = [
   {
     id: 'logo-linkedin',
     type: 'linkedin',
-    title: 'LINKEDIN',
+    title: 'LinkedIn',
     basePos: new THREE.Vector3(14.8, 5.2, -4.5),
     baseRot: new THREE.Vector3(0, -0.18, 0),
     phase: 4.2,
@@ -822,7 +822,7 @@ const logoDataList = [
   {
     id: 'logo-hire',
     type: 'hire',
-    title: 'HIRE ME',
+    title: 'Hire Me',
     basePos: new THREE.Vector3(14.8, -5.2, -4.5),
     baseRot: new THREE.Vector3(0, -0.12, 0),
     phase: 5.6,
@@ -862,10 +862,17 @@ for (const item of logoDataList) {
 
   ambientLogosGroup.add(group);
 
+  // 3D Tracked Hover Label (Appears ONLY on hover!)
+  const hoverLabel = createLabel(`◉ ${item.title}`, 'ambient-hover', 'main');
+  hoverLabel.object = mesh;
+  hoverLabel.offset.set(0, 1.15, 0);
+  hoverLabel.hidden = true; // Hidden by default
+
   ambientLogoObjects.push({
     ...item,
     group,
     mesh,
+    hoverLabel,
   });
 }
 
@@ -1667,58 +1674,92 @@ function exitLayer() {
 }
 
 /* ============================================================
-   PLAYFUL NETWORK EASTER EGGS — BURST & RECONSTRUCT
+   GLOBAL NETWORK BURST & RECONSTRUCT SYSTEM (ACTS ON ACTIVE NETWORK)
    ============================================================ */
 
-let isBurstActive = false;
-let burstProgress = 0;
-const burstVelocities = new Map();
+let burstState = 'IDLE'; // 'IDLE' | 'BURSTING' | 'BURSTED' | 'RECONSTRUCTING'
+const burstNodeDataMap = new Map();
 
 const burstBtn = document.getElementById('burstBtn');
 const reconstructBtn = document.getElementById('reconstructBtn');
 
-function triggerBurstNetwork() {
-  isBurstActive = true;
-  burstProgress = 0;
+function getActiveNetworkNodes() {
+  const activeNodes = [];
 
-  burstVelocities.clear();
-  mainGraph.traverse(child => {
-    if (child.isGroup && child !== mainGraph && child !== core) {
-      const dir = child.position.clone().normalize();
-      if (dir.length() === 0) dir.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-      const velocity = dir.multiplyScalar(0.24 + Math.random() * 0.32);
-      const rotVelocity = new THREE.Vector3(
-        (Math.random() - 0.5) * 0.08,
-        (Math.random() - 0.5) * 0.08,
-        (Math.random() - 0.5) * 0.08
-      );
-      burstVelocities.set(child, { velocity, rotVelocity, startPos: child.position.clone(), startRot: child.rotation.clone() });
+  if (currentLayer === 'MAIN') {
+    for (const item of mainNodeObjects) {
+      if (item.group) activeNodes.push(item.group);
     }
-  });
+  } else if (currentLayer === 'SUBNET' && activeSubnet) {
+    activeSubnet.group.traverse(child => {
+      if (child.isGroup && child.parent === activeSubnet.group) {
+        activeNodes.push(child);
+      }
+    });
+  }
+
+  return activeNodes;
+}
+
+function triggerBurstNetwork() {
+  if (burstState === 'BURSTING' || burstState === 'BURSTED') return;
+
+  // Do not burst while modal panel is focused
+  if (document.body.classList.contains('detail-panel-open')) return;
+
+  burstState = 'BURSTING';
+  burstNodeDataMap.clear();
+
+  const targets = getActiveNetworkNodes();
+  for (const nodeGroup of targets) {
+    const dir = nodeGroup.position.clone().normalize();
+    if (dir.length() === 0) dir.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+
+    const velocity = dir.multiplyScalar(0.24 + Math.random() * 0.32);
+    const rotVelocity = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.08,
+      (Math.random() - 0.5) * 0.08,
+      (Math.random() - 0.5) * 0.08
+    );
+
+    burstNodeDataMap.set(nodeGroup, {
+      velocity,
+      rotVelocity,
+      startPos: nodeGroup.position.clone(),
+      startRot: nodeGroup.rotation.clone(),
+    });
+  }
 
   setMode('NETWORK BURST');
 }
 
 function triggerReconstructNetwork() {
-  isBurstActive = false;
-  startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 900);
-  setMode('OVERVIEW');
+  if (burstState === 'IDLE' || burstNodeDataMap.size === 0) return;
+
+  burstState = 'RECONSTRUCTING';
 }
 
 if (burstBtn) burstBtn.addEventListener('click', triggerBurstNetwork);
 if (reconstructBtn) reconstructBtn.addEventListener('click', triggerReconstructNetwork);
 
 function animateBurstState() {
-  if (isBurstActive) {
-    burstProgress = Math.min(burstProgress + 0.02, 1.0);
-    for (const [obj, data] of burstVelocities.entries()) {
+  if (burstState === 'BURSTING') {
+    let stepCount = 0;
+    for (const [obj, data] of burstNodeDataMap.entries()) {
       obj.position.add(data.velocity);
       obj.rotation.x += data.rotVelocity.x;
       obj.rotation.y += data.rotVelocity.y;
+      stepCount++;
     }
-  } else if (burstVelocities.size > 0) {
+    if (stepCount > 0) burstState = 'BURSTED';
+  } else if (burstState === 'BURSTED') {
+    for (const [obj, data] of burstNodeDataMap.entries()) {
+      obj.rotation.x += data.rotVelocity.x * 0.2;
+      obj.rotation.y += data.rotVelocity.y * 0.2;
+    }
+  } else if (burstState === 'RECONSTRUCTING') {
     let allRestored = true;
-    for (const [obj, data] of burstVelocities.entries()) {
+    for (const [obj, data] of burstNodeDataMap.entries()) {
       obj.position.lerp(data.startPos, 0.12);
       obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, data.startRot.x, 0.12);
       obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, data.startRot.y, 0.12);
@@ -1729,11 +1770,18 @@ function animateBurstState() {
       }
     }
     if (allRestored) {
-      for (const [obj, data] of burstVelocities.entries()) {
+      for (const [obj, data] of burstNodeDataMap.entries()) {
         obj.position.copy(data.startPos);
         obj.rotation.copy(data.startRot);
       }
-      burstVelocities.clear();
+      burstNodeDataMap.clear();
+      burstState = 'IDLE';
+
+      if (currentLayer === 'MAIN') {
+        setMode('OVERVIEW');
+      } else if (activeSubnet) {
+        setMode(activeSubnet.definition.title);
+      }
     }
   }
 }
@@ -1890,17 +1938,27 @@ renderer.domElement.addEventListener('click', () => {
   }
 });
 
-/* Hover Scaling Effect for Nodes and Ambient Logos */
+/* Hover Scaling Effect for Nodes and Ambient Logos with 3D Tracked Hover Tooltip */
 const tempScale = new THREE.Vector3();
+
 function updateHover() {
   const hit = getPointerObject();
 
-  if (ambientLogosGroup.visible) {
+  if (ambientLogosGroup.visible && !document.body.classList.contains('detail-panel-open')) {
     for (const item of ambientLogoObjects) {
       const isHovered = hit?.type === 'ambient-logo' && hit.object === item.mesh;
       const targetScale = isHovered ? 1.15 : 1.0;
       tempScale.set(targetScale, targetScale, targetScale);
       item.group.scale.lerp(tempScale, 0.16);
+
+      // Show 3D-tracked Deltha hover label ONLY on hover!
+      if (item.hoverLabel) {
+        item.hoverLabel.hidden = !isHovered;
+      }
+    }
+  } else {
+    for (const item of ambientLogoObjects) {
+      if (item.hoverLabel) item.hoverLabel.hidden = true;
     }
   }
 
@@ -2027,7 +2085,7 @@ function animate(currentTime) {
   particleCloud.rotation.y += 0.0005;
 
   /* Organic 3D Multi-Axis Floating Motion for 5 Ambient Logos */
-  if (!isBurstActive && ambientLogosGroup.visible) {
+  if (ambientLogosGroup.visible) {
     const t = currentTime * 0.001;
     for (const item of ambientLogoObjects) {
       let rawX = item.basePos.x + Math.sin(t * item.speedX + item.phase) * item.ampX + Math.cos(t * 0.45 + item.phase) * 1.2;
