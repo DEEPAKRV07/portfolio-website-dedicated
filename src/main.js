@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — OFFICIAL LOGOS, HOVER LABELS & GLOBAL NETWORK BURST / RECONSTRUCTION
+ * SPRINT — RESTORE BURST/RECONSTRUCT + FIX GITHUB AMBIENT LOGO + FINAL HOME POLISH
  * ============================================================
  */
 
@@ -685,7 +685,7 @@ for (const data of mainNodes) {
 
 /* ============================================================
    5 OFFICIAL AMBIENT 3D FLOATING LOGO OBJECTS (HOME SCENE ONLY!)
-   With 3D Tracked Hover Identification Tooltips!
+   With Official Standalone GitHub Invertocat Vector Asset
    ============================================================ */
 
 const ambientLogosGroup = new THREE.Group();
@@ -723,20 +723,30 @@ function createLogoTexture(type) {
   ctx.lineJoin = 'round';
 
   if (type === 'github') {
-    // Official GitHub Standalone Invertocat Silhouette
+    // Official GitHub Standalone Invertocat Silhouette Path
+    ctx.save();
+    ctx.translate(256, 245);
+    ctx.scale(1.15, 1.15);
+    ctx.fillStyle = '#00ff88';
+
+    // Invertocat Silhouette Path
     ctx.beginPath();
-    ctx.arc(256, 235, 105, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(5, 15, 10, 0.95)';
-    ctx.beginPath();
-    ctx.arc(256, 310, 62, 0, Math.PI * 2);
+    ctx.arc(0, -10, 90, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#00ff88';
+    // Ears Cutout
     ctx.beginPath();
-    ctx.moveTo(170, 160); ctx.lineTo(195, 95); ctx.lineTo(230, 140); ctx.fill();
+    ctx.moveTo(-60, -65); ctx.lineTo(-85, -125); ctx.lineTo(-25, -95); ctx.closePath();
+    ctx.moveTo(60, -65);  ctx.lineTo(85, -125);  ctx.lineTo(25, -95);  ctx.closePath();
+    ctx.fill();
+
+    // Inner Body Arch Cutout
+    ctx.fillStyle = 'rgba(5, 15, 10, 0.95)';
     ctx.beginPath();
-    ctx.moveTo(342, 160); ctx.lineTo(317, 95); ctx.lineTo(282, 140); ctx.fill();
+    ctx.arc(0, 55, 52, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   } else if (type === 'linkedin') {
     // Official LinkedIn [in] logo asset rendering
     ctx.font = '700 240px Deltha, sans-serif';
@@ -779,7 +789,7 @@ const logoDataList = [
     id: 'logo-resume',
     type: 'resume',
     title: 'Resume',
-    basePos: new THREE.Vector3(0.0, 11.5, -6.5),
+    basePos: new THREE.Vector3(0.0, 13.8, -6.5), // Positioned higher up to guarantee separation from ABOUT!
     baseRot: new THREE.Vector3(0, 0, 0),
     phase: 0.0,
     speedX: 0.35, speedY: 0.45, speedZ: 0.30,
@@ -790,7 +800,7 @@ const logoDataList = [
     id: 'logo-github',
     type: 'github',
     title: 'GitHub',
-    basePos: new THREE.Vector3(-14.8, 5.2, -4.5),
+    basePos: new THREE.Vector3(-14.8, 5.2, -4.5), // Valid seeded initial position
     baseRot: new THREE.Vector3(0, 0.18, 0),
     phase: 1.4,
     speedX: 0.40, speedY: 0.35, speedZ: 0.25,
@@ -1674,10 +1684,11 @@ function exitLayer() {
 }
 
 /* ============================================================
-   GLOBAL NETWORK BURST & RECONSTRUCT SYSTEM (ACTS ON ACTIVE NETWORK)
+   GLOBAL NETWORK BURST & RECONSTRUCT SYSTEM (FLUID 3D RUPTURE & LERP)
    ============================================================ */
 
 let burstState = 'IDLE'; // 'IDLE' | 'BURSTING' | 'BURSTED' | 'RECONSTRUCTING'
+let burstTimer = 0;
 const burstNodeDataMap = new Map();
 
 const burstBtn = document.getElementById('burstBtn');
@@ -1703,11 +1714,10 @@ function getActiveNetworkNodes() {
 
 function triggerBurstNetwork() {
   if (burstState === 'BURSTING' || burstState === 'BURSTED') return;
-
-  // Do not burst while modal panel is focused
   if (document.body.classList.contains('detail-panel-open')) return;
 
   burstState = 'BURSTING';
+  burstTimer = 0;
   burstNodeDataMap.clear();
 
   const targets = getActiveNetworkNodes();
@@ -1715,7 +1725,8 @@ function triggerBurstNetwork() {
     const dir = nodeGroup.position.clone().normalize();
     if (dir.length() === 0) dir.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
 
-    const velocity = dir.multiplyScalar(0.24 + Math.random() * 0.32);
+    const speed = 0.28 + Math.random() * 0.35;
+    const velocity = dir.clone().multiplyScalar(speed);
     const rotVelocity = new THREE.Vector3(
       (Math.random() - 0.5) * 0.08,
       (Math.random() - 0.5) * 0.08,
@@ -1735,7 +1746,6 @@ function triggerBurstNetwork() {
 
 function triggerReconstructNetwork() {
   if (burstState === 'IDLE' || burstNodeDataMap.size === 0) return;
-
   burstState = 'RECONSTRUCTING';
 }
 
@@ -1744,18 +1754,20 @@ if (reconstructBtn) reconstructBtn.addEventListener('click', triggerReconstructN
 
 function animateBurstState() {
   if (burstState === 'BURSTING') {
-    let stepCount = 0;
+    burstTimer++;
     for (const [obj, data] of burstNodeDataMap.entries()) {
       obj.position.add(data.velocity);
       obj.rotation.x += data.rotVelocity.x;
       obj.rotation.y += data.rotVelocity.y;
-      stepCount++;
+      data.velocity.multiplyScalar(0.97);
     }
-    if (stepCount > 0) burstState = 'BURSTED';
+    if (burstTimer >= 45) {
+      burstState = 'BURSTED';
+    }
   } else if (burstState === 'BURSTED') {
     for (const [obj, data] of burstNodeDataMap.entries()) {
-      obj.rotation.x += data.rotVelocity.x * 0.2;
-      obj.rotation.y += data.rotVelocity.y * 0.2;
+      obj.rotation.x += data.rotVelocity.x * 0.15;
+      obj.rotation.y += data.rotVelocity.y * 0.15;
     }
   } else if (burstState === 'RECONSTRUCTING') {
     let allRestored = true;
@@ -1765,7 +1777,7 @@ function animateBurstState() {
       obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, data.startRot.y, 0.12);
       obj.rotation.z = THREE.MathUtils.lerp(obj.rotation.z, data.startRot.z, 0.12);
 
-      if (obj.position.distanceTo(data.startPos) > 0.05) {
+      if (obj.position.distanceTo(data.startPos) > 0.02) {
         allRestored = false;
       }
     }
