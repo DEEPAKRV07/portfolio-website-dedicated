@@ -730,9 +730,35 @@ function createLogoTexture(type, imgElement = null) {
   if (type === 'github') {
     if (imgElement && imgElement.complete && imgElement.naturalWidth !== 0) {
       ctx.save();
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = imgElement.naturalWidth || 512;
+      tempCanvas.height = imgElement.naturalHeight || 512;
+      const tCtx = tempCanvas.getContext('2d');
+
+      tCtx.drawImage(imgElement, 0, 0, tempCanvas.width, tempCanvas.height);
+      const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+      const data = imgData.data;
+
+      // Filter out white background square pixels if present
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        if (r > 210 && g > 210 && b > 210) {
+          data[i + 3] = 0; // Make white/light background transparent
+        }
+      }
+      tCtx.putImageData(imgData, 0, 0);
+
+      // Composite source-in to tint logo mark to bright emissive green #00ff88
+      tCtx.globalCompositeOperation = 'source-in';
+      tCtx.fillStyle = '#00ff88';
+      tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      // Draw glowing green GitHub logo onto main dark glass app icon
       ctx.shadowColor = '#00ff88';
-      ctx.shadowBlur = 18;
-      ctx.drawImage(imgElement, 96, 96, 320, 320);
+      ctx.shadowBlur = 24;
+      ctx.drawImage(tempCanvas, 96, 96, 320, 320);
       ctx.restore();
     } else {
       // Official GitHub Standalone Invertocat Silhouette Path
