@@ -5,16 +5,16 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * Sprint 3G — FINAL CONTENT HIERARCHY, DETAIL VIEW, OVERLAY
- *             COMPOSITION & SUBNETWORK CORRECTION
+ * SPRINT — SELECTIVE DETAIL SYSTEM + SUBNETWORK FOCUS REFINEMENT
  *
- * Core Principles:
- * 1. Two-Layer Navigation Architecture: Home -> Subnetwork -> Terminal Node -> Large Detail View.
- * 2. Research Paper Mode for Projects: Large technical case-study viewport with internal scrolling.
- * 3. Background Focus Mode: Dims background graph & hides text labels to prevent collisions.
- * 4. State Restoration: Closing detail view restores subnet layer & camera position cleanly.
- * 5. Unified 3D Neural Geometry across ALL nodes (Nucleus + Wire Shell + Torus Ring).
- * 6. Edge-Bound Signals: Particles travel strictly along edge vectors.
+ * Interaction Architecture:
+ * 1. ABOUT: Clicking ABOUT node opens ONE combined profile presentation. (No subnodes).
+ * 2. SKILLS: Clicking a skill opens a SMALL contextual tooltip panel showing project usages
+ *    and highlights related nodes in 3D.
+ * 3. PROJECTS: Clicking a project node opens a LARGE research-paper / case-study presentation.
+ * 4. EXPERIENCE: Clicking an experience node opens a LARGE experience presentation.
+ * 5. CONTACT: Clicking a contact node triggers DIRECT external action immediately (NO MODAL!).
+ * 6. SUBNETWORK FOCUS: Active subnet is 100% visual priority; Home network is heavily faded (8% opacity).
  * ============================================================
  */
 
@@ -77,7 +77,7 @@ const COLORS = {
    VISIBILITY & LAYER ARCHITECTURE
    ============================================================ */
 
-let currentLayer = 'MAIN'; // 'MAIN' | 'SUBNET' | 'DETAIL'
+let currentLayer = 'MAIN'; // 'MAIN' | 'SUBNET'
 
 function isObjectInVisibleWorld(obj) {
   if (!obj) return false;
@@ -200,7 +200,7 @@ function createNeuralNodeGroup({
 }
 
 /* ============================================================
-   LARGE TECHNICAL DETAIL PRESENTATION SYSTEM (Research Paper Mode)
+   LARGE TECHNICAL PRESENTATION SYSTEM (Projects & Experience & About)
    ============================================================ */
 
 const detailPanelEl = document.getElementById('detailPanel');
@@ -212,18 +212,16 @@ const panelBodyEl = document.getElementById('panelBody');
 const panelTagsEl = document.getElementById('panelTags');
 const panelActionsEl = document.getElementById('panelActions');
 
-let activeDetailNode = null;
-
-function showDetailPresentation(data, activeNodeMesh = null) {
+function showDetailPresentation(data) {
   if (!detailPanelEl || !data) return;
 
-  activeDetailNode = activeNodeMesh;
+  hideSkillContextPanel();
 
   panelKickerEl.textContent = data.kicker || 'TECHNICAL CASE STUDY';
-  panelTitleEl.textContent = data.title || 'NODE PRESENTATION';
+  panelTitleEl.textContent = data.title || 'PRESENTATION';
   panelSubtitleEl.textContent = data.subtitle || '';
 
-  // Render Structured Technical Sections (Research Paper Mode)
+  // Render Structured Technical Sections
   panelBodyEl.innerHTML = '';
 
   if (Array.isArray(data.sections)) {
@@ -253,13 +251,6 @@ function showDetailPresentation(data, activeNodeMesh = null) {
 
       panelBodyEl.appendChild(secEl);
     }
-  } else if (data.description) {
-    const secEl = document.createElement('section');
-    secEl.className = 'research-section';
-    const p = document.createElement('p');
-    p.textContent = data.description;
-    secEl.appendChild(p);
-    panelBodyEl.appendChild(secEl);
   }
 
   // Render Tags
@@ -284,21 +275,15 @@ function showDetailPresentation(data, activeNodeMesh = null) {
         btn.href = act.url;
         btn.target = act.url.startsWith('http') ? '_blank' : '_self';
         if (btn.target === '_blank') btn.rel = 'noopener noreferrer';
-      } else if (act.onClick) {
-        btn.href = '#';
-        btn.onclick = e => {
-          e.preventDefault();
-          act.onClick();
-        };
       }
       panelActionsEl.appendChild(btn);
     }
   }
 
-  // Enable Background Focus Mode (dims background graph & hides text labels!)
+  // Enable Focus Mode (dims background graph & hides 2D labels)
   document.body.classList.add('detail-panel-open');
   if (activeSubnet) {
-    setWorldOpacity(activeSubnet.group, 0.25);
+    setWorldOpacity(activeSubnet.group, 0.22);
   }
   if (mainGraph) {
     setWorldOpacity(mainGraph, 0.04);
@@ -322,12 +307,72 @@ function hideDetailPresentation() {
   } else if (currentLayer === 'MAIN') {
     setWorldOpacity(mainGraph, 1.0);
   }
-
-  activeDetailNode = null;
 }
 
 if (panelCloseBtn) {
   panelCloseBtn.addEventListener('click', hideDetailPresentation);
+}
+
+/* ============================================================
+   SMALL CONTEXTUAL SKILL TOOLTIP PANEL SYSTEM
+   Answers: "Where did I actually use this skill?"
+   ============================================================ */
+
+const skillContextPanelEl = document.getElementById('skillContextPanel');
+const skillCloseBtn = document.getElementById('skillCloseBtn');
+const skillTitleEl = document.getElementById('skillTitle');
+const skillSubtitleEl = document.getElementById('skillSubtitle');
+const skillUsedListEl = document.getElementById('skillUsedList');
+const skillTagsEl = document.getElementById('skillTags');
+
+function showSkillContextPanel(skillData) {
+  if (!skillContextPanelEl || !skillData) return;
+
+  hideDetailPresentation();
+
+  skillTitleEl.textContent = skillData.name || skillData.title || 'SKILL';
+  skillSubtitleEl.textContent = skillData.category || 'TECHNICAL SKILL';
+
+  skillUsedListEl.innerHTML = '';
+  if (Array.isArray(skillData.usedIn)) {
+    for (const proj of skillData.usedIn) {
+      const itemEl = document.createElement('div');
+      itemEl.className = 'skill-used-item';
+
+      const dot = document.createElement('span');
+      dot.className = 'skill-used-dot';
+
+      const text = document.createElement('span');
+      text.textContent = proj;
+
+      itemEl.appendChild(dot);
+      itemEl.appendChild(text);
+      skillUsedListEl.appendChild(itemEl);
+    }
+  }
+
+  skillTagsEl.innerHTML = '';
+  if (Array.isArray(skillData.tags)) {
+    for (const tag of skillData.tags) {
+      const tagEl = document.createElement('span');
+      tagEl.className = 'panel-tag';
+      tagEl.textContent = tag;
+      skillTagsEl.appendChild(tagEl);
+    }
+  }
+
+  skillContextPanelEl.classList.add('active');
+  skillContextPanelEl.setAttribute('aria-hidden', 'false');
+}
+
+function hideSkillContextPanel() {
+  if (!skillContextPanelEl) return;
+  skillContextPanelEl.classList.remove('active');
+  skillContextPanelEl.setAttribute('aria-hidden', 'true');
+}
+
+if (skillCloseBtn) {
+  skillCloseBtn.addEventListener('click', hideSkillContextPanel);
 }
 
 /* ============================================================
@@ -354,7 +399,7 @@ function createLabel(text, type, mode = 'main', extraClass = '') {
   const label = {
     element,
     object: null,
-    mode, // 'main' | 'subnet' | 'project' | 'detail' | 'persistent'
+    mode, // 'main' | 'subnet' | 'persistent'
     offset: new THREE.Vector3(0, 0.48, 0),
     baseOpacity: 1,
     hidden: false,
@@ -430,9 +475,6 @@ function updateLabels() {
     } else if (label.mode === 'main' && currentLayer !== 'MAIN') {
       shouldShow = true;
       effectiveOpacity = Math.min(label.baseOpacity, 0.08);
-    } else if (label.mode === 'subnet' && currentLayer === 'DETAIL' && isObjectInVisibleWorld(label.object)) {
-      shouldShow = true;
-      effectiveOpacity = Math.min(label.baseOpacity, 0.12);
     }
 
     if (shouldShow) {
@@ -633,223 +675,92 @@ connectMain('contact', 'experience', 0.32);
 connectMain('experience', 'about', 0.32);
 
 /* ============================================================
-   SUBNETWORK DEFINITIONS (5 MAJOR SUBNETS - TERMINAL NODES)
+   ONE COMBINED ABOUT PRESENTATION DATA
+   ============================================================ */
+
+const combinedAboutData = {
+  kicker: 'ABOUT ME — PROFILE & CAPABILITIES',
+  title: 'Deepak R V',
+  subtitle: 'AI / ML Engineer & Computer Vision Specialist',
+  sections: [
+    {
+      heading: 'PROFILE & IDENTITY',
+      content: 'B.Tech AI&DS graduate passionate about building robust, real-time spatial visual systems, custom object tracking pipelines, and high-performance edge inference engines.',
+    },
+    {
+      heading: 'ENGINEERING PHILOSOPHY',
+      content: 'Focusing on low-latency inference, spatial computer vision pipelines, modular zero-bloat architecture, and edge hardware deployment without unnecessary complexity.',
+    },
+    {
+      heading: 'CORE TECHNICAL CAPABILITIES',
+      bullets: [
+        'Real-Time Object Detection & Tracking (YOLOv8, ByteTrack)',
+        'Fast Semantic Segmentation (Fast-SCNN)',
+        'Touchless HCI Gesture Controls (MediaPipe Hands)',
+        'Deep Neural Network Training & Optimization (PyTorch, TensorFlow)',
+        'Low-Latency Containerized Microservices (FastAPI, Docker, ONNX)',
+      ],
+    },
+  ],
+  tags: ['AI/ML Engineer', 'Computer Vision', 'B.Tech AI&DS', 'Real-Time Vision', 'PyTorch', 'YOLOv8', 'FastAPI'],
+  actions: [
+    { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+  ],
+};
+
+/* ============================================================
+   SUBNETWORK DEFINITIONS
    ============================================================ */
 
 const subnetDefinitions = {
-  about: {
-    id: 'about',
-    title: 'ABOUT ME',
-    subtitle: 'INTELLIGENCE SYSTEM & PROFILE',
-    categories: [
-      {
-        id: 'profile',
-        label: 'PROFILE & IDENTITY',
-        position: [-4.8, 2.8, 2.5],
-        kicker: 'PROFILE & IDENTITY',
-        title: 'Deepak R V',
-        subtitle: 'AI / ML Engineer & Computer Vision Specialist',
-        sections: [
-          {
-            heading: 'PROFILE OVERVIEW',
-            content: 'B.Tech AI&DS graduate specialized in designing, training, and deploying real-time computer vision systems, custom object tracking pipelines, and high-throughput edge inference engines.',
-          },
-          {
-            heading: 'SPECIALIZATIONS',
-            bullets: [
-              'Real-Time Computer Vision & Multi-Object Tracking',
-              'Fast Semantic Segmentation & Gesture Controls',
-              'Deep Learning Architecture (PyTorch / TensorFlow)',
-              'Edge Model Optimization & Microservice Deployment',
-            ],
-          },
-          {
-            heading: 'ENGINEERING BACKGROUND',
-            content: 'Strong background in computer vision algorithms, real-time sports analytics pipelines, assistive accessibility systems, and gesture-driven HCI interfaces.',
-          },
-        ],
-        tags: ['AI/ML Engineer', 'Computer Vision', 'B.Tech AI&DS', 'Real-Time Vision'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
-        ],
-      },
-      {
-        id: 'philosophy',
-        label: 'ENGINEERING PHILOSOPHY',
-        position: [0.0, 5.2, -2.5],
-        kicker: 'ENGINEERING PHILOSOPHY',
-        title: 'System Design & Optimization',
-        subtitle: 'Core Computational Principles',
-        sections: [
-          {
-            heading: 'PHILOSOPHY',
-            content: 'Focusing on low-latency inference, spatial computer vision pipelines, modular architecture, and edge hardware deployment without unnecessary bloat.',
-          },
-          {
-            heading: 'CORE PRINCIPLES',
-            bullets: [
-              'Zero-bloat modular pipeline design',
-              'Edge-first model optimization (ONNX / TensorRT / TFLite)',
-              'Spatial 3D visual perception',
-              'Strict latency & throughput benchmarking',
-            ],
-          },
-        ],
-        tags: ['Spatial AI', 'Edge Optimization', 'Modular Code', 'Real-Time Vision'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
-        ],
-      },
-      {
-        id: 'capabilities',
-        label: 'CAPABILITIES',
-        position: [4.8, -2.2, 2.2],
-        kicker: 'CAPABILITIES',
-        title: 'Technical Core Competencies',
-        subtitle: 'Specialization & Skill Spectrum',
-        sections: [
-          {
-            heading: 'COMPETENCY SPECTRUM',
-            content: 'Deep technical proficiency in custom object detection (YOLOv8), multi-object tracking (ByteTrack), fast segmentation (Fast-SCNN), MediaPipe hand gesture recognition, PyTorch/TensorFlow training, and FastAPI microservices.',
-          },
-          {
-            heading: 'KEY STRENGTHS',
-            bullets: [
-              'YOLOv8 & ByteTrack tracking pipelines',
-              'PyTorch deep neural network training',
-              'FastAPI containerized microservices',
-              'OpenCV visual processing',
-            ],
-          },
-        ],
-        tags: ['YOLOv8', 'PyTorch', 'FastAPI', 'OpenCV', 'MediaPipe'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
-        ],
-      },
-    ],
-  },
-
   skills: {
     id: 'skills',
     title: 'SKILLS & TECHNOLOGIES',
     subtitle: 'COMPUTATIONAL KNOWLEDGE GRAPH',
     categories: [
       {
-        id: 'computer-vision',
+        id: 'cv-category',
         label: 'COMPUTER VISION',
-        position: [-5.2, 2.8, 3.2],
-        kicker: 'SKILL CATEGORY',
-        title: 'Computer Vision',
-        subtitle: 'Visual Perception & Tracking',
-        sections: [
-          {
-            heading: 'PERCEPTION & TRACKING SPECTRUM',
-            content: 'Advanced visual understanding, multi-object tracking, fast semantic segmentation, hand gesture modeling, and optical character recognition.',
-          },
-          {
-            heading: 'TECHNOLOGIES',
-            bullets: [
-              'YOLOv8 — Custom Object Detection',
-              'ByteTrack — Multi-Object Tracking',
-              'OpenCV — Image Processing & Geometry',
-              'Fast-SCNN — Fast Semantic Segmentation',
-              'MediaPipe — Hand Landmark Gesture Tracking',
-              'Tesseract OCR — Text Recognition',
-            ],
-          },
-        ],
-        details: ['YOLOv8', 'ByteTrack', 'OpenCV', 'Fast-SCNN', 'MediaPipe', 'OCR / Tesseract'],
-        tags: ['YOLOv8', 'ByteTrack', 'OpenCV', 'Fast-SCNN', 'MediaPipe', 'Tesseract OCR'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        position: [-5.2, 3.2, 2.5],
+        skills: [
+          { id: 'yolov8', label: 'YOLOv8', position: [-7.5, 4.8, 3.2], name: 'YOLOv8', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System'], tags: ['Object Detection', 'Real-Time Vision'] },
+          { id: 'bytetrack', label: 'ByteTrack', position: [-6.8, 1.4, 1.8], name: 'ByteTrack', category: 'Computer Vision', usedIn: ['Football Analysis System'], tags: ['Multi-Object Tracking', 'Re-ID'] },
+          { id: 'opencv', label: 'OpenCV', position: [-3.8, 5.0, 3.5], name: 'OpenCV', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System', 'Virtual Mouse Control'], tags: ['Image Geometry', 'Frame Processing'] },
+          { id: 'fast-scnn', label: 'Fast-SCNN', position: [-8.2, 2.8, -1.2], name: 'Fast-SCNN', category: 'Computer Vision', usedIn: ['SightMate'], tags: ['Semantic Segmentation', 'Real-Time'] },
+          { id: 'mediapipe', label: 'MediaPipe', position: [-3.2, 2.0, -2.5], name: 'MediaPipe Hands', category: 'Computer Vision', usedIn: ['Virtual Mouse Control'], tags: ['3D Landmarks', 'Hand Tracking'] },
         ],
       },
       {
-        id: 'deep-learning',
+        id: 'dl-category',
         label: 'DEEP LEARNING & AI',
         position: [-1.4, 5.6, -3.0],
-        kicker: 'SKILL CATEGORY',
-        title: 'Deep Learning & AI',
-        subtitle: 'Neural Architectures & Training',
-        sections: [
-          {
-            heading: 'NEURAL NETWORKS & TRAINING',
-            content: 'Deep neural network design, Convolutional Neural Networks (CNNs), Vision Transformers, PyTorch & TensorFlow training pipelines, and unsupervised clustering.',
-          },
-          {
-            heading: 'TECHNOLOGIES',
-            bullets: [
-              'PyTorch — Model Training & Fine-Tuning',
-              'TensorFlow — Deep Neural Networks',
-              'CNNs — Feature Extraction & Classification',
-              'Vision Transformers — Spatial Attention Networks',
-              'K-Means — Team Jersey & Feature Clustering',
-            ],
-          },
-        ],
-        details: ['PyTorch', 'TensorFlow', 'CNNs', 'Vision Transformers', 'K-Means Clustering'],
-        tags: ['PyTorch', 'TensorFlow', 'CNNs', 'Transformers', 'K-Means'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        skills: [
+          { id: 'pytorch', label: 'PyTorch', position: [-2.8, 7.2, -4.2], name: 'PyTorch', category: 'Deep Learning & AI', usedIn: ['Kaatchi Media Engine', 'Custom Vision Models'], tags: ['Model Training', 'Neural Networks'] },
+          { id: 'tensorflow', label: 'TensorFlow', position: [0.5, 7.5, -2.5], name: 'TensorFlow', category: 'Deep Learning & AI', usedIn: ['SightMate (TFLite)', 'Deep Neural Networks'], tags: ['Deep Learning', 'TFLite'] },
+          { id: 'cnns', label: 'CNNs', position: [-4.2, 7.0, -1.8], name: 'CNNs', category: 'Deep Learning & AI', usedIn: ['SightMate', 'Football Analysis'], tags: ['Classification', 'Feature Extraction'] },
+          { id: 'kmeans', label: 'K-Means', position: [1.2, 5.2, -4.5], name: 'K-Means Clustering', category: 'Deep Learning & AI', usedIn: ['Football Analysis System'], tags: ['Color Clustering', 'Team Assignment'] },
         ],
       },
       {
-        id: 'systems-deployment',
+        id: 'systems-category',
         label: 'SYSTEMS & DEPLOYMENT',
         position: [5.2, 3.5, 2.5],
-        kicker: 'SKILL CATEGORY',
-        title: 'Systems & Deployment',
-        subtitle: 'Inference Engines & Microservices',
-        sections: [
-          {
-            heading: 'HIGH-THROUGHPUT DEPLOYMENT',
-            content: 'High-throughput microservice architectures, REST APIs, ONNX Runtime optimization, Docker containerization, and mobile/edge inference.',
-          },
-          {
-            heading: 'TECHNOLOGIES',
-            bullets: [
-              'FastAPI — Low-Latency REST Microservices',
-              'Docker — Containerized Service Deployment',
-              'ONNX Runtime — Cross-Platform Inference',
-              'TensorFlow Lite — Mobile & Edge Deployment',
-              'C++ — High-Performance Inference Engines',
-            ],
-          },
-        ],
-        details: ['FastAPI', 'Docker', 'ONNX Runtime', 'TensorFlow Lite', 'C++ Inference'],
-        tags: ['FastAPI', 'Docker', 'ONNX', 'TFLite', 'C++'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        skills: [
+          { id: 'fastapi', label: 'FastAPI', position: [7.2, 5.2, 3.2], name: 'FastAPI', category: 'Systems & Deployment', usedIn: ['Kaatchi Media Engine'], tags: ['REST Endpoints', 'Async Python'] },
+          { id: 'docker', label: 'Docker', position: [6.8, 1.8, 1.5], name: 'Docker', category: 'Systems & Deployment', usedIn: ['Kaatchi Media Engine'], tags: ['Containerization', 'Microservices'] },
+          { id: 'onnx', label: 'ONNX Runtime', position: [4.2, 5.8, 4.2], name: 'ONNX Runtime', category: 'Systems & Deployment', usedIn: ['Edge AI Optimization'], tags: ['Cross-Platform Inference'] },
+          { id: 'cpp', label: 'C++', position: [8.5, 3.2, -1.2], name: 'C++', category: 'Systems & Deployment', usedIn: ['Algorithmic Systems'], tags: ['High Performance', 'Low Latency'] },
         ],
       },
       {
-        id: 'languages-tools',
+        id: 'lang-category',
         label: 'LANGUAGES & TOOLS',
         position: [5.6, -1.8, -3.2],
-        kicker: 'SKILL CATEGORY',
-        title: 'Languages & Tools',
-        subtitle: 'Programming Languages & Systems',
-        sections: [
-          {
-            heading: 'ENGINEERING STACK',
-            content: 'Core software engineering stack across Python, C++, Dart, SQL databases, Git version control, and Linux systems administration.',
-          },
-          {
-            heading: 'TECHNOLOGIES',
-            bullets: [
-              'Python — Core AI/ML Engineering & Analytics',
-              'C++ — Systems & Algorithmic Performance',
-              'Flutter / Dart — Cross-Platform Mobile Applications',
-              'SQL — Database Querying & Data Pipelines',
-              'Git & Linux — Version Control & System Admin',
-            ],
-          },
-        ],
-        details: ['Python', 'C++', 'Flutter / Dart', 'SQL', 'Git & Linux'],
-        tags: ['Python', 'C++', 'Flutter', 'SQL', 'Git & Linux'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        skills: [
+          { id: 'python', label: 'Python', position: [7.5, -0.2, -2.2], name: 'Python', category: 'Languages & Tools', usedIn: ['SightMate', 'Football Analysis System', 'Kaatchi Media Engine', 'Virtual Mouse Control'], tags: ['Core Language', 'AI/ML Engineering'] },
+          { id: 'flutter', label: 'Flutter / Dart', position: [4.2, -3.8, -4.5], name: 'Flutter / Dart', category: 'Languages & Tools', usedIn: ['SightMate Mobile App'], tags: ['Cross-Platform UI', 'Mobile Apps'] },
+          { id: 'sql', label: 'SQL', position: [8.2, -3.2, -1.5], name: 'SQL', category: 'Languages & Tools', usedIn: ['Quality Threads Analytics'], tags: ['Relational DB', 'Data Pipelines'] },
+          { id: 'git', label: 'Git & Linux', position: [2.8, -2.5, -1.8], name: 'Git & Linux', category: 'Languages & Tools', usedIn: ['All Projects & Systems'], tags: ['Version Control', 'DevOps'] },
         ],
       },
     ],
@@ -1045,7 +956,7 @@ const subnetDefinitions = {
           },
           {
             heading: 'SYSTEM ARCHITECTURE',
-            content: 'Webcam frames are passed to MediaPipe Hands for 21 3D landmark coordinate extraction. Index finger tip coordinates are smoothed using exponential moving average filtering and mapped to screen screen dimensions. Pinch distance triggers PyAutoGUI click events.',
+            content: 'Webcam frames are passed to MediaPipe Hands for 21 3D landmark coordinate extraction. Index finger tip coordinates are smoothed using exponential moving average filtering and mapped to screen dimensions. Pinch distance triggers PyAutoGUI click events.',
           },
           {
             heading: 'TECHNOLOGIES USED',
@@ -1205,73 +1116,25 @@ const subnetDefinitions = {
         id: 'email',
         label: 'EMAIL',
         position: [-5.2, 2.5, 2.0],
-        kicker: 'DIRECT TRANSMISSION',
-        title: 'Email Deepak R V',
-        subtitle: 'deepakrv07@gmail.com',
-        sections: [
-          {
-            heading: 'DIRECT INQUIRIES',
-            content: 'Send a direct message regarding AI/ML engineering positions, computer vision project collaborations, or technical consultations.',
-          },
-        ],
-        tags: ['Direct Email', 'AI/ML Collaboration'],
-        actions: [
-          { label: 'SEND EMAIL NOW', type: 'primary', url: 'mailto:deepakrv07@gmail.com' },
-        ],
+        actionUrl: 'mailto:deepakrv07@gmail.com',
       },
       {
         id: 'github',
         label: 'GITHUB',
         position: [-1.4, 4.8, -2.0],
-        kicker: 'CODE REPOSITORY',
-        title: 'GitHub Profile',
-        subtitle: 'github.com/DEEPAKRV07',
-        sections: [
-          {
-            heading: 'SOURCE CODE & REPOSITORIES',
-            content: 'Explore open source computer vision repositories, detection pipelines, model architectures, and project implementations.',
-          },
-        ],
-        tags: ['Repositories', 'Source Code', 'Vision Pipelines'],
-        actions: [
-          { label: 'OPEN GITHUB PROFILE', type: 'primary', url: 'https://github.com/DEEPAKRV07' },
-        ],
+        actionUrl: 'https://github.com/DEEPAKRV07',
       },
       {
         id: 'linkedin',
         label: 'LINKEDIN',
         position: [2.8, 3.2, 2.0],
-        kicker: 'PROFESSIONAL NETWORK',
-        title: 'LinkedIn Profile',
-        subtitle: 'linkedin.com/in/deepak-r-v',
-        sections: [
-          {
-            heading: 'PROFESSIONAL CONNECT',
-            content: 'Connect professionally on LinkedIn to discuss career opportunities, engineering recommendations, and professional achievements.',
-          },
-        ],
-        tags: ['Professional Network', 'Career Profile'],
-        actions: [
-          { label: 'OPEN LINKEDIN PROFILE', type: 'primary', url: 'https://linkedin.com/in/deepak-r-v' },
-        ],
+        actionUrl: 'https://linkedin.com/in/deepak-r-v',
       },
       {
         id: 'resume',
         label: 'RESUME',
         position: [6.2, -2.0, -2.0],
-        kicker: 'OFFICIAL DOCUMENT',
-        title: 'Curriculum Vitae',
-        subtitle: 'Deepak R V — Resume PDF',
-        sections: [
-          {
-            heading: 'CURRICULUM VITAE',
-            content: 'View or download the complete official resume detailing engineering experience, B.Tech AI&DS education, skill inventory, and technical projects.',
-          },
-        ],
-        tags: ['PDF Resume', 'Qualifications', 'Contact Info'],
-        actions: [
-          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
-        ],
+        actionUrl: '/my_resume.pdf',
       },
     ],
   },
@@ -1346,6 +1209,36 @@ function createSubnetWorld(subnetId) {
     categories.push(categoryObj);
 
     edges.push(createEdge(coreNode.nucleusMesh, node.nucleusMesh, group, 0.48));
+
+    // If this category contains individual skill nodes (for Skills subnet)
+    if (Array.isArray(category.skills)) {
+      for (const skill of category.skills) {
+        const skillNode = createNeuralNodeGroup({
+          nucleusRadius: 0.26,
+          torusRadius: 0.36,
+          torusTube: 0.018,
+          color: COLORS.medium,
+          opacity: 0.95,
+        });
+
+        skillNode.group.position.set(...skill.position);
+        skillNode.nucleusMesh.userData = {
+          type: 'skill-node',
+          id: skill.id,
+          subnetId,
+          label: skill.label,
+          skillData: skill,
+        };
+
+        group.add(skillNode.group);
+
+        const skillLabel = createLabel(skill.label, 'skill', 'subnet');
+        skillLabel.object = skillNode.nucleusMesh;
+        skillLabel.offset.set(0, 0.45, 0);
+
+        edges.push(createEdge(node.nucleusMesh, skillNode.nucleusMesh, group, 0.35));
+      }
+    }
   }
 
   for (let i = 0; i < categories.length; i++) {
@@ -1451,8 +1344,8 @@ function setLayerVisibility(layerName) {
     showCoreBeacon(false);
   } else if (layerName === 'SUBNET') {
     setWorldVisibility(mainGraph, true);
-    setWorldOpacity(mainGraph, 0.08); // Subtle main network ghost
-    setWorldOpacity(core, 0.20);       // Persistent core
+    setWorldOpacity(mainGraph, 0.08); // Heavily faded Home network ghost
+    setWorldOpacity(core, 0.18);       // Persistent core
 
     for (const world of subnetWorlds.values()) {
       const isCurrent = world === activeSubnet;
@@ -1471,6 +1364,7 @@ function enterSubnet(subnetId) {
 
   activeSubnet = world;
   hideDetailPresentation();
+  hideSkillContextPanel();
 
   setLayerVisibility('SUBNET');
 
@@ -1487,6 +1381,7 @@ function enterSubnet(subnetId) {
 function returnToCore() {
   activeSubnet = null;
   hideDetailPresentation();
+  hideSkillContextPanel();
 
   setLayerVisibility('MAIN');
 
@@ -1503,6 +1398,11 @@ function returnToCore() {
 function exitLayer() {
   if (document.body.classList.contains('detail-panel-open')) {
     hideDetailPresentation();
+    return;
+  }
+
+  if (skillContextPanelEl?.classList.contains('active')) {
+    hideSkillContextPanel();
     return;
   }
 
@@ -1535,6 +1435,21 @@ function getPointerObject() {
   const coreHit = raycaster.intersectObjects(coreTargets, false)[0];
   if (coreHit) {
     return { type: 'core', object: coreHit.object };
+  }
+
+  /* Subnet Layer Skill Nodes */
+  if (activeSubnet) {
+    const skillMeshes = [];
+    activeSubnet.group.traverse(child => {
+      if (child.isMesh && child.userData.type === 'skill-node') {
+        skillMeshes.push(child);
+      }
+    });
+
+    const skillHits = raycaster.intersectObjects(skillMeshes, false);
+    if (skillHits.length) {
+      return { type: 'skill-node', object: skillHits[0].object };
+    }
   }
 
   /* Subnet Layer Terminal Nodes */
@@ -1593,7 +1508,12 @@ renderer.domElement.addEventListener('click', () => {
   if (hit.type === 'main') {
     const node = mainNodeObjects.find(item => item.mesh === hit.object);
     if (node) {
-      enterSubnet(node.id);
+      if (node.id === 'about') {
+        // ABOUT directly opens ONE combined profile detail presentation!
+        showDetailPresentation(combinedAboutData);
+      } else {
+        enterSubnet(node.id);
+      }
     }
     return;
   }
@@ -1602,7 +1522,25 @@ renderer.domElement.addEventListener('click', () => {
     const categoryObj = activeSubnet.categories.find(node => node.mesh === hit.object);
     if (categoryObj) {
       const nodeData = categoryObj.nodeData || categoryObj;
-      showDetailPresentation(nodeData, hit.object);
+      if (nodeData.actionUrl) {
+        // CONTACT SECTION: DIRECT EXTERNAL ACTION (NO MODAL!)
+        window.open(
+          nodeData.actionUrl,
+          nodeData.actionUrl.startsWith('http') ? '_blank' : '_self'
+        );
+      } else {
+        // PROJECTS & EXPERIENCE: LARGE DETAIL PRESENTATION
+        showDetailPresentation(nodeData);
+      }
+    }
+    return;
+  }
+
+  if (hit.type === 'skill-node') {
+    // SKILLS SECTION: SMALL CONTEXTUAL TOOLTIP PANEL (No giant box)
+    const skillData = hit.object.userData.skillData;
+    if (skillData) {
+      showSkillContextPanel(skillData);
     }
     return;
   }

@@ -331,8 +331,8 @@ body.detail-mode .core-home-hint {
 }
 
 /* ============================================================
-   LARGE TECHNICAL PRESENTATION OVERLAY (Research Paper Mode)
-   60-75vw width, 70-82vh height, Max 1200px, Centered
+   LARGE TECHNICAL PRESENTATION OVERLAY (Projects & Experience & About)
+   60-75vw width, 70-82vh height, Max 1180px, Centered
    Internal scrolling ONLY (no webpage scrolling!)
    ============================================================ */
 
@@ -552,6 +552,121 @@ body.detail-mode .core-home-hint {
 }
 
 /* ============================================================
+   SMALL CONTEXTUAL SKILL TOOLTIP PANEL
+   Answers: "Where did I actually use this skill?"
+   ============================================================ */
+
+.skill-context-panel {
+  position: fixed;
+  bottom: 34px;
+  right: 34px;
+  width: 320px;
+  padding: 20px 22px;
+  z-index: 45;
+  pointer-events: auto;
+  border: 1px solid rgba(0, 255, 136, 0.32);
+  background: rgba(5, 5, 5, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 0 30px rgba(0, 255, 136, 0.12),
+    0 16px 36px rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease,
+    visibility 240ms ease;
+}
+
+.skill-context-panel.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.skill-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  background: rgba(0, 255, 136, 0.05);
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 180ms ease;
+}
+
+.skill-close-btn:hover {
+  background: var(--green-bright);
+  color: #050505;
+}
+
+.skill-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+}
+
+.skill-subtitle {
+  color: var(--green-medium);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  margin-bottom: 14px;
+}
+
+.skill-section-title {
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.skill-used-list {
+  margin-bottom: 14px;
+}
+
+.skill-used-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 11px;
+}
+
+.skill-used-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green-bright);
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ============================================================
    BACKGROUND FOCUS MODE (Preventing Text Collisions & Overlaps)
    When detail presentation is open, fade out HTML graph labels!
    ============================================================ */
@@ -727,5 +842,11 @@ body.detail-mode .intro {
     width: calc(100vw - 32px);
     height: calc(100vh - 80px);
     padding: 22px 20px;
+  }
+
+  .skill-context-panel {
+    bottom: 20px;
+    right: 20px;
+    width: calc(100vw - 40px);
   }
 }
