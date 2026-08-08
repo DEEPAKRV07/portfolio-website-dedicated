@@ -123,6 +123,7 @@ canvas:active {
   position: absolute;
   top: 31px;
   left: 36px;
+  transition: opacity 300ms ease;
 }
 
 .identity h1 {
@@ -159,6 +160,7 @@ canvas:active {
   background: rgba(5, 5, 5, 0.68);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  transition: opacity 300ms ease;
 }
 
 .system-heading {
@@ -268,6 +270,7 @@ canvas:active {
   font-family: var(--font-mono);
   font-size: 8px;
   letter-spacing: 0.08em;
+  transition: opacity 300ms ease;
 }
 
 .legend-title {
@@ -328,33 +331,36 @@ body.detail-mode .core-home-hint {
 }
 
 /* ============================================================
-   FOCUSED DETAIL OVERLAY PANEL
+   LARGE TECHNICAL PRESENTATION OVERLAY (Research Paper Mode)
+   60-75vw width, 70-82vh height, Max 1200px, Centered
+   Internal scrolling ONLY (no webpage scrolling!)
    ============================================================ */
 
 .node-detail-panel {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.92);
-  width: min(480px, calc(100vw - 48px));
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
+  transform: translate(-50%, -50%) scale(0.94);
+  width: min(72vw, 1180px);
+  height: min(80vh, 820px);
+  display: flex;
+  flex-direction: column;
   z-index: 50;
   pointer-events: auto;
-  padding: 28px 30px;
-  border: 1px solid rgba(0, 255, 136, 0.28);
-  background: rgba(5, 5, 5, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  padding: 34px 40px;
+  border: 1px solid rgba(0, 255, 136, 0.32);
+  background: rgba(5, 5, 5, 0.92);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   box-shadow:
-    0 0 40px rgba(0, 255, 136, 0.12),
-    0 24px 48px rgba(0, 0, 0, 0.85);
+    0 0 50px rgba(0, 255, 136, 0.15),
+    0 30px 60px rgba(0, 0, 0, 0.92);
   opacity: 0;
   visibility: hidden;
   transition:
-    opacity 280ms ease,
-    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
-    visibility 280ms ease;
+    opacity 320ms ease,
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 320ms ease;
 }
 
 .node-detail-panel.active {
@@ -365,34 +371,41 @@ body.detail-mode .core-home-hint {
 
 .panel-close-btn {
   position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 28px;
-  height: 28px;
-  border: 1px solid rgba(0, 255, 136, 0.25);
+  top: 22px;
+  right: 24px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(0, 255, 136, 0.28);
   background: rgba(0, 255, 136, 0.05);
   color: var(--green-bright);
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 180ms ease;
+  transition: all 200ms ease;
+  z-index: 5;
 }
 
 .panel-close-btn:hover {
   background: var(--green-bright);
   color: #050505;
-  box-shadow: 0 0 16px rgba(0, 255, 136, 0.6);
+  box-shadow: 0 0 18px rgba(0, 255, 136, 0.7);
+}
+
+.panel-header {
+  border-bottom: 1px solid rgba(0, 255, 136, 0.16);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
 }
 
 .panel-kicker {
   color: var(--green-bright);
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  letter-spacing: 0.20em;
   font-weight: 600;
   margin-bottom: 8px;
 }
@@ -400,40 +413,95 @@ body.detail-mode .core-home-hint {
 .panel-title {
   margin: 0 0 6px;
   font-family: var(--font-display);
-  font-size: clamp(22px, 2vw, 28px);
+  font-size: clamp(26px, 2.6vw, 36px);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: var(--text-primary);
-  text-shadow: 0 0 16px rgba(0, 255, 136, 0.3);
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.35);
 }
 
 .panel-subtitle {
   color: var(--green-medium);
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  margin-bottom: 14px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
 }
 
-.panel-description {
-  margin: 0 0 18px;
+/* Internal Document Scroll Container */
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 16px;
+  margin-bottom: 16px;
+}
+
+.panel-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 136, 0.3);
+  border-radius: 2px;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: var(--green-bright);
+}
+
+/* Research Paper Section Styling */
+.research-section {
+  margin-bottom: 22px;
+}
+
+.research-section h3 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--green-bright);
+  letter-spacing: 0.18em;
+  margin: 0 0 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.research-section p {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.research-section ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
   color: var(--text-secondary);
   font-family: var(--font-body);
   font-size: 12px;
-  line-height: 1.65;
+  line-height: 1.6;
+}
+
+.panel-footer {
+  border-top: 1px solid rgba(0, 255, 136, 0.14);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .panel-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 20px;
 }
 
 .panel-tag {
-  padding: 4px 9px;
-  border: 1px solid rgba(0, 255, 136, 0.2);
-  background: rgba(0, 255, 136, 0.04);
+  padding: 4px 10px;
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  background: rgba(0, 255, 136, 0.05);
   color: var(--green-bright);
   font-family: var(--font-mono);
   font-size: 9px;
@@ -450,12 +518,12 @@ body.detail-mode .core-home-hint {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 9px 18px;
+  gap: 8px;
+  padding: 10px 20px;
   border: 1px solid var(--green-bright);
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -481,6 +549,24 @@ body.detail-mode .core-home-hint {
 .panel-btn.secondary:hover {
   background: rgba(0, 255, 136, 0.18);
   border-color: var(--green-bright);
+}
+
+/* ============================================================
+   BACKGROUND FOCUS MODE (Preventing Text Collisions & Overlaps)
+   When detail presentation is open, fade out HTML graph labels!
+   ============================================================ */
+
+body.detail-panel-open .graph-label {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.detail-panel-open .identity,
+body.detail-panel-open .system-panel,
+body.detail-panel-open .intro,
+body.detail-panel-open .interaction-legend {
+  opacity: 0.25;
 }
 
 /* ============================================================
@@ -603,7 +689,15 @@ body.detail-mode .intro {
   transform: translateX(-14px);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
+  .node-detail-panel {
+    width: min(88vw, 800px);
+    height: min(85vh, 750px);
+    padding: 26px 28px;
+  }
+}
+
+@media (max-width: 768px) {
   .identity {
     top: 20px;
     left: 20px;
@@ -628,44 +722,10 @@ body.detail-mode .intro {
   .core-home-hint {
     left: 20px;
   }
-}
-
-@media (max-width: 650px) {
-  .system-panel {
-    width: 175px;
-    padding: 10px;
-  }
-
-  .system-grid {
-    gap: 5px 12px;
-    font-size: 8px;
-  }
-
-  .intro {
-    width: calc(100vw - 40px);
-  }
-
-  .intro h2 {
-    font-size: 32px;
-  }
-
-  .interaction-legend {
-    width: 175px;
-  }
-
-  .graph-label {
-    font-size: 8px;
-  }
-
-  .graph-label.project {
-    font-size: 9px;
-  }
-
-  .core-home-hint {
-    display: none;
-  }
 
   .node-detail-panel {
-    padding: 20px;
+    width: calc(100vw - 32px);
+    height: calc(100vh - 80px);
+    padding: 22px 20px;
   }
 }

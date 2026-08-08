@@ -5,17 +5,16 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * Sprint 3F — FINAL NEURAL TOPOLOGY + SUBNETWORK CONTENT SYSTEM
- *             + SIGNAL PATH REFINEMENT
+ * Sprint 3G — FINAL CONTENT HIERARCHY, DETAIL VIEW, OVERLAY
+ *             COMPOSITION & SUBNETWORK CORRECTION
  *
- * Core Objectives:
- * 1. Controlled Irregular 3D Pentagonal Homepage Topology (5 Primary Nodes with Z-depth rhythm).
- * 2. Unified 3D Neural Node Construction across ALL hierarchy levels.
- * 3. Signal particles travel STRICTLY along actual connection edges (zero free-floating particles).
- * 4. Focused Information Overlay Panel System (Node -> Activation -> Glass Detail Overlay -> Close).
- * 5. Complete Subnets: About, Skills (rich graph), Contact (linear 4 nodes), Experience (flowing memory path), Projects (4 actual projects).
- * 6. Redundant Top Core Button Removed; Neural Core remains universal click anchor.
- * 7. Full preservation of OrbitControls, 360° horizontal/vertical orbit, pan, zoom, and ESC/HOME rules.
+ * Core Principles:
+ * 1. Two-Layer Navigation Architecture: Home -> Subnetwork -> Terminal Node -> Large Detail View.
+ * 2. Research Paper Mode for Projects: Large technical case-study viewport with internal scrolling.
+ * 3. Background Focus Mode: Dims background graph & hides text labels to prevent collisions.
+ * 4. State Restoration: Closing detail view restores subnet layer & camera position cleanly.
+ * 5. Unified 3D Neural Geometry across ALL nodes (Nucleus + Wire Shell + Torus Ring).
+ * 6. Edge-Bound Signals: Particles travel strictly along edge vectors.
  * ============================================================
  */
 
@@ -78,7 +77,7 @@ const COLORS = {
    VISIBILITY & LAYER ARCHITECTURE
    ============================================================ */
 
-let currentLayer = 'MAIN'; // 'MAIN' | 'SUBNET' | 'PROJECT' | 'DETAIL'
+let currentLayer = 'MAIN'; // 'MAIN' | 'SUBNET' | 'DETAIL'
 
 function isObjectInVisibleWorld(obj) {
   if (!obj) return false;
@@ -149,8 +148,6 @@ function setGroupVisualOpacity(group, factor) {
 
 /* ============================================================
    UNIFIED 3D NEURAL NODE FACTORY
-   All hierarchy levels (Core, Primary, Category, Detail)
-   use the SAME visual family: Nucleus + Wire Shell + Torus Ring!
    ============================================================ */
 
 function createNeuralNodeGroup({
@@ -203,7 +200,7 @@ function createNeuralNodeGroup({
 }
 
 /* ============================================================
-   FOCUSED DETAIL OVERLAY PANEL SYSTEM
+   LARGE TECHNICAL DETAIL PRESENTATION SYSTEM (Research Paper Mode)
    ============================================================ */
 
 const detailPanelEl = document.getElementById('detailPanel');
@@ -211,17 +208,59 @@ const panelCloseBtn = document.getElementById('panelCloseBtn');
 const panelKickerEl = document.getElementById('panelKicker');
 const panelTitleEl = document.getElementById('panelTitle');
 const panelSubtitleEl = document.getElementById('panelSubtitle');
-const panelDescEl = document.getElementById('panelDescription');
+const panelBodyEl = document.getElementById('panelBody');
 const panelTagsEl = document.getElementById('panelTags');
 const panelActionsEl = document.getElementById('panelActions');
 
-function showDetailPanel(data) {
+let activeDetailNode = null;
+
+function showDetailPresentation(data, activeNodeMesh = null) {
   if (!detailPanelEl || !data) return;
 
-  panelKickerEl.textContent = data.kicker || 'SUBNET DETAIL';
-  panelTitleEl.textContent = data.title || 'NODE DETAIL';
+  activeDetailNode = activeNodeMesh;
+
+  panelKickerEl.textContent = data.kicker || 'TECHNICAL CASE STUDY';
+  panelTitleEl.textContent = data.title || 'NODE PRESENTATION';
   panelSubtitleEl.textContent = data.subtitle || '';
-  panelDescEl.textContent = data.description || '';
+
+  // Render Structured Technical Sections (Research Paper Mode)
+  panelBodyEl.innerHTML = '';
+
+  if (Array.isArray(data.sections)) {
+    for (const sec of data.sections) {
+      const secEl = document.createElement('section');
+      secEl.className = 'research-section';
+
+      const h3 = document.createElement('h3');
+      h3.textContent = sec.heading;
+      secEl.appendChild(h3);
+
+      if (sec.content) {
+        const p = document.createElement('p');
+        p.textContent = sec.content;
+        secEl.appendChild(p);
+      }
+
+      if (Array.isArray(sec.bullets)) {
+        const ul = document.createElement('ul');
+        for (const item of sec.bullets) {
+          const li = document.createElement('li');
+          li.textContent = item;
+          ul.appendChild(li);
+        }
+        secEl.appendChild(ul);
+      }
+
+      panelBodyEl.appendChild(secEl);
+    }
+  } else if (data.description) {
+    const secEl = document.createElement('section');
+    secEl.className = 'research-section';
+    const p = document.createElement('p');
+    p.textContent = data.description;
+    secEl.appendChild(p);
+    panelBodyEl.appendChild(secEl);
+  }
 
   // Render Tags
   panelTagsEl.innerHTML = '';
@@ -256,18 +295,39 @@ function showDetailPanel(data) {
     }
   }
 
+  // Enable Background Focus Mode (dims background graph & hides text labels!)
+  document.body.classList.add('detail-panel-open');
+  if (activeSubnet) {
+    setWorldOpacity(activeSubnet.group, 0.25);
+  }
+  if (mainGraph) {
+    setWorldOpacity(mainGraph, 0.04);
+  }
+
   detailPanelEl.classList.add('active');
   detailPanelEl.setAttribute('aria-hidden', 'false');
 }
 
-function hideDetailPanel() {
+function hideDetailPresentation() {
   if (!detailPanelEl) return;
+
   detailPanelEl.classList.remove('active');
   detailPanelEl.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('detail-panel-open');
+
+  // Restore background graph opacity to standard layer level
+  if (currentLayer === 'SUBNET' && activeSubnet) {
+    setWorldOpacity(activeSubnet.group, 1.0);
+    setWorldOpacity(mainGraph, 0.08);
+  } else if (currentLayer === 'MAIN') {
+    setWorldOpacity(mainGraph, 1.0);
+  }
+
+  activeDetailNode = null;
 }
 
 if (panelCloseBtn) {
-  panelCloseBtn.addEventListener('click', hideDetailPanel);
+  panelCloseBtn.addEventListener('click', hideDetailPresentation);
 }
 
 /* ============================================================
@@ -318,6 +378,15 @@ function setLabelMode(mode) {
 }
 
 function updateLabels() {
+  // If detail presentation is open, hide all graph labels to prevent visual collisions!
+  if (document.body.classList.contains('detail-panel-open')) {
+    for (const label of labels) {
+      label.element.style.opacity = '0';
+      label.element.style.display = 'none';
+    }
+    return;
+  }
+
   const position = new THREE.Vector3();
 
   for (const label of labels) {
@@ -350,7 +419,7 @@ function updateLabels() {
     label.element.style.left = `${x}px`;
     label.element.style.top = `${y}px`;
 
-    // 4. Layer Mode & Ghosting Rules
+    // 4. Layer Mode Rules
     let shouldShow = false;
     let effectiveOpacity = label.baseOpacity;
 
@@ -378,7 +447,6 @@ function updateLabels() {
 
 /* ============================================================
    MAIN GRAPH TOPOLOGY (EXACTLY 5 PRIMARY DESTINATIONS IN 3D)
-   Controlled irregular 3D pentagonal composition with Z-depth!
    ============================================================ */
 
 const mainGraph = new THREE.Group();
@@ -565,7 +633,7 @@ connectMain('contact', 'experience', 0.32);
 connectMain('experience', 'about', 0.32);
 
 /* ============================================================
-   SUBNETWORK DEFINITIONS (5 MAJOR SUBNETS)
+   SUBNETWORK DEFINITIONS (5 MAJOR SUBNETS - TERMINAL NODES)
    ============================================================ */
 
 const subnetDefinitions = {
@@ -581,10 +649,28 @@ const subnetDefinitions = {
         kicker: 'PROFILE & IDENTITY',
         title: 'Deepak R V',
         subtitle: 'AI / ML Engineer & Computer Vision Specialist',
-        description: 'B.Tech AI&DS graduate passionate about building robust, real-time spatial visual systems, custom object tracking pipelines, and high-performance edge inference engines.',
+        sections: [
+          {
+            heading: 'PROFILE OVERVIEW',
+            content: 'B.Tech AI&DS graduate specialized in designing, training, and deploying real-time computer vision systems, custom object tracking pipelines, and high-throughput edge inference engines.',
+          },
+          {
+            heading: 'SPECIALIZATIONS',
+            bullets: [
+              'Real-Time Computer Vision & Multi-Object Tracking',
+              'Fast Semantic Segmentation & Gesture Controls',
+              'Deep Learning Architecture (PyTorch / TensorFlow)',
+              'Edge Model Optimization & Microservice Deployment',
+            ],
+          },
+          {
+            heading: 'ENGINEERING BACKGROUND',
+            content: 'Strong background in computer vision algorithms, real-time sports analytics pipelines, assistive accessibility systems, and gesture-driven HCI interfaces.',
+          },
+        ],
         tags: ['AI/ML Engineer', 'Computer Vision', 'B.Tech AI&DS', 'Real-Time Vision'],
         actions: [
-          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
         ],
       },
       {
@@ -594,10 +680,24 @@ const subnetDefinitions = {
         kicker: 'ENGINEERING PHILOSOPHY',
         title: 'System Design & Optimization',
         subtitle: 'Core Computational Principles',
-        description: 'Focusing on low-latency inference, spatial computer vision pipelines, modular architecture, and edge hardware deployment without unnecessary bloat.',
+        sections: [
+          {
+            heading: 'PHILOSOPHY',
+            content: 'Focusing on low-latency inference, spatial computer vision pipelines, modular architecture, and edge hardware deployment without unnecessary bloat.',
+          },
+          {
+            heading: 'CORE PRINCIPLES',
+            bullets: [
+              'Zero-bloat modular pipeline design',
+              'Edge-first model optimization (ONNX / TensorRT / TFLite)',
+              'Spatial 3D visual perception',
+              'Strict latency & throughput benchmarking',
+            ],
+          },
+        ],
         tags: ['Spatial AI', 'Edge Optimization', 'Modular Code', 'Real-Time Vision'],
         actions: [
-          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
       {
@@ -607,10 +707,24 @@ const subnetDefinitions = {
         kicker: 'CAPABILITIES',
         title: 'Technical Core Competencies',
         subtitle: 'Specialization & Skill Spectrum',
-        description: 'Custom object detection & tracking (YOLOv8, ByteTrack), fast semantic segmentation (Fast-SCNN), MediaPipe gesture recognition, PyTorch/TensorFlow training, and FastAPI microservice integration.',
+        sections: [
+          {
+            heading: 'COMPETENCY SPECTRUM',
+            content: 'Deep technical proficiency in custom object detection (YOLOv8), multi-object tracking (ByteTrack), fast segmentation (Fast-SCNN), MediaPipe hand gesture recognition, PyTorch/TensorFlow training, and FastAPI microservices.',
+          },
+          {
+            heading: 'KEY STRENGTHS',
+            bullets: [
+              'YOLOv8 & ByteTrack tracking pipelines',
+              'PyTorch deep neural network training',
+              'FastAPI containerized microservices',
+              'OpenCV visual processing',
+            ],
+          },
+        ],
         tags: ['YOLOv8', 'PyTorch', 'FastAPI', 'OpenCV', 'MediaPipe'],
         actions: [
-          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
         ],
       },
     ],
@@ -628,9 +742,28 @@ const subnetDefinitions = {
         kicker: 'SKILL CATEGORY',
         title: 'Computer Vision',
         subtitle: 'Visual Perception & Tracking',
-        description: 'Advanced visual understanding, multi-object tracking, fast semantic segmentation, hand gesture modeling, and optical character recognition.',
+        sections: [
+          {
+            heading: 'PERCEPTION & TRACKING SPECTRUM',
+            content: 'Advanced visual understanding, multi-object tracking, fast semantic segmentation, hand gesture modeling, and optical character recognition.',
+          },
+          {
+            heading: 'TECHNOLOGIES',
+            bullets: [
+              'YOLOv8 — Custom Object Detection',
+              'ByteTrack — Multi-Object Tracking',
+              'OpenCV — Image Processing & Geometry',
+              'Fast-SCNN — Fast Semantic Segmentation',
+              'MediaPipe — Hand Landmark Gesture Tracking',
+              'Tesseract OCR — Text Recognition',
+            ],
+          },
+        ],
         details: ['YOLOv8', 'ByteTrack', 'OpenCV', 'Fast-SCNN', 'MediaPipe', 'OCR / Tesseract'],
         tags: ['YOLOv8', 'ByteTrack', 'OpenCV', 'Fast-SCNN', 'MediaPipe', 'Tesseract OCR'],
+        actions: [
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'deep-learning',
@@ -639,9 +772,27 @@ const subnetDefinitions = {
         kicker: 'SKILL CATEGORY',
         title: 'Deep Learning & AI',
         subtitle: 'Neural Architectures & Training',
-        description: 'Deep neural network design, Convolutional Neural Networks (CNNs), Vision Transformers, PyTorch & TensorFlow training pipelines, and unsupervised clustering.',
+        sections: [
+          {
+            heading: 'NEURAL NETWORKS & TRAINING',
+            content: 'Deep neural network design, Convolutional Neural Networks (CNNs), Vision Transformers, PyTorch & TensorFlow training pipelines, and unsupervised clustering.',
+          },
+          {
+            heading: 'TECHNOLOGIES',
+            bullets: [
+              'PyTorch — Model Training & Fine-Tuning',
+              'TensorFlow — Deep Neural Networks',
+              'CNNs — Feature Extraction & Classification',
+              'Vision Transformers — Spatial Attention Networks',
+              'K-Means — Team Jersey & Feature Clustering',
+            ],
+          },
+        ],
         details: ['PyTorch', 'TensorFlow', 'CNNs', 'Vision Transformers', 'K-Means Clustering'],
         tags: ['PyTorch', 'TensorFlow', 'CNNs', 'Transformers', 'K-Means'],
+        actions: [
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'systems-deployment',
@@ -650,9 +801,27 @@ const subnetDefinitions = {
         kicker: 'SKILL CATEGORY',
         title: 'Systems & Deployment',
         subtitle: 'Inference Engines & Microservices',
-        description: 'High-throughput microservice architectures, REST APIs, ONNX Runtime optimization, Docker containerization, and mobile/edge inference.',
+        sections: [
+          {
+            heading: 'HIGH-THROUGHPUT DEPLOYMENT',
+            content: 'High-throughput microservice architectures, REST APIs, ONNX Runtime optimization, Docker containerization, and mobile/edge inference.',
+          },
+          {
+            heading: 'TECHNOLOGIES',
+            bullets: [
+              'FastAPI — Low-Latency REST Microservices',
+              'Docker — Containerized Service Deployment',
+              'ONNX Runtime — Cross-Platform Inference',
+              'TensorFlow Lite — Mobile & Edge Deployment',
+              'C++ — High-Performance Inference Engines',
+            ],
+          },
+        ],
         details: ['FastAPI', 'Docker', 'ONNX Runtime', 'TensorFlow Lite', 'C++ Inference'],
         tags: ['FastAPI', 'Docker', 'ONNX', 'TFLite', 'C++'],
+        actions: [
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'languages-tools',
@@ -661,9 +830,27 @@ const subnetDefinitions = {
         kicker: 'SKILL CATEGORY',
         title: 'Languages & Tools',
         subtitle: 'Programming Languages & Systems',
-        description: 'Core software engineering stack across Python, C++, Dart, SQL databases, Git version control, and Linux systems administration.',
+        sections: [
+          {
+            heading: 'ENGINEERING STACK',
+            content: 'Core software engineering stack across Python, C++, Dart, SQL databases, Git version control, and Linux systems administration.',
+          },
+          {
+            heading: 'TECHNOLOGIES',
+            bullets: [
+              'Python — Core AI/ML Engineering & Analytics',
+              'C++ — Systems & Algorithmic Performance',
+              'Flutter / Dart — Cross-Platform Mobile Applications',
+              'SQL — Database Querying & Data Pipelines',
+              'Git & Linux — Version Control & System Admin',
+            ],
+          },
+        ],
         details: ['Python', 'C++', 'Flutter / Dart', 'SQL', 'Git & Linux'],
         tags: ['Python', 'C++', 'Flutter', 'SQL', 'Git & Linux'],
+        actions: [
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
     ],
   },
@@ -677,56 +864,220 @@ const subnetDefinitions = {
         id: 'sightmate',
         label: 'SIGHTMATE',
         position: [-5.2, 2.8, 3.2],
-        kicker: 'FEATURED PROJECT',
+        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
         title: 'SightMate',
-        subtitle: 'AI Navigation & Assistance System',
-        description: 'Flutter-based accessibility application combining real-time object detection (YOLOv8), fast semantic segmentation (Fast-SCNN), Tesseract OCR text reading, and spoken voice guidance.',
+        subtitle: 'AI Navigation & Spoken Assistance System',
+        sections: [
+          {
+            heading: 'OVERVIEW',
+            content: 'Flutter-based accessibility system built for visual assistance, combining computer vision object detection, fast semantic segmentation, OCR text reading, and real-time spoken voice interaction.',
+          },
+          {
+            heading: 'PROBLEM STATEMENT',
+            content: 'Visually impaired individuals face immense difficulty navigating unfamiliar physical environments, recognizing everyday obstacles, reading text labels, and identifying currency notes in real time without continuous internet connectivity.',
+          },
+          {
+            heading: 'SYSTEM ARCHITECTURE',
+            content: 'Modular mobile pipeline: Live camera frames are ingested into parallel lightweight inference workers. YOLOv8 handles bounding box object detection while Fast-SCNN computes real-time traversable path segmentation. Tesseract OCR processes detected text regions, sending structured spoken cues to text-to-speech audio feedback.',
+          },
+          {
+            heading: 'TECHNOLOGIES USED',
+            bullets: [
+              'Flutter / Dart — Cross-Platform Mobile UI',
+              'YOLOv8 — Object & Obstacle Detection',
+              'Fast-SCNN — Fast Semantic Segmentation',
+              'TensorFlow Lite — On-Device Model Inference',
+              'Tesseract OCR — Offline Text Reading',
+            ],
+          },
+          {
+            heading: 'KEY FEATURES & IMPLEMENTATION',
+            bullets: [
+              'Real-Time Obstacle Detection & Distance Estimation',
+              'Traversable Path & Floor Segmentation',
+              'OCR Text & Signboard Spoken Reader',
+              'Currency Note Recognition Engine',
+              'Offline Spoken Voice Guidance Feedback',
+            ],
+          },
+          {
+            heading: 'RESULTS & OUTPUT',
+            content: 'Achieved sub-100ms camera frame processing latency on mobile hardware, enabling real-time spoken navigation cues and obstacle alerts without external server dependency.',
+          },
+          {
+            heading: 'KEY LEARNINGS',
+            content: 'Mobile neural model quantization, optimizing camera stream frame rates, and building non-intrusive voice-first accessibility user interfaces.',
+          },
+        ],
         tags: ['Flutter', 'YOLOv8', 'Fast-SCNN', 'Tesseract OCR', 'Accessibility'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/SightMate' },
-          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
+
       {
         id: 'football',
         label: 'FOOTBALL ANALYSIS',
         position: [-1.4, 5.6, -3.0],
-        kicker: 'FEATURED PROJECT',
+        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
         title: 'Football Analysis System',
-        subtitle: 'AI Sports Analytics & Tracking',
-        description: 'Computer vision pipeline for player, referee and ball detection (YOLOv8), multi-object tracking (ByteTrack), K-Means team jersey classification, and planar perspective transformation for match stats.',
+        subtitle: 'AI Sports Analytics & Video Tracking Pipeline',
+        sections: [
+          {
+            heading: 'OVERVIEW',
+            content: 'Computer vision pipeline for automated football match analysis: player, referee, and ball detection, multi-object tracking, team jersey color classification, and perspective transformation for spatial match statistics.',
+          },
+          {
+            heading: 'PROBLEM STATEMENT',
+            content: 'Manual sports video analysis is extremely labor-intensive and subjective. Automated analytics require consistent multi-object tracking through heavy occlusion, camera motion, and player body overlaps.',
+          },
+          {
+            heading: 'SYSTEM ARCHITECTURE',
+            content: 'Video processing pipeline: Frames are processed by YOLOv8 for player/ball detection. ByteTrack maintains consistent IDs across frames. K-Means clustering extracts jersey color histograms from player bounding boxes for automatic team assignment. Planar homography warps pitch pixel coordinates to a top-down tactical 2D map.',
+          },
+          {
+            heading: 'TECHNOLOGIES USED',
+            bullets: [
+              'YOLOv8 — Player, Referee & Ball Detection',
+              'ByteTrack — Multi-Object ID Tracking',
+              'K-Means Clustering — Automatic Team Jersey Color Assignment',
+              'OpenCV — Planar Homography & Perspective Transformation',
+              'Python — Video Processing & Metric Analytics',
+            ],
+          },
+          {
+            heading: 'KEY FEATURES & IMPLEMENTATION',
+            bullets: [
+              'Multi-Object Player & Ball ID Tracking',
+              'K-Means Jersey Color Team Classification',
+              'Top-Down Tactical 2D Radar Map Projection',
+              'Player Speed & Total Distance Traveled Metrics',
+              'Team Ball Possession Percentage Calculation',
+            ],
+          },
+          {
+            heading: 'RESULTS & OUTPUT',
+            content: 'Accurate tracking across complex match footage with visual overlays showing player IDs, team tactical radar mapping, speed tracking, and automated match possession stats.',
+          },
+          {
+            heading: 'KEY LEARNINGS',
+            content: 'Robust tracking under occlusions, camera homography matrix computation, and pixel-to-meter physical distance estimation.',
+          },
+        ],
         tags: ['YOLOv8', 'ByteTrack', 'K-Means', 'OpenCV', 'Python Analytics'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Football-Analysis-System' },
-          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
+
       {
         id: 'kaatchi',
         label: 'KAATCHI MEDIA',
         position: [5.2, 3.5, 2.5],
-        kicker: 'FEATURED PROJECT',
+        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
         title: 'Kaatchi Media Engine',
-        subtitle: 'Media Processing & AI Indexing',
-        description: 'Scalable processing engine for automated media analysis, computer vision metadata extraction, keyframe indexing, and search optimization.',
+        subtitle: 'Media Processing & AI Content Indexing Microservice',
+        sections: [
+          {
+            heading: 'OVERVIEW',
+            content: 'Scalable backend processing engine built for automated media analysis, computer vision metadata extraction, keyframe indexing, and fast visual search optimization.',
+          },
+          {
+            heading: 'PROBLEM STATEMENT',
+            content: 'Large video archives require automated visual tagging and metadata extraction to make unorganized video files searchable without manual logging.',
+          },
+          {
+            heading: 'SYSTEM ARCHITECTURE',
+            content: 'Asynchronous microservice architecture: FFmpeg ingests high-resolution video into chunked segment queues. PyTorch vision models extract visual embeddings, keyframes, and object tags. FastAPI exposes low-latency query endpoints backed by Dockerized worker queues.',
+          },
+          {
+            heading: 'TECHNOLOGIES USED',
+            bullets: [
+              'PyTorch — Feature Embedding & Vision Extraction',
+              'FastAPI — Low-Latency REST Endpoints',
+              'FFmpeg — Video Decoding & Frame Chunking',
+              'Docker — Asynchronous Microservice Workers',
+              'Python — Pipeline Automation',
+            ],
+          },
+          {
+            heading: 'KEY FEATURES & IMPLEMENTATION',
+            bullets: [
+              'Automatic Keyframe Extraction & Indexing',
+              'Visual Scene Feature Tagging',
+              'Asynchronous Task Queue Ingestion',
+              'Structured JSON Metadata API Responses',
+            ],
+          },
+          {
+            heading: 'RESULTS & OUTPUT',
+            content: 'High-throughput automated video indexing engine capable of processing video workloads with fast metadata query response times.',
+          },
+          {
+            heading: 'KEY LEARNINGS',
+            content: 'Batch inference queue management, async Python concurrency, and Docker microservice orchestration.',
+          },
+        ],
         tags: ['PyTorch', 'FastAPI', 'FFmpeg', 'Docker', 'Microservices'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Kaatchi-Media' },
-          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
+
       {
         id: 'virtual-mouse',
         label: 'VIRTUAL MOUSE',
         position: [5.6, -1.8, -3.2],
-        kicker: 'FEATURED PROJECT',
-        title: 'Virtual Mouse Control',
+        kicker: 'TECHNICAL CASE STUDY (RESEARCH PAPER MODE)',
+        title: 'Virtual Mouse Control System',
         subtitle: 'Gesture HCI Control System',
-        description: 'Real-time hand tracking system mapping human hand landmarks (MediaPipe) to touchless OS cursor movements, pinch clicks, and scroll gestures.',
+        sections: [
+          {
+            heading: 'OVERVIEW',
+            content: 'Real-time human-computer interaction system translating webcam hand landmark tracking into touchless OS cursor movements, pinch clicks, drag-and-drop, and scroll gestures.',
+          },
+          {
+            heading: 'PROBLEM STATEMENT',
+            content: 'Creating a touchless, low-latency computer cursor interface that feels natural, removes jitter from raw camera frames, and accurately distinguishes between accidental movements and deliberate click gestures.',
+          },
+          {
+            heading: 'SYSTEM ARCHITECTURE',
+            content: 'Webcam frames are passed to MediaPipe Hands for 21 3D landmark coordinate extraction. Index finger tip coordinates are smoothed using exponential moving average filtering and mapped to screen screen dimensions. Pinch distance triggers PyAutoGUI click events.',
+          },
+          {
+            heading: 'TECHNOLOGIES USED',
+            bullets: [
+              'MediaPipe Hands — 21 3D Hand Landmark Tracking',
+              'OpenCV — Webcam Frame Capture & Processing',
+              'PyAutoGUI — Operating System Input Automation',
+              'Python — Gesture Logic & Smoothing Filters',
+            ],
+          },
+          {
+            heading: 'KEY FEATURES & IMPLEMENTATION',
+            bullets: [
+              'Exponential Smoothing Cursor Motion Filter',
+              'Pinch-to-Click & Right-Click Gesture Triggers',
+              'Two-Finger Scroll Gesture Detection',
+              'Drag & Drop State Machine',
+            ],
+          },
+          {
+            heading: 'RESULTS & OUTPUT',
+            content: 'Smooth touchless OS cursor control running at real-time camera frame rates with reliable gesture recognition.',
+          },
+          {
+            heading: 'KEY LEARNINGS',
+            content: 'Coordinate space transformations, noise filtering algorithms, and state-machine design for gesture recognition.',
+          },
+        ],
         tags: ['MediaPipe Hands', 'OpenCV', 'PyAutoGUI', 'Touchless HCI'],
         actions: [
           { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Virtual-Mouse-Controll' },
-          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
     ],
@@ -744,10 +1095,25 @@ const subnetDefinitions = {
         kicker: 'CAREER MILESTONE',
         title: 'AI / ML Engineer',
         subtitle: 'Kaatchi Media (Media Processing Engine)',
-        description: 'Designed and deployed automated media vision processing microservices, keyframe indexing pipelines, and metadata extraction APIs.',
+        sections: [
+          {
+            heading: 'ROLE & CONTRIBUTION',
+            content: 'Designed and deployed automated media vision processing microservices, keyframe indexing pipelines, and metadata extraction APIs.',
+          },
+          {
+            heading: 'RESPONSIBILITIES & TECH',
+            bullets: [
+              'PyTorch vision feature extraction pipeline engineering',
+              'FastAPI low-latency microservice architecture',
+              'FFmpeg automated chunked video frame processing',
+              'Docker containerized worker queue deployment',
+            ],
+          },
+        ],
         tags: ['PyTorch', 'FastAPI', 'FFmpeg', 'Docker'],
         actions: [
-          { label: 'GITHUB CODE', type: 'primary', url: 'https://github.com/DEEPAKRV07/Kaatchi-Media' },
+          { label: 'VIEW CODE ON GITHUB', type: 'primary', url: 'https://github.com/DEEPAKRV07/Kaatchi-Media' },
+          { label: 'VIEW RESUME PDF', type: 'secondary', url: '/my_resume.pdf' },
         ],
       },
       {
@@ -757,10 +1123,23 @@ const subnetDefinitions = {
         kicker: 'CAREER MILESTONE',
         title: 'AI Systems Engineering Intern',
         subtitle: 'MSME Training Program',
-        description: 'Trained custom object detection models, benchmarked inference pipelines, and optimized computer vision algorithms for real-time edge hardware.',
+        sections: [
+          {
+            heading: 'ROLE & CONTRIBUTION',
+            content: 'Trained custom object detection models, benchmarked inference pipelines, and optimized computer vision algorithms for real-time edge hardware.',
+          },
+          {
+            heading: 'RESPONSIBILITIES & TECH',
+            bullets: [
+              'YOLOv8 dataset curation, annotation, and model training',
+              'OpenCV real-time stream processing optimization',
+              'Latency benchmarking across embedded edge hardware',
+            ],
+          },
+        ],
         tags: ['YOLOv8', 'OpenCV', 'Python', 'Edge AI'],
         actions: [
-          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
         ],
       },
       {
@@ -770,10 +1149,23 @@ const subnetDefinitions = {
         kicker: 'CAREER MILESTONE',
         title: 'Data & Analytics Engineering',
         subtitle: 'Quality Threads',
-        description: 'Built automated analytics reporting pipelines, structured feature extraction routines, and database management systems.',
+        sections: [
+          {
+            heading: 'ROLE & CONTRIBUTION',
+            content: 'Built automated analytics reporting pipelines, structured feature extraction routines, and database management systems.',
+          },
+          {
+            heading: 'RESPONSIBILITIES & TECH',
+            bullets: [
+              'Automated data analytics & feature extraction in Python',
+              'Structured SQL database query optimization',
+              'Analytics reporting automation',
+            ],
+          },
+        ],
         tags: ['Python', 'SQL', 'Data Analytics'],
         actions: [
-          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
         ],
       },
       {
@@ -783,10 +1175,22 @@ const subnetDefinitions = {
         kicker: 'CAREER MILESTONE',
         title: 'Web Software Engineering',
         subtitle: 'Forcrux Development',
-        description: 'Engineered responsive web applications, API integrations, and user interfaces backed by structured database backends.',
+        sections: [
+          {
+            heading: 'ROLE & CONTRIBUTION',
+            content: 'Engineered responsive web applications, API integrations, and user interfaces backed by structured database backends.',
+          },
+          {
+            heading: 'RESPONSIBILITIES & TECH',
+            bullets: [
+              'Frontend UI integration & component design',
+              'REST API consumption & state management',
+            ],
+          },
+        ],
         tags: ['JavaScript', 'HTML/CSS', 'Web APIs'],
         actions: [
-          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
         ],
       },
     ],
@@ -804,10 +1208,15 @@ const subnetDefinitions = {
         kicker: 'DIRECT TRANSMISSION',
         title: 'Email Deepak R V',
         subtitle: 'deepakrv07@gmail.com',
-        description: 'Send a direct inquiry regarding AI/ML engineering roles, computer vision projects, or technical collaboration.',
-        tags: ['Direct Contact', 'AI/ML Projects'],
+        sections: [
+          {
+            heading: 'DIRECT INQUIRIES',
+            content: 'Send a direct message regarding AI/ML engineering positions, computer vision project collaborations, or technical consultations.',
+          },
+        ],
+        tags: ['Direct Email', 'AI/ML Collaboration'],
         actions: [
-          { label: 'SEND EMAIL', type: 'primary', url: 'mailto:deepakrv07@gmail.com' },
+          { label: 'SEND EMAIL NOW', type: 'primary', url: 'mailto:deepakrv07@gmail.com' },
         ],
       },
       {
@@ -817,10 +1226,15 @@ const subnetDefinitions = {
         kicker: 'CODE REPOSITORY',
         title: 'GitHub Profile',
         subtitle: 'github.com/DEEPAKRV07',
-        description: 'Explore open source vision repositories, project source code, detection pipelines, and model implementations.',
+        sections: [
+          {
+            heading: 'SOURCE CODE & REPOSITORIES',
+            content: 'Explore open source computer vision repositories, detection pipelines, model architectures, and project implementations.',
+          },
+        ],
         tags: ['Repositories', 'Source Code', 'Vision Pipelines'],
         actions: [
-          { label: 'OPEN GITHUB', type: 'primary', url: 'https://github.com/DEEPAKRV07' },
+          { label: 'OPEN GITHUB PROFILE', type: 'primary', url: 'https://github.com/DEEPAKRV07' },
         ],
       },
       {
@@ -830,10 +1244,15 @@ const subnetDefinitions = {
         kicker: 'PROFESSIONAL NETWORK',
         title: 'LinkedIn Profile',
         subtitle: 'linkedin.com/in/deepak-r-v',
-        description: 'Connect professionally, review technical recommendations, and track engineering work experience.',
+        sections: [
+          {
+            heading: 'PROFESSIONAL CONNECT',
+            content: 'Connect professionally on LinkedIn to discuss career opportunities, engineering recommendations, and professional achievements.',
+          },
+        ],
         tags: ['Professional Network', 'Career Profile'],
         actions: [
-          { label: 'OPEN LINKEDIN', type: 'primary', url: 'https://linkedin.com/in/deepak-r-v' },
+          { label: 'OPEN LINKEDIN PROFILE', type: 'primary', url: 'https://linkedin.com/in/deepak-r-v' },
         ],
       },
       {
@@ -843,7 +1262,12 @@ const subnetDefinitions = {
         kicker: 'OFFICIAL DOCUMENT',
         title: 'Curriculum Vitae',
         subtitle: 'Deepak R V — Resume PDF',
-        description: 'View or download the official resume detailing engineering experience, education, skills, and technical accomplishments.',
+        sections: [
+          {
+            heading: 'CURRICULUM VITAE',
+            content: 'View or download the complete official resume detailing engineering experience, B.Tech AI&DS education, skill inventory, and technical projects.',
+          },
+        ],
         tags: ['PDF Resume', 'Qualifications', 'Contact Info'],
         actions: [
           { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
@@ -853,76 +1277,12 @@ const subnetDefinitions = {
   },
 };
 
-/* Existing Project Networks Data (for Project -> Category -> Detail 3D subnetwork layer) */
-const projectNetworks = {
-  sightmate: {
-    title: 'SIGHTMATE',
-    subtitle: 'AI NAVIGATION ASSISTANT',
-    description: 'Flutter-based accessibility system combining computer vision, navigation fusion, OCR and voice interaction.',
-    categories: [
-      { id: 'overview', label: 'OVERVIEW', position: [-5.2, 2.8, 3.5], description: 'Real-time visual understanding and spoken interaction for visual assistance.', details: ['Flutter', 'Accessibility', 'Offline AI'] },
-      { id: 'tech-stack', label: 'TECH STACK', position: [-1.4, 5.6, -3.0], description: 'Core technologies used across inference and application pipeline.', details: ['YOLOv8', 'TensorFlow Lite', 'Fast-SCNN', 'Tesseract OCR'] },
-      { id: 'architecture', label: 'ARCHITECTURE', position: [5.2, 3.5, 2.5], description: 'Modular pipeline connecting camera input, AI inference, navigation and voice output.', details: ['Camera Input', 'Object Detection', 'Fast Segmentation', 'Audio Guidance'] },
-      { id: 'features', label: 'FEATURES', position: [5.6, -1.8, -3.2], description: 'Real-time assistance features built around scene understanding.', details: ['Object Detection', 'OCR Text Reader', 'Currency Recognition', 'Voice Feedback'] },
-      { id: 'output', label: 'OUTPUT', position: [0.8, -5.2, 3.0], description: 'Turns visual information into accessible spoken feedback.', details: ['Scene Understanding', 'Text Reading', 'Voice Feedback'] },
-      { id: 'links', label: 'PROJECT', position: [-5.0, -3.0, -2.6], description: 'Project implementation and supporting repository.', details: ['GitHub Repo', 'Documentation', 'Video Demo'] },
-    ],
-  },
-
-  football: {
-    title: 'FOOTBALL ANALYSIS',
-    subtitle: 'AI SPORTS ANALYTICS',
-    description: 'Computer vision pipeline for player, referee and ball tracking, team classification and match statistics.',
-    categories: [
-      { id: 'overview', label: 'OVERVIEW', position: [-5.2, 2.8, 3.5], description: 'A football video analytics pipeline built around detection, tracking and statistical analysis.', details: ['Computer Vision', 'Sports Analytics', 'Video Processing'] },
-      { id: 'tech-stack', label: 'TECH STACK', position: [-1.4, 5.6, -3.0], description: 'Core models and tools used throughout the analysis pipeline.', details: ['YOLOv8', 'ByteTrack', 'K-Means', 'OpenCV', 'Python'] },
-      { id: 'architecture', label: 'ARCHITECTURE', position: [5.2, 3.5, 2.5], description: 'Detection, tracking, classification and transformation stages work together as one pipeline.', details: ['Player Detection', 'Multi-Object Tracking', 'K-Means Team Color', 'Perspective Warp'] },
-      { id: 'features', label: 'FEATURES', position: [5.6, -1.8, -3.2], description: 'The pipeline extracts player and match-level information from video.', details: ['Player Tracking', 'Ball Tracking', 'Speed Estimation', 'Distance Traveled', 'Possession Stats'] },
-      { id: 'output', label: 'OUTPUT', position: [0.8, -5.2, 3.0], description: 'Visualized match analytics and player statistics.', details: ['Tracking Overlay', 'Team Assignment', 'Match Statistics'] },
-      { id: 'links', label: 'PROJECT', position: [-5.0, -3.0, -2.6], description: 'Source repository and technical walkthrough.', details: ['GitHub Repo', 'Video Walkthrough', 'Architecture PDF'] },
-    ],
-  },
-
-  kaatchi: {
-    title: 'KAATCHI MEDIA',
-    subtitle: 'MEDIA COMPUTATIONAL ENGINE',
-    description: 'Scalable processing engine for automated media analysis, computer vision metadata and content optimization.',
-    categories: [
-      { id: 'overview', label: 'OVERVIEW', position: [-5.2, 2.8, 3.5], description: 'Media processing engine for automatic content tag extraction and visual indexing.', details: ['Media AI', 'Content Analysis', 'Pipeline Engineering'] },
-      { id: 'tech-stack', label: 'TECH STACK', position: [-1.4, 5.6, -3.0], description: 'Frameworks used for high-throughput media ingestion and inference.', details: ['Python', 'PyTorch', 'OpenCV', 'FFmpeg', 'FastAPI'] },
-      { id: 'architecture', label: 'ARCHITECTURE', position: [5.2, 3.5, 2.5], description: 'Queue-driven microservice system handling batch media workloads.', details: ['Ingestion Queue', 'Feature Extraction', 'Model Service', 'Metadata Storage'] },
-      { id: 'features', label: 'FEATURES', position: [5.6, -1.8, -3.2], description: 'Automatic indexing, keyframe extraction and visual feature clustering.', details: ['Keyframe Extraction', 'Visual Indexing', 'Auto Tagging', 'Search Index'] },
-      { id: 'output', label: 'OUTPUT', position: [0.8, -5.2, 3.0], description: 'Structured JSON metadata and searchable media index.', details: ['Metadata API', 'Search Index', 'Analytics Dashboard'] },
-      { id: 'links', label: 'PROJECT', position: [-5.0, -3.0, -2.6], description: 'Engine code and system documentation.', details: ['GitHub Repo', 'API Docs', 'Performance Benchmarks'] },
-    ],
-  },
-
-  'virtual-mouse': {
-    title: 'VIRTUAL MOUSE',
-    subtitle: 'GESTURE CONTROL SYSTEM',
-    description: 'Real-time hand tracking system mapping human gestures to touchless mouse controls.',
-    categories: [
-      { id: 'overview', label: 'OVERVIEW', position: [-5.2, 2.8, 3.5], description: 'Touchless human-computer interaction system translating hand landmarks into cursor movements.', details: ['HCI Interface', 'Gesture Control', 'Real-Time Vision'] },
-      { id: 'tech-stack', label: 'TECH STACK', position: [-1.4, 5.6, -3.0], description: 'Tracking models and OS input automation libraries.', details: ['MediaPipe Hands', 'OpenCV', 'PyAutoGUI', 'Python'] },
-      { id: 'architecture', label: 'ARCHITECTURE', position: [5.2, 3.5, 2.5], description: 'Low-latency pipeline connecting camera frames, gesture recognition and OS cursor events.', details: ['Frame Ingestion', 'Landmark Model', 'Gesture Classifier', 'OS Cursor Controller'] },
-      { id: 'features', label: 'FEATURES', position: [5.6, -1.8, -3.2], description: 'Pinch-to-click, drag-and-drop, scroll gestures and smooth cursor filtering.', details: ['Cursor Smoothing', 'Left / Right Click', 'Scroll Gesture', 'Drag & Drop'] },
-      { id: 'output', label: 'OUTPUT', position: [0.8, -5.2, 3.0], description: 'Responsive system control driven directly by webcam input.', details: ['Real-Time Overlay', 'Gesture Logs', 'Smooth Cursor'] },
-      { id: 'links', label: 'PROJECT', position: [-5.0, -3.0, -2.6], description: 'Source code and execution instructions.', details: ['GitHub Repo', 'Setup Guide', 'Gesture Reference'] },
-    ],
-  },
-};
-
 /* ============================================================
    SUBNETWORK WORLDS BUILDER
    ============================================================ */
 
 const subnetWorlds = new Map();
-const projectWorlds = new Map();
-
 let activeSubnet = null;
-let activeProject = null;
-let activeCategory = null;
-let detailWorld = null;
 
 function createSubnetWorld(subnetId) {
   const definition = subnetDefinitions[subnetId];
@@ -968,11 +1328,11 @@ function createSubnetWorld(subnetId) {
 
     node.group.position.set(...category.position);
     node.nucleusMesh.userData = {
-      type: 'subnet-category',
+      type: 'terminal-node',
       id: category.id,
       subnetId,
       label: category.label,
-      categoryData: category,
+      nodeData: category,
     };
 
     group.add(node.group);
@@ -1010,197 +1370,6 @@ function createSubnetWorld(subnetId) {
 
 for (const subnetId of Object.keys(subnetDefinitions)) {
   subnetWorlds.set(subnetId, createSubnetWorld(subnetId));
-}
-
-/* Create Project Worlds for deep project -> category -> detail navigation */
-function createProjectWorld(projectId) {
-  const definition = projectNetworks[projectId];
-  const group = new THREE.Group();
-  group.name = `PROJECT_${projectId}`;
-  group.visible = false;
-  scene.add(group);
-
-  const projectCore = new THREE.Group();
-  projectCore.name = 'PROJECT_CORE';
-  group.add(projectCore);
-
-  const coreNode = createNeuralNodeGroup({
-    nucleusRadius: 0.88,
-    torusRadius: 0.98,
-    torusTube: 0.028,
-    color: COLORS.bright,
-    opacity: 0.92,
-  });
-  coreNode.nucleusMesh.userData = { type: 'project-core', projectId };
-  projectCore.add(coreNode.group);
-
-  const projectLabel = createLabel(definition.title, 'project-core', 'project');
-  projectLabel.object = coreNode.nucleusMesh;
-  projectLabel.offset.set(0, -2.10, 0);
-
-  const subtitleLabel = createLabel(definition.subtitle, 'project-subtitle', 'project');
-  subtitleLabel.object = coreNode.nucleusMesh;
-  subtitleLabel.offset.set(0, -2.65, 0);
-
-  const categoryNodes = new Map();
-  const categories = [];
-  const edges = [];
-
-  for (const category of definition.categories) {
-    const node = createNeuralNodeGroup({
-      nucleusRadius: 0.42,
-      torusRadius: 0.56,
-      torusTube: 0.022,
-      color: COLORS.medium,
-      opacity: 0.95,
-    });
-
-    node.group.position.set(...category.position);
-    node.nucleusMesh.userData = {
-      type: 'project-category',
-      id: category.id,
-      projectId,
-      label: category.label,
-      categoryData: category,
-    };
-
-    group.add(node.group);
-
-    const label = createLabel(category.label, 'category', 'project');
-    label.object = node.nucleusMesh;
-    label.offset.set(0, 0.65, 0);
-
-    const categoryObj = { ...category, mesh: node.nucleusMesh, group: node.group, label };
-    categoryNodes.set(category.id, categoryObj);
-    categories.push(categoryObj);
-
-    edges.push(createEdge(coreNode.nucleusMesh, node.nucleusMesh, group, 0.48));
-  }
-
-  for (let i = 0; i < categories.length; i++) {
-    const source = categories[i];
-    const target = categories[(i + 1) % categories.length];
-    edges.push(createEdge(source.mesh, target.mesh, group, 0.18));
-  }
-
-  return {
-    projectId,
-    definition,
-    group,
-    core: projectCore,
-    nucleus: coreNode.nucleusMesh,
-    label: projectLabel,
-    subtitleLabel,
-    categories,
-    categoryMap: categoryNodes,
-    edges,
-  };
-}
-
-for (const projectId of Object.keys(projectNetworks)) {
-  projectWorlds.set(projectId, createProjectWorld(projectId));
-}
-
-/* ============================================================
-   DETAIL WORLD BUILDER
-   ============================================================ */
-
-function clearDetailWorld() {
-  if (!detailWorld) return;
-  for (const label of detailWorld.labels) {
-    removeLabel(label);
-  }
-  if (detailWorld.centerLabel) removeLabel(detailWorld.centerLabel);
-  if (detailWorld.descriptionLabel) removeLabel(detailWorld.descriptionLabel);
-  scene.remove(detailWorld.group);
-  detailWorld = null;
-}
-
-function createDetailWorld(parentWorld, category) {
-  clearDetailWorld();
-
-  const group = new THREE.Group();
-  group.name = `DETAIL_${category.id}`;
-  scene.add(group);
-
-  const centerNode = createNeuralNodeGroup({
-    nucleusRadius: 0.48,
-    torusRadius: 0.62,
-    torusTube: 0.024,
-    color: COLORS.bright,
-    opacity: 0.95,
-  });
-  centerNode.nucleusMesh.userData = { type: 'detail-center', id: category.id };
-  group.add(centerNode.group);
-
-  const categoryTitle = typeof category.label === 'string' ? category.label : (category.label?.label || category.id || 'CATEGORY');
-  const centerLabel = createLabel(categoryTitle, 'category', 'detail');
-  centerLabel.object = centerNode.nucleusMesh;
-  centerLabel.offset.set(0, -0.95, 0);
-
-  let descriptionLabel = null;
-  if (category.description) {
-    descriptionLabel = createLabel(category.description, 'detail-desc', 'detail');
-    descriptionLabel.object = centerNode.nucleusMesh;
-    descriptionLabel.offset.set(0, -1.45, 0);
-  }
-
-  const detailNodes = [];
-  const detailLabels = [];
-  const edges = [];
-
-  const details = (category.details || []).map(item => {
-    if (typeof item === 'object' && item !== null) {
-      return item.label || item.name || item.title || JSON.stringify(item);
-    }
-    return String(item ?? '');
-  });
-
-  const count = details.length;
-  const radius = 4.2;
-
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius * 0.72;
-    const z = (i % 2 === 0 ? 1 : -1) * 1.8;
-
-    const node = createNeuralNodeGroup({
-      nucleusRadius: 0.28,
-      torusRadius: 0.38,
-      torusTube: 0.020,
-      color: COLORS.medium,
-      opacity: 0.95,
-    });
-
-    node.group.position.set(x, y, z);
-    node.nucleusMesh.userData = { type: 'detail', label: details[i] };
-    group.add(node.group);
-
-    const label = createLabel(details[i], 'detail', 'detail');
-    label.object = node.nucleusMesh;
-    label.offset.set(0, 0.48, 0);
-
-    detailNodes.push(node.nucleusMesh);
-    detailLabels.push(label);
-    edges.push(createEdge(centerNode.nucleusMesh, node.nucleusMesh, group, 0.45));
-  }
-
-  for (let i = 0; i < detailNodes.length; i++) {
-    const source = detailNodes[i];
-    const target = detailNodes[(i + 1) % detailNodes.length];
-    edges.push(createEdge(source, target, group, 0.16));
-  }
-
-  return {
-    group,
-    centerMesh: centerNode.nucleusMesh,
-    centerLabel,
-    descriptionLabel,
-    nodes: detailNodes,
-    labels: detailLabels,
-    edges,
-  };
 }
 
 /* ============================================================
@@ -1277,13 +1446,6 @@ function setLayerVisibility(layerName) {
       setWorldVisibility(world.group, false);
       setWorldOpacity(world.group, 0);
     }
-    for (const world of projectWorlds.values()) {
-      setWorldVisibility(world.group, false);
-      setWorldOpacity(world.group, 0);
-    }
-    if (detailWorld) {
-      setWorldVisibility(detailWorld.group, false);
-    }
 
     setLabelMode('main');
     showCoreBeacon(false);
@@ -1297,56 +1459,8 @@ function setLayerVisibility(layerName) {
       setWorldVisibility(world.group, isCurrent);
       setWorldOpacity(world.group, isCurrent ? 1.0 : 0.0);
     }
-    for (const world of projectWorlds.values()) {
-      setWorldVisibility(world.group, false);
-      setWorldOpacity(world.group, 0);
-    }
-    if (detailWorld) {
-      setWorldVisibility(detailWorld.group, false);
-    }
 
     setLabelMode('subnet');
-    showCoreBeacon(true);
-  } else if (layerName === 'PROJECT') {
-    setWorldVisibility(mainGraph, true);
-    setWorldOpacity(mainGraph, 0.05);
-
-    for (const world of subnetWorlds.values()) {
-      const isCurrent = world === activeSubnet;
-      setWorldVisibility(world.group, isCurrent);
-      setWorldOpacity(world.group, isCurrent ? 0.10 : 0.0);
-    }
-    for (const world of projectWorlds.values()) {
-      const isCurrent = world === activeProject;
-      setWorldVisibility(world.group, isCurrent);
-      setWorldOpacity(world.group, isCurrent ? 1.0 : 0.0);
-    }
-    if (detailWorld) {
-      setWorldVisibility(detailWorld.group, false);
-    }
-
-    setLabelMode('project');
-    showCoreBeacon(true);
-  } else if (layerName === 'DETAIL') {
-    setWorldVisibility(mainGraph, true);
-    setWorldOpacity(mainGraph, 0.04);
-
-    for (const world of subnetWorlds.values()) {
-      const isCurrent = world === activeSubnet;
-      setWorldVisibility(world.group, isCurrent);
-      setWorldOpacity(world.group, isCurrent ? 0.06 : 0.0);
-    }
-    for (const world of projectWorlds.values()) {
-      const isCurrent = world === activeProject;
-      setWorldVisibility(world.group, isCurrent);
-      setWorldOpacity(world.group, isCurrent ? 0.08 : 0.0);
-    }
-    if (detailWorld) {
-      setWorldVisibility(detailWorld.group, true);
-      setWorldOpacity(detailWorld.group, 1.0);
-    }
-
-    setLabelMode('detail');
     showCoreBeacon(true);
   }
 }
@@ -1356,10 +1470,7 @@ function enterSubnet(subnetId) {
   if (!world) return;
 
   activeSubnet = world;
-  activeProject = null;
-  activeCategory = null;
-  clearDetailWorld();
-  hideDetailPanel();
+  hideDetailPresentation();
 
   setLayerVisibility('SUBNET');
 
@@ -1373,51 +1484,9 @@ function enterSubnet(subnetId) {
   startTransition(new THREE.Vector3(0, 1.2, 18.5), new THREE.Vector3(0, 0, 0), 850);
 }
 
-function enterProject(projectId) {
-  const world = projectWorlds.get(projectId);
-  if (!world) return;
-
-  activeProject = world;
-  activeCategory = null;
-  clearDetailWorld();
-  hideDetailPanel();
-
-  setLayerVisibility('PROJECT');
-
-  document.body.classList.add('project-mode');
-  document.body.classList.remove('detail-mode');
-
-  setMode('PROJECT');
-  setLayerPath(`NEURAL NETWORK / PROJECTS / ${world.definition.title}`);
-  updateCounters(world.categories.length + 1, world.edges.length);
-
-  startTransition(new THREE.Vector3(0, 1.2, 18.5), new THREE.Vector3(0, 0, 0), 850);
-}
-
-function enterCategory(category) {
-  const parentWorld = activeProject || activeSubnet;
-  if (!parentWorld) return;
-
-  activeCategory = category;
-  detailWorld = createDetailWorld(parentWorld, category);
-  hideDetailPanel();
-
-  setLayerVisibility('DETAIL');
-
-  document.body.classList.add('detail-mode');
-  setMode('DETAIL');
-  setLayerPath(`NEURAL NETWORK / ${parentWorld.definition.title} / ${category.label}`);
-  updateCounters(category.details ? category.details.length + 1 : 1, detailWorld.edges.length);
-
-  startTransition(new THREE.Vector3(0, 1.0, 16.0), new THREE.Vector3(0, 0, 0), 760);
-}
-
 function returnToCore() {
   activeSubnet = null;
-  activeProject = null;
-  activeCategory = null;
-  clearDetailWorld();
-  hideDetailPanel();
+  hideDetailPresentation();
 
   setLayerVisibility('MAIN');
 
@@ -1432,23 +1501,12 @@ function returnToCore() {
 }
 
 function exitLayer() {
-  hideDetailPanel();
+  if (document.body.classList.contains('detail-panel-open')) {
+    hideDetailPresentation();
+    return;
+  }
 
-  if (currentLayer === 'DETAIL') {
-    if (activeProject) {
-      enterProject(activeProject.projectId);
-    } else if (activeSubnet) {
-      enterSubnet(activeSubnet.subnetId);
-    } else {
-      returnToCore();
-    }
-  } else if (currentLayer === 'PROJECT') {
-    if (activeSubnet) {
-      enterSubnet(activeSubnet.subnetId);
-    } else {
-      returnToCore();
-    }
-  } else if (currentLayer === 'SUBNET') {
+  if (currentLayer === 'SUBNET') {
     returnToCore();
   }
 }
@@ -1473,40 +1531,20 @@ function getPointerObject() {
   /* Universal Neural Core & Core Beacon raycast anchor */
   const coreTargets = [coreNode.nucleusMesh, beaconNode.nucleusMesh];
   if (activeSubnet) coreTargets.push(activeSubnet.nucleus);
-  if (activeProject) coreTargets.push(activeProject.nucleus);
 
   const coreHit = raycaster.intersectObjects(coreTargets, false)[0];
   if (coreHit) {
     return { type: 'core', object: coreHit.object };
   }
 
-  /* Detail Layer */
-  if (activeCategory && detailWorld) {
-    const hits = raycaster.intersectObjects(detailWorld.nodes, false);
-    if (hits.length) {
-      return { type: 'detail', object: hits[0].object };
-    }
-  }
-
-  /* Project Layer */
-  if (activeProject) {
-    const hits = raycaster.intersectObjects(
-      activeProject.categories.map(node => node.mesh),
-      false
-    );
-    if (hits.length) {
-      return { type: 'project-category', object: hits[0].object };
-    }
-  }
-
-  /* Subnet Layer */
+  /* Subnet Layer Terminal Nodes */
   if (activeSubnet) {
     const hits = raycaster.intersectObjects(
       activeSubnet.categories.map(node => node.mesh),
       false
     );
     if (hits.length) {
-      return { type: 'subnet-category', object: hits[0].object };
+      return { type: 'terminal-node', object: hits[0].object };
     }
   }
 
@@ -1560,43 +1598,12 @@ renderer.domElement.addEventListener('click', () => {
     return;
   }
 
-  if (hit.type === 'subnet-category') {
+  if (hit.type === 'terminal-node') {
     const categoryObj = activeSubnet.categories.find(node => node.mesh === hit.object);
     if (categoryObj) {
-      if (activeSubnet.subnetId === 'projects') {
-        enterProject(categoryObj.id);
-      } else {
-        // Show focused detail overlay panel with category data!
-        showDetailPanel(categoryObj.categoryData || categoryObj);
-      }
+      const nodeData = categoryObj.nodeData || categoryObj;
+      showDetailPresentation(nodeData, hit.object);
     }
-    return;
-  }
-
-  if (hit.type === 'project-category') {
-    const categoryObj = activeProject.categories.find(node => node.mesh === hit.object);
-    if (categoryObj) {
-      if (categoryObj.details && categoryObj.details.length) {
-        enterCategory(categoryObj);
-      } else {
-        showDetailPanel(categoryObj.categoryData || categoryObj);
-      }
-    }
-    return;
-  }
-
-  if (hit.type === 'detail') {
-    const detailLabel = hit.object.userData.label;
-    showDetailPanel({
-      kicker: 'DETAIL NODE',
-      title: detailLabel,
-      subtitle: activeCategory ? activeCategory.label : 'NODE SPECIFICATION',
-      description: `Specific skill / technical element: ${detailLabel}. Part of the ${activeSubnet ? activeSubnet.definition.title : 'Neural Network'} capability graph.`,
-      tags: [detailLabel, 'Technical Skill'],
-      actions: [
-        { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
-      ],
-    });
     return;
   }
 });
@@ -1630,7 +1637,6 @@ window.addEventListener('keydown', event => {
 
 /* ============================================================
    STRICT SIGNAL PARTICLES (Travel strictly along connection edges)
-   Zero free-floating particles in empty space!
    ============================================================ */
 
 const signalGeometry = new THREE.SphereGeometry(0.075, 12, 12);
@@ -1659,7 +1665,6 @@ function updateSignals() {
       continue;
     }
 
-    // Hide signal if source or target world is invisible
     if (!isObjectInVisibleWorld(signal.edge.source) || !isObjectInVisibleWorld(signal.edge.target)) {
       signal.mesh.visible = false;
       continue;
@@ -1668,11 +1673,9 @@ function updateSignals() {
     signal.progress += signal.speed;
     if (signal.progress > 1) signal.progress = 0;
 
-    // Calculate exact 3D world coordinates of edge endpoints
     signal.edge.source.getWorldPosition(start);
     signal.edge.target.getWorldPosition(end);
 
-    // Interpolate signal position strictly along edge line
     signal.mesh.position.lerpVectors(start, end, signal.progress);
     signal.mesh.visible = true;
   }
@@ -1700,12 +1703,6 @@ function animate(currentTime) {
   updateEdges(mainEdges);
   if (activeSubnet) {
     updateEdges(activeSubnet.edges);
-  }
-  if (activeProject) {
-    updateEdges(activeProject.edges);
-  }
-  if (detailWorld) {
-    updateEdges(detailWorld.edges);
   }
 
   updateSignals();
