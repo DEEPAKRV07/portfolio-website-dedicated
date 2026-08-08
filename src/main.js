@@ -721,71 +721,61 @@ function createLogoTexture(type) {
   ctx.shadowBlur = 20;
   ctx.stroke();
 
-  ctx.fillStyle = '#00ff88';
-  ctx.strokeStyle = '#00ff88';
-  ctx.lineWidth = 18;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-
-  if (type === 'github') {
-    // Official GitHub Standalone Invertocat Silhouette Path
-    ctx.save();
-    ctx.translate(256, 245);
-    ctx.scale(1.15, 1.15);
-    ctx.fillStyle = '#00ff88';
-
-    // Invertocat Head Circle & Ears
-    ctx.beginPath();
-    ctx.arc(0, -10, 88, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Ears Cutout
-    ctx.beginPath();
-    ctx.moveTo(-58, -65); ctx.lineTo(-82, -122); ctx.lineTo(-24, -92); ctx.closePath();
-    ctx.moveTo(58, -65);  ctx.lineTo(82, -122);  ctx.lineTo(24, -92);  ctx.closePath();
-    ctx.fill();
-
-    // Inner Body Arch Cutout
-    ctx.fillStyle = 'rgba(5, 15, 10, 0.95)';
-    ctx.beginPath();
-    ctx.arc(0, 52, 50, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-  } else if (type === 'linkedin') {
-    // Official LinkedIn [in] logo asset rendering
-    ctx.font = '700 230px Deltha, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('in', 256, 245);
-  } else if (type === 'email') {
-    // Professional Mail / Envelope Icon
-    ctx.strokeRect(140, 170, 232, 160);
-    ctx.beginPath();
-    ctx.moveTo(140, 170);
-    ctx.lineTo(256, 260);
-    ctx.lineTo(372, 170);
-    ctx.stroke();
-  } else if (type === 'resume') {
-    // Professional Document / Resume Sheet Icon
-    ctx.strokeRect(165, 130, 182, 230);
-    ctx.beginPath();
-    ctx.moveTo(205, 190); ctx.lineTo(307, 190);
-    ctx.moveTo(205, 245); ctx.lineTo(307, 245);
-    ctx.moveTo(205, 300); ctx.lineTo(270, 300);
-    ctx.stroke();
-  } else if (type === 'hire') {
-    // Professional Person / Contact Icon
-    ctx.beginPath();
-    ctx.arc(256, 190, 55, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(256, 370, 105, Math.PI * 1.15, Math.PI * 1.85);
-    ctx.fill();
-  }
-
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+
+  if (type === 'github') {
+    // Exact uploaded GitHub Invertocat PNG Asset from public/gitlogo.png
+    const img = new Image();
+    img.src = '/gitlogo.png';
+    img.onload = () => {
+      ctx.save();
+      ctx.shadowColor = '#00ff88';
+      ctx.shadowBlur = 18;
+      ctx.drawImage(img, 126, 126, 260, 260);
+      ctx.restore();
+      texture.needsUpdate = true;
+    };
+  } else {
+    ctx.fillStyle = '#00ff88';
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 18;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (type === 'linkedin') {
+      // Official LinkedIn [in] logo asset rendering
+      ctx.font = '700 230px Deltha, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('in', 256, 245);
+    } else if (type === 'email') {
+      // Professional Mail / Envelope Icon
+      ctx.strokeRect(140, 170, 232, 160);
+      ctx.beginPath();
+      ctx.moveTo(140, 170);
+      ctx.lineTo(256, 260);
+      ctx.lineTo(372, 170);
+      ctx.stroke();
+    } else if (type === 'resume') {
+      // Professional Document / Resume Sheet Icon
+      ctx.strokeRect(165, 130, 182, 230);
+      ctx.beginPath();
+      ctx.moveTo(205, 190); ctx.lineTo(307, 190);
+      ctx.moveTo(205, 245); ctx.lineTo(307, 245);
+      ctx.moveTo(205, 300); ctx.lineTo(270, 300);
+      ctx.stroke();
+    } else if (type === 'hire') {
+      // Professional Person / Contact Icon
+      ctx.beginPath();
+      ctx.arc(256, 190, 55, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(256, 370, 105, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.fill();
+    }
+  }
+
   return texture;
 }
 
