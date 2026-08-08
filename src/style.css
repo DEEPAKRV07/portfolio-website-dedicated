@@ -2,6 +2,16 @@
   'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap'
 );
 
+@font-face {
+  font-family: 'Deltha';
+  src:
+    url('/fonts/Deltha.otf') format('opentype'),
+    url('/fonts/Deltha.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --green-bright: #00ff88;
   --green-medium: #00cc66;
@@ -15,7 +25,8 @@
   --bg-primary: #050505;
   --bg-surface: #0d0d0d;
 
-  --font-display: 'Space Grotesk', sans-serif;
+  --font-display: 'Deltha', 'Space Grotesk', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -42,7 +53,7 @@ body {
 body {
   position: fixed;
   inset: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -116,10 +127,13 @@ canvas:active {
 
 .identity h1 {
   margin: 0;
-  font-size: clamp(22px, 1.8vw, 30px);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.2vw, 34px);
   line-height: 1;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-shadow: 0 0 24px rgba(0, 255, 136, 0.35);
 }
 
 .identity span {
@@ -141,10 +155,10 @@ canvas:active {
   right: 34px;
   width: 230px;
   padding: 14px 16px;
-  border: 1px solid rgba(0, 255, 136, 0.16);
-  background: rgba(5, 5, 5, 0.62);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 255, 136, 0.18);
+  background: rgba(5, 5, 5, 0.68);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .system-heading {
@@ -152,7 +166,7 @@ canvas:active {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 9px;
-  border-bottom: 1px solid rgba(0, 255, 136, 0.10);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.12);
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.14em;
@@ -220,10 +234,11 @@ canvas:active {
 
 .intro h2 {
   margin: 0;
-  font-size: clamp(34px, 3.5vw, 56px);
-  line-height: 0.94;
+  font-family: var(--font-display);
+  font-size: clamp(34px, 3.6vw, 56px);
+  line-height: 0.95;
   font-weight: 700;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
 }
 
 .intro p {
@@ -313,6 +328,162 @@ body.detail-mode .core-home-hint {
 }
 
 /* ============================================================
+   FOCUSED DETAIL OVERLAY PANEL
+   ============================================================ */
+
+.node-detail-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  width: min(480px, calc(100vw - 48px));
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  z-index: 50;
+  pointer-events: auto;
+  padding: 28px 30px;
+  border: 1px solid rgba(0, 255, 136, 0.28);
+  background: rgba(5, 5, 5, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 40px rgba(0, 255, 136, 0.12),
+    0 24px 48px rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 280ms ease,
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 280ms ease;
+}
+
+.node-detail-panel.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.panel-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(0, 255, 136, 0.25);
+  background: rgba(0, 255, 136, 0.05);
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 180ms ease;
+}
+
+.panel-close-btn:hover {
+  background: var(--green-bright);
+  color: #050505;
+  box-shadow: 0 0 16px rgba(0, 255, 136, 0.6);
+}
+
+.panel-kicker {
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.panel-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-shadow: 0 0 16px rgba(0, 255, 136, 0.3);
+}
+
+.panel-subtitle {
+  color: var(--green-medium);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  margin-bottom: 14px;
+}
+
+.panel-description {
+  margin: 0 0 18px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.panel-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.panel-tag {
+  padding: 4px 9px;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  background: rgba(0, 255, 136, 0.04);
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.panel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: 1px solid var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.panel-btn.primary {
+  background: var(--green-bright);
+  color: #050505;
+  box-shadow: 0 0 18px rgba(0, 255, 136, 0.4);
+}
+
+.panel-btn.primary:hover {
+  background: #00cc66;
+  box-shadow: 0 0 24px rgba(0, 255, 136, 0.7);
+}
+
+.panel-btn.secondary {
+  background: rgba(0, 255, 136, 0.06);
+  color: var(--green-bright);
+}
+
+.panel-btn.secondary:hover {
+  background: rgba(0, 255, 136, 0.18);
+  border-color: var(--green-bright);
+}
+
+/* ============================================================
    GRAPH LABELS
    ============================================================ */
 
@@ -341,7 +512,8 @@ body.detail-mode .core-home-hint {
 
 .graph-label.primary-core {
   color: var(--green-bright);
-  font-size: 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-shadow: 0 0 18px rgba(0, 255, 136, 0.45);
@@ -491,5 +663,9 @@ body.detail-mode .intro {
 
   .core-home-hint {
     display: none;
+  }
+
+  .node-detail-panel {
+    padding: 20px;
   }
 }

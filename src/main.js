@@ -5,14 +5,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * Sprint 3E — NEURAL NETWORK TOPOLOGY & SPATIAL COMPOSITION
+ * Sprint 3F — FINAL NEURAL TOPOLOGY + SUBNETWORK CONTENT SYSTEM
+ *             + SIGNAL PATH REFINEMENT
  *
- * Core Principles:
- * 1. Primary Homepage Topology: ONLY 5 Destination Nodes (ABOUT, SKILLS, PROJECTS, EXPERIENCE, CONTACT).
- * 2. Round 3D Neural Node Visual Language preserved with slightly thicker 3D structural rings (torus tube 0.032).
- * 3. Subnet Expansion for all 5 primary branches (Skills, Projects, Experience, About, Contact).
- * 4. Deterministic 3D spatial layout (no Math.random()).
- * 5. Full preservation of Core navigation architecture (Core -> Subnet/Project -> Category -> Detail).
+ * Core Objectives:
+ * 1. Controlled Irregular 3D Pentagonal Homepage Topology (5 Primary Nodes with Z-depth rhythm).
+ * 2. Unified 3D Neural Node Construction across ALL hierarchy levels.
+ * 3. Signal particles travel STRICTLY along actual connection edges (zero free-floating particles).
+ * 4. Focused Information Overlay Panel System (Node -> Activation -> Glass Detail Overlay -> Close).
+ * 5. Complete Subnets: About, Skills (rich graph), Contact (linear 4 nodes), Experience (flowing memory path), Projects (4 actual projects).
+ * 6. Redundant Top Core Button Removed; Neural Core remains universal click anchor.
+ * 7. Full preservation of OrbitControls, 360° horizontal/vertical orbit, pan, zoom, and ESC/HOME rules.
  * ============================================================
  */
 
@@ -145,17 +148,127 @@ function setGroupVisualOpacity(group, factor) {
 }
 
 /* ============================================================
-   GEOMETRIES (Sprint 3E Thicker 3D Edges/Rings)
+   UNIFIED 3D NEURAL NODE FACTORY
+   All hierarchy levels (Core, Primary, Category, Detail)
+   use the SAME visual family: Nucleus + Wire Shell + Torus Ring!
    ============================================================ */
 
-const coreGeometry = new THREE.SphereGeometry(1.18, 36, 36);
-const primaryGeometry = new THREE.SphereGeometry(0.88, 32, 32); // Scaled 5 primary home nodes
-const categoryGeometry = new THREE.SphereGeometry(0.42, 26, 26);
-const detailGeometry = new THREE.SphereGeometry(0.22, 22, 22);
+function createNeuralNodeGroup({
+  nucleusRadius = 0.88,
+  torusRadius = 0.98,
+  torusTube = 0.032,
+  color = COLORS.bright,
+  opacity = 0.95,
+}) {
+  const group = new THREE.Group();
 
-/* Thicker, more substantial 3D Torus Geometry for node wireframes */
-const nodeTorusGeometry = new THREE.TorusGeometry(1.48, 0.032, 10, 140);
-const categoryTorusGeometry = new THREE.TorusGeometry(0.68, 0.024, 8, 90);
+  // 1. Inner Nucleus Mesh
+  const nucleusGeo = new THREE.SphereGeometry(nucleusRadius, 32, 32);
+  const nucleusMat = nodeMaterial(color, opacity);
+  const nucleusMesh = new THREE.Mesh(nucleusGeo, nucleusMat);
+  group.add(nucleusMesh);
+
+  // 2. Structural Wireframe Outer Shell
+  const shellGeo = new THREE.SphereGeometry(nucleusRadius * 1.24, 28, 28);
+  const shellMat = new THREE.MeshBasicMaterial({
+    color,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.32,
+    depthWrite: false,
+  });
+  shellMat.userData.baseOpacity = 0.32;
+  const shellMesh = new THREE.Mesh(shellGeo, shellMat);
+  group.add(shellMesh);
+
+  // 3. 3D Torus Structural Ring
+  const ringGeo = new THREE.TorusGeometry(torusRadius, torusTube, 8, 100);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: COLORS.medium,
+    transparent: true,
+    opacity: 0.50,
+    depthWrite: false,
+  });
+  ringMat.userData.baseOpacity = 0.50;
+  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+  ringMesh.rotation.x = Math.PI / 2;
+  group.add(ringMesh);
+
+  return {
+    group,
+    nucleusMesh,
+    shellMesh,
+    ringMesh,
+  };
+}
+
+/* ============================================================
+   FOCUSED DETAIL OVERLAY PANEL SYSTEM
+   ============================================================ */
+
+const detailPanelEl = document.getElementById('detailPanel');
+const panelCloseBtn = document.getElementById('panelCloseBtn');
+const panelKickerEl = document.getElementById('panelKicker');
+const panelTitleEl = document.getElementById('panelTitle');
+const panelSubtitleEl = document.getElementById('panelSubtitle');
+const panelDescEl = document.getElementById('panelDescription');
+const panelTagsEl = document.getElementById('panelTags');
+const panelActionsEl = document.getElementById('panelActions');
+
+function showDetailPanel(data) {
+  if (!detailPanelEl || !data) return;
+
+  panelKickerEl.textContent = data.kicker || 'SUBNET DETAIL';
+  panelTitleEl.textContent = data.title || 'NODE DETAIL';
+  panelSubtitleEl.textContent = data.subtitle || '';
+  panelDescEl.textContent = data.description || '';
+
+  // Render Tags
+  panelTagsEl.innerHTML = '';
+  if (Array.isArray(data.tags)) {
+    for (const tag of data.tags) {
+      const tagEl = document.createElement('span');
+      tagEl.className = 'panel-tag';
+      tagEl.textContent = tag;
+      panelTagsEl.appendChild(tagEl);
+    }
+  }
+
+  // Render Actions
+  panelActionsEl.innerHTML = '';
+  if (Array.isArray(data.actions)) {
+    for (const act of data.actions) {
+      const btn = document.createElement('a');
+      btn.className = `panel-btn ${act.type || 'primary'}`;
+      btn.textContent = act.label;
+      if (act.url) {
+        btn.href = act.url;
+        btn.target = act.url.startsWith('http') ? '_blank' : '_self';
+        if (btn.target === '_blank') btn.rel = 'noopener noreferrer';
+      } else if (act.onClick) {
+        btn.href = '#';
+        btn.onclick = e => {
+          e.preventDefault();
+          act.onClick();
+        };
+      }
+      panelActionsEl.appendChild(btn);
+    }
+  }
+
+  detailPanelEl.classList.add('active');
+  detailPanelEl.setAttribute('aria-hidden', 'false');
+}
+
+function hideDetailPanel() {
+  if (!detailPanelEl) return;
+  detailPanelEl.classList.remove('active');
+  detailPanelEl.setAttribute('aria-hidden', 'true');
+}
+
+if (panelCloseBtn) {
+  panelCloseBtn.addEventListener('click', hideDetailPanel);
+}
 
 /* ============================================================
    DEFENSIVE & VISIBILITY-AWARE LABEL SYSTEM
@@ -264,20 +377,20 @@ function updateLabels() {
 }
 
 /* ============================================================
-   MAIN GRAPH TOPOLOGY (EXACTLY 5 PRIMARY NODES)
+   MAIN GRAPH TOPOLOGY (EXACTLY 5 PRIMARY DESTINATIONS IN 3D)
+   Controlled irregular 3D pentagonal composition with Z-depth!
    ============================================================ */
 
 const mainGraph = new THREE.Group();
 mainGraph.name = 'MAIN_NEURAL_NETWORK';
 scene.add(mainGraph);
 
-/* The ONLY FIVE Primary Destinations on Homepage */
 const mainNodes = [
-  { id: 'about', label: 'ABOUT', type: 'primary', position: [0.0, 7.8, 2.5] },
-  { id: 'skills', label: 'SKILLS', type: 'primary', position: [-9.2, 3.8, -2.2] },
-  { id: 'experience', label: 'EXPERIENCE', type: 'primary', position: [9.2, 3.8, 2.2] },
-  { id: 'projects', label: 'PROJECTS', type: 'primary', position: [-6.8, -5.2, 2.8] },
-  { id: 'contact', label: 'CONTACT', type: 'primary', position: [6.8, -5.2, -2.2] },
+  { id: 'about', label: 'ABOUT', type: 'primary', position: [0.0, 7.8, 1.8] },
+  { id: 'skills', label: 'SKILLS', type: 'primary', position: [-9.2, 3.8, -1.2] },
+  { id: 'experience', label: 'EXPERIENCE', type: 'primary', position: [9.2, 3.8, 1.2] },
+  { id: 'projects', label: 'PROJECTS', type: 'primary', position: [-6.8, -5.2, -1.8] },
+  { id: 'contact', label: 'CONTACT', type: 'primary', position: [6.8, -5.2, 0.8] },
 ];
 
 const mainNodeMap = new Map();
@@ -292,13 +405,17 @@ const core = new THREE.Group();
 core.name = 'NEURAL_CORE';
 mainGraph.add(core);
 
-const coreNucleus = new THREE.Mesh(
-  coreGeometry,
-  nodeMaterial(COLORS.bright, 0.95)
-);
-coreNucleus.userData = { type: 'core', id: 'core' };
-core.add(coreNucleus);
+const coreNode = createNeuralNodeGroup({
+  nucleusRadius: 1.18,
+  torusRadius: 1.48,
+  torusTube: 0.032,
+  color: COLORS.bright,
+  opacity: 0.95,
+});
+coreNode.nucleusMesh.userData = { type: 'core', id: 'core' };
+core.add(coreNode.group);
 
+/* Core Outer Wireframe Sphere */
 const coreWire = new THREE.Mesh(
   new THREE.SphereGeometry(1.65, 30, 30),
   new THREE.MeshBasicMaterial({
@@ -312,31 +429,18 @@ const coreWire = new THREE.Mesh(
 coreWire.material.userData.baseOpacity = 0.40;
 core.add(coreWire);
 
-/* Core Thicker 3D Rings */
-function createRing(rotation, scale = 1) {
-  const ring = new THREE.Mesh(
-    nodeTorusGeometry,
-    new THREE.MeshBasicMaterial({
-      color: COLORS.bright,
-      transparent: true,
-      opacity: 0.65,
-      depthWrite: false,
-    })
-  );
-  ring.material.userData.baseOpacity = 0.65;
-  ring.rotation.copy(rotation);
-  ring.scale.setScalar(scale);
-  core.add(ring);
-  return ring;
-}
+/* Extra Core Ring Rotations */
+const coreRingB = coreNode.ringMesh.clone();
+coreRingB.rotation.set(Math.PI / 2, 0, 0);
+core.add(coreRingB);
 
-const coreRingA = createRing(new THREE.Euler(0, 0, 0), 1);
-const coreRingB = createRing(new THREE.Euler(Math.PI / 2, 0, 0), 0.94);
-const coreRingC = createRing(new THREE.Euler(0, Math.PI / 2, 0), 1.05);
+const coreRingC = coreNode.ringMesh.clone();
+coreRingC.rotation.set(0, Math.PI / 2, 0);
+core.add(coreRingC);
 
 const coreLabel = createLabel('NEURAL CORE', 'core', 'main');
-coreLabel.object = core;
-coreLabel.offset.set(0, -1.88, 0);
+coreLabel.object = coreNode.nucleusMesh;
+coreLabel.offset.set(0, -1.98, 0);
 
 /* ============================================================
    PERSISTENT CORE BEACON (Universal HOME Anchor)
@@ -347,28 +451,18 @@ coreBeacon.name = 'CORE_NAVIGATION_BEACON';
 coreBeacon.visible = false;
 scene.add(coreBeacon);
 
-const beaconNucleus = new THREE.Mesh(
-  new THREE.SphereGeometry(0.48, 24, 24),
-  nodeMaterial(COLORS.bright, 0.95)
-);
-beaconNucleus.userData = { type: 'core', id: 'core-beacon' };
-coreBeacon.add(beaconNucleus);
-
-const beaconWire = new THREE.Mesh(
-  new THREE.SphereGeometry(0.72, 24, 24),
-  new THREE.MeshBasicMaterial({
-    color: COLORS.medium,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.45,
-    depthWrite: false,
-  })
-);
-beaconWire.material.userData.baseOpacity = 0.45;
-coreBeacon.add(beaconWire);
+const beaconNode = createNeuralNodeGroup({
+  nucleusRadius: 0.48,
+  torusRadius: 0.68,
+  torusTube: 0.024,
+  color: COLORS.bright,
+  opacity: 0.95,
+});
+beaconNode.nucleusMesh.userData = { type: 'core', id: 'core-beacon' };
+coreBeacon.add(beaconNode.group);
 
 const beaconLabel = createLabel('MAIN CORE', 'core-home', 'persistent');
-beaconLabel.object = coreBeacon;
+beaconLabel.object = beaconNode.nucleusMesh;
 beaconLabel.offset.set(0, -0.98, 0);
 
 function showCoreBeacon(visible) {
@@ -383,44 +477,24 @@ function showCoreBeacon(visible) {
    ============================================================ */
 
 for (const data of mainNodes) {
-  const mesh = new THREE.Mesh(primaryGeometry, nodeMaterial(COLORS.bright, 0.95));
-  mesh.position.set(...data.position);
-  mesh.userData = { ...data };
+  const node = createNeuralNodeGroup({
+    nucleusRadius: 0.88,
+    torusRadius: 0.98,
+    torusTube: 0.032,
+    color: COLORS.bright,
+    opacity: 0.95,
+  });
 
-  const shell = new THREE.Mesh(
-    primaryGeometry,
-    new THREE.MeshBasicMaterial({
-      color: COLORS.bright,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.32,
-      depthWrite: false,
-    })
-  );
-  shell.material.userData.baseOpacity = 0.32;
-  shell.scale.setScalar(1.22);
-  mesh.add(shell);
+  node.group.position.set(...data.position);
+  node.nucleusMesh.userData = { ...data };
 
-  const ring = new THREE.Mesh(
-    categoryTorusGeometry,
-    new THREE.MeshBasicMaterial({
-      color: COLORS.medium,
-      transparent: true,
-      opacity: 0.50,
-      depthWrite: false,
-    })
-  );
-  ring.material.userData.baseOpacity = 0.50;
-  ring.rotation.x = Math.PI / 2;
-  mesh.add(ring);
-
-  mainGraph.add(mesh);
+  mainGraph.add(node.group);
 
   const label = createLabel(data.label, 'primary-core', 'main');
-  label.object = mesh;
-  label.offset.set(0, 1.25, 0);
+  label.object = node.nucleusMesh;
+  label.offset.set(0, 1.35, 0);
 
-  const nodeObj = { ...data, mesh, shell, ring, label };
+  const nodeObj = { ...data, mesh: node.nucleusMesh, group: node.group, label };
   mainNodeObjects.push(nodeObj);
   mainNodeMap.set(data.id, nodeObj);
 }
@@ -470,8 +544,8 @@ function updateEdges(edgeArray) {
 }
 
 function connectMain(sourceId, targetId, opacity = 0.50) {
-  const source = sourceId === 'core' ? core : mainNodeMap.get(sourceId)?.mesh;
-  const target = targetId === 'core' ? core : mainNodeMap.get(targetId)?.mesh;
+  const source = sourceId === 'core' ? coreNode.nucleusMesh : mainNodeMap.get(sourceId)?.mesh;
+  const target = targetId === 'core' ? coreNode.nucleusMesh : mainNodeMap.get(targetId)?.mesh;
   if (source && target) {
     const edge = createEdge(source, target, mainGraph, opacity, COLORS.dim);
     mainEdges.push(edge);
@@ -504,22 +578,40 @@ const subnetDefinitions = {
         id: 'profile',
         label: 'PROFILE & IDENTITY',
         position: [-4.8, 2.8, 2.5],
-        description: 'Deepak R V — AI/ML Engineer & Computer Vision Specialist',
-        details: ['Deepak R V', 'AI/ML Engineer', 'Computer Vision Specialist', 'B.Tech AI&DS'],
+        kicker: 'PROFILE & IDENTITY',
+        title: 'Deepak R V',
+        subtitle: 'AI / ML Engineer & Computer Vision Specialist',
+        description: 'B.Tech AI&DS graduate passionate about building robust, real-time spatial visual systems, custom object tracking pipelines, and high-performance edge inference engines.',
+        tags: ['AI/ML Engineer', 'Computer Vision', 'B.Tech AI&DS', 'Real-Time Vision'],
+        actions: [
+          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'philosophy',
-        label: 'PHILOSOPHY',
+        label: 'ENGINEERING PHILOSOPHY',
         position: [0.0, 5.2, -2.5],
-        description: 'Building robust, real-time computational systems.',
-        details: ['Spatial AI Interfaces', 'Real-Time Vision Systems', 'Edge Optimization', 'Modular Code'],
+        kicker: 'ENGINEERING PHILOSOPHY',
+        title: 'System Design & Optimization',
+        subtitle: 'Core Computational Principles',
+        description: 'Focusing on low-latency inference, spatial computer vision pipelines, modular architecture, and edge hardware deployment without unnecessary bloat.',
+        tags: ['Spatial AI', 'Edge Optimization', 'Modular Code', 'Real-Time Vision'],
+        actions: [
+          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'capabilities',
         label: 'CAPABILITIES',
         position: [4.8, -2.2, 2.2],
-        description: 'Core technical competencies in visual learning.',
-        details: ['Deep Learning Architecture', 'Object Detection & Tracking', 'Accessible AI Assistance', 'HCI Gesture Controls'],
+        kicker: 'CAPABILITIES',
+        title: 'Technical Core Competencies',
+        subtitle: 'Specialization & Skill Spectrum',
+        description: 'Custom object detection & tracking (YOLOv8, ByteTrack), fast semantic segmentation (Fast-SCNN), MediaPipe gesture recognition, PyTorch/TensorFlow training, and FastAPI microservice integration.',
+        tags: ['YOLOv8', 'PyTorch', 'FastAPI', 'OpenCV', 'MediaPipe'],
+        actions: [
+          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
     ],
   },
@@ -533,29 +625,45 @@ const subnetDefinitions = {
         id: 'computer-vision',
         label: 'COMPUTER VISION',
         position: [-5.2, 2.8, 3.2],
-        description: 'Visual perception, detection, tracking and segmentation.',
+        kicker: 'SKILL CATEGORY',
+        title: 'Computer Vision',
+        subtitle: 'Visual Perception & Tracking',
+        description: 'Advanced visual understanding, multi-object tracking, fast semantic segmentation, hand gesture modeling, and optical character recognition.',
         details: ['YOLOv8', 'ByteTrack', 'OpenCV', 'Fast-SCNN', 'MediaPipe', 'OCR / Tesseract'],
+        tags: ['YOLOv8', 'ByteTrack', 'OpenCV', 'Fast-SCNN', 'MediaPipe', 'Tesseract OCR'],
       },
       {
         id: 'deep-learning',
         label: 'DEEP LEARNING & AI',
         position: [-1.4, 5.6, -3.0],
-        description: 'Neural networks, training pipelines and model optimization.',
+        kicker: 'SKILL CATEGORY',
+        title: 'Deep Learning & AI',
+        subtitle: 'Neural Architectures & Training',
+        description: 'Deep neural network design, Convolutional Neural Networks (CNNs), Vision Transformers, PyTorch & TensorFlow training pipelines, and unsupervised clustering.',
         details: ['PyTorch', 'TensorFlow', 'CNNs', 'Vision Transformers', 'K-Means Clustering'],
+        tags: ['PyTorch', 'TensorFlow', 'CNNs', 'Transformers', 'K-Means'],
       },
       {
         id: 'systems-deployment',
         label: 'SYSTEMS & DEPLOYMENT',
         position: [5.2, 3.5, 2.5],
-        description: 'High-throughput inference, APIs and cross-platform engines.',
+        kicker: 'SKILL CATEGORY',
+        title: 'Systems & Deployment',
+        subtitle: 'Inference Engines & Microservices',
+        description: 'High-throughput microservice architectures, REST APIs, ONNX Runtime optimization, Docker containerization, and mobile/edge inference.',
         details: ['FastAPI', 'Docker', 'ONNX Runtime', 'TensorFlow Lite', 'C++ Inference'],
+        tags: ['FastAPI', 'Docker', 'ONNX', 'TFLite', 'C++'],
       },
       {
         id: 'languages-tools',
         label: 'LANGUAGES & TOOLS',
         position: [5.6, -1.8, -3.2],
-        description: 'Programming languages, frameworks and development tools.',
+        kicker: 'SKILL CATEGORY',
+        title: 'Languages & Tools',
+        subtitle: 'Programming Languages & Systems',
+        description: 'Core software engineering stack across Python, C++, Dart, SQL databases, Git version control, and Linux systems administration.',
         details: ['Python', 'C++', 'Flutter / Dart', 'SQL', 'Git & Linux'],
+        tags: ['Python', 'C++', 'Flutter', 'SQL', 'Git & Linux'],
       },
     ],
   },
@@ -569,29 +677,57 @@ const subnetDefinitions = {
         id: 'sightmate',
         label: 'SIGHTMATE',
         position: [-5.2, 2.8, 3.2],
-        description: 'Flutter-based accessibility system combining computer vision, navigation fusion, OCR and voice interaction.',
-        details: ['Flutter', 'Accessibility', 'YOLOv8', 'Fast-SCNN', 'Tesseract OCR'],
+        kicker: 'FEATURED PROJECT',
+        title: 'SightMate',
+        subtitle: 'AI Navigation & Assistance System',
+        description: 'Flutter-based accessibility application combining real-time object detection (YOLOv8), fast semantic segmentation (Fast-SCNN), Tesseract OCR text reading, and spoken voice guidance.',
+        tags: ['Flutter', 'YOLOv8', 'Fast-SCNN', 'Tesseract OCR', 'Accessibility'],
+        actions: [
+          { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/SightMate' },
+          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'football',
         label: 'FOOTBALL ANALYSIS',
         position: [-1.4, 5.6, -3.0],
-        description: 'Computer vision pipeline for player, referee and ball tracking, team classification and match statistics.',
-        details: ['YOLOv8', 'ByteTrack', 'K-Means', 'OpenCV', 'Python Analytics'],
+        kicker: 'FEATURED PROJECT',
+        title: 'Football Analysis System',
+        subtitle: 'AI Sports Analytics & Tracking',
+        description: 'Computer vision pipeline for player, referee and ball detection (YOLOv8), multi-object tracking (ByteTrack), K-Means team jersey classification, and planar perspective transformation for match stats.',
+        tags: ['YOLOv8', 'ByteTrack', 'K-Means', 'OpenCV', 'Python Analytics'],
+        actions: [
+          { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Football-Analysis-System' },
+          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'kaatchi',
         label: 'KAATCHI MEDIA',
         position: [5.2, 3.5, 2.5],
-        description: 'Scalable processing engine for automated media analysis, computer vision metadata and content optimization.',
-        details: ['PyTorch', 'FastAPI', 'FFmpeg', 'Docker', 'Microservices'],
+        kicker: 'FEATURED PROJECT',
+        title: 'Kaatchi Media Engine',
+        subtitle: 'Media Processing & AI Indexing',
+        description: 'Scalable processing engine for automated media analysis, computer vision metadata extraction, keyframe indexing, and search optimization.',
+        tags: ['PyTorch', 'FastAPI', 'FFmpeg', 'Docker', 'Microservices'],
+        actions: [
+          { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Kaatchi-Media' },
+          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+        ],
       },
       {
         id: 'virtual-mouse',
         label: 'VIRTUAL MOUSE',
         position: [5.6, -1.8, -3.2],
-        description: 'Real-time hand tracking system mapping human gestures to touchless mouse controls.',
-        details: ['MediaPipe Hands', 'OpenCV', 'PyAutoGUI', 'Touchless HCI'],
+        kicker: 'FEATURED PROJECT',
+        title: 'Virtual Mouse Control',
+        subtitle: 'Gesture HCI Control System',
+        description: 'Real-time hand tracking system mapping human hand landmarks (MediaPipe) to touchless OS cursor movements, pinch clicks, and scroll gestures.',
+        tags: ['MediaPipe Hands', 'OpenCV', 'PyAutoGUI', 'Touchless HCI'],
+        actions: [
+          { label: 'GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Virtual-Mouse-Controll' },
+          { label: 'VIEW RESUME', type: 'secondary', url: '/my_resume.pdf' },
+        ],
       },
     ],
   },
@@ -602,25 +738,56 @@ const subnetDefinitions = {
     subtitle: 'ENGINEERING MEMORY PATH',
     categories: [
       {
-        id: 'ai-ml-eng',
-        label: 'AI / ML ENGINEERING',
-        position: [-4.8, 2.8, 2.5],
-        description: 'Designing, training and deploying vision models.',
-        details: ['Custom Object Detectors', 'Video Tracking Pipelines', 'Dataset Curation', 'Inference Benchmarks'],
+        id: 'kaatchi-exp',
+        label: 'KAATCHI MEDIA',
+        position: [-5.2, 2.8, 2.5],
+        kicker: 'CAREER MILESTONE',
+        title: 'AI / ML Engineer',
+        subtitle: 'Kaatchi Media (Media Processing Engine)',
+        description: 'Designed and deployed automated media vision processing microservices, keyframe indexing pipelines, and metadata extraction APIs.',
+        tags: ['PyTorch', 'FastAPI', 'FFmpeg', 'Docker'],
+        actions: [
+          { label: 'GITHUB CODE', type: 'primary', url: 'https://github.com/DEEPAKRV07/Kaatchi-Media' },
+        ],
       },
       {
-        id: 'pipeline-dev',
-        label: 'PIPELINE DEVELOPMENT',
-        position: [0.0, 5.2, -2.5],
-        description: 'Building scalable end-to-end processing software.',
-        details: ['Full Inference Flow', 'REST & Queue APIs', 'Edge & Mobile Integration', 'Cross-Platform Build'],
+        id: 'msme-exp',
+        label: 'MSME INTERNSHIP',
+        position: [-1.4, 5.2, -2.5],
+        kicker: 'CAREER MILESTONE',
+        title: 'AI Systems Engineering Intern',
+        subtitle: 'MSME Training Program',
+        description: 'Trained custom object detection models, benchmarked inference pipelines, and optimized computer vision algorithms for real-time edge hardware.',
+        tags: ['YOLOv8', 'OpenCV', 'Python', 'Edge AI'],
+        actions: [
+          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
       {
-        id: 'technical-focus',
-        label: 'TECHNICAL FOCUS',
-        position: [4.8, -2.2, 2.2],
-        description: 'Specialized focus areas in visual computing.',
-        details: ['Real-Time Sports Analytics', 'Assistive AI for Healthcare', 'Gesture Control Interfaces'],
+        id: 'quality-exp',
+        label: 'QUALITY THREADS',
+        position: [3.8, 3.0, 2.2],
+        kicker: 'CAREER MILESTONE',
+        title: 'Data & Analytics Engineering',
+        subtitle: 'Quality Threads',
+        description: 'Built automated analytics reporting pipelines, structured feature extraction routines, and database management systems.',
+        tags: ['Python', 'SQL', 'Data Analytics'],
+        actions: [
+          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+        ],
+      },
+      {
+        id: 'forcrux-exp',
+        label: 'FORCRUX',
+        position: [6.2, -2.2, -2.2],
+        kicker: 'CAREER MILESTONE',
+        title: 'Web Software Engineering',
+        subtitle: 'Forcrux Development',
+        description: 'Engineered responsive web applications, API integrations, and user interfaces backed by structured database backends.',
+        tags: ['JavaScript', 'HTML/CSS', 'Web APIs'],
+        actions: [
+          { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
     ],
   },
@@ -631,31 +798,62 @@ const subnetDefinitions = {
     subtitle: 'NETWORK TRANSMISSION GATEWAY',
     categories: [
       {
+        id: 'email',
+        label: 'EMAIL',
+        position: [-5.2, 2.5, 2.0],
+        kicker: 'DIRECT TRANSMISSION',
+        title: 'Email Deepak R V',
+        subtitle: 'deepakrv07@gmail.com',
+        description: 'Send a direct inquiry regarding AI/ML engineering roles, computer vision projects, or technical collaboration.',
+        tags: ['Direct Contact', 'AI/ML Projects'],
+        actions: [
+          { label: 'SEND EMAIL', type: 'primary', url: 'mailto:deepakrv07@gmail.com' },
+        ],
+      },
+      {
         id: 'github',
         label: 'GITHUB',
-        position: [-4.2, 2.5, 2.2],
-        description: 'Open source repositories, code samples and vision pipelines.',
-        details: ['github.com/Deepak-R-V', 'Repositories', 'Code Walkthroughs'],
+        position: [-1.4, 4.8, -2.0],
+        kicker: 'CODE REPOSITORY',
+        title: 'GitHub Profile',
+        subtitle: 'github.com/DEEPAKRV07',
+        description: 'Explore open source vision repositories, project source code, detection pipelines, and model implementations.',
+        tags: ['Repositories', 'Source Code', 'Vision Pipelines'],
+        actions: [
+          { label: 'OPEN GITHUB', type: 'primary', url: 'https://github.com/DEEPAKRV07' },
+        ],
       },
       {
         id: 'linkedin',
         label: 'LINKEDIN',
-        position: [0.0, 4.8, -2.2],
-        description: 'Professional experience, connections and profile.',
-        details: ['linkedin.com/in/deepak-r-v', 'Professional Network'],
+        position: [2.8, 3.2, 2.0],
+        kicker: 'PROFESSIONAL NETWORK',
+        title: 'LinkedIn Profile',
+        subtitle: 'linkedin.com/in/deepak-r-v',
+        description: 'Connect professionally, review technical recommendations, and track engineering work experience.',
+        tags: ['Professional Network', 'Career Profile'],
+        actions: [
+          { label: 'OPEN LINKEDIN', type: 'primary', url: 'https://linkedin.com/in/deepak-r-v' },
+        ],
       },
       {
-        id: 'email',
-        label: 'EMAIL',
-        position: [4.2, -2.0, 2.2],
-        description: 'Direct inquiries, collaboration and engineering discussion.',
-        details: ['AI/ML Collaboration', 'Direct Inquiry', 'Project Discussion'],
+        id: 'resume',
+        label: 'RESUME',
+        position: [6.2, -2.0, -2.0],
+        kicker: 'OFFICIAL DOCUMENT',
+        title: 'Curriculum Vitae',
+        subtitle: 'Deepak R V — Resume PDF',
+        description: 'View or download the official resume detailing engineering experience, education, skills, and technical accomplishments.',
+        tags: ['PDF Resume', 'Qualifications', 'Contact Info'],
+        actions: [
+          { label: 'VIEW RESUME PDF', type: 'primary', url: '/my_resume.pdf' },
+        ],
       },
     ],
   },
 };
 
-/* Existing Project Networks Data (for Project -> Category -> Detail layer) */
+/* Existing Project Networks Data (for Project -> Category -> Detail 3D subnetwork layer) */
 const projectNetworks = {
   sightmate: {
     title: 'SIGHTMATE',
@@ -737,45 +935,22 @@ function createSubnetWorld(subnetId) {
   subnetCore.name = 'SUBNET_CORE';
   group.add(subnetCore);
 
-  const nucleus = new THREE.Mesh(
-    new THREE.SphereGeometry(0.88, 34, 34),
-    nodeMaterial(COLORS.bright, 0.92)
-  );
-  nucleus.userData = { type: 'subnet-core', subnetId };
-  subnetCore.add(nucleus);
-
-  const shell = new THREE.Mesh(
-    new THREE.SphereGeometry(1.18, 34, 34),
-    new THREE.MeshBasicMaterial({
-      color: COLORS.medium,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.35,
-      depthWrite: false,
-    })
-  );
-  shell.material.userData.baseOpacity = 0.35;
-  subnetCore.add(shell);
-
-  const ring = new THREE.Mesh(
-    categoryTorusGeometry,
-    new THREE.MeshBasicMaterial({
-      color: COLORS.bright,
-      transparent: true,
-      opacity: 0.55,
-      depthWrite: false,
-    })
-  );
-  ring.material.userData.baseOpacity = 0.55;
-  ring.rotation.x = Math.PI / 2;
-  subnetCore.add(ring);
+  const coreNode = createNeuralNodeGroup({
+    nucleusRadius: 0.88,
+    torusRadius: 0.98,
+    torusTube: 0.028,
+    color: COLORS.bright,
+    opacity: 0.92,
+  });
+  coreNode.nucleusMesh.userData = { type: 'subnet-core', subnetId };
+  subnetCore.add(coreNode.group);
 
   const subnetLabel = createLabel(definition.title, 'project-core', 'subnet');
-  subnetLabel.object = subnetCore;
+  subnetLabel.object = coreNode.nucleusMesh;
   subnetLabel.offset.set(0, -2.10, 0);
 
   const subtitleLabel = createLabel(definition.subtitle, 'project-subtitle', 'subnet');
-  subtitleLabel.object = subnetCore;
+  subtitleLabel.object = coreNode.nucleusMesh;
   subtitleLabel.offset.set(0, -2.65, 0);
 
   const categoryNodes = new Map();
@@ -783,26 +958,34 @@ function createSubnetWorld(subnetId) {
   const edges = [];
 
   for (const category of definition.categories) {
-    const mesh = new THREE.Mesh(categoryGeometry, nodeMaterial(COLORS.medium));
-    mesh.position.set(...category.position);
-    mesh.userData = {
+    const node = createNeuralNodeGroup({
+      nucleusRadius: 0.48,
+      torusRadius: 0.62,
+      torusTube: 0.024,
+      color: COLORS.medium,
+      opacity: 0.95,
+    });
+
+    node.group.position.set(...category.position);
+    node.nucleusMesh.userData = {
       type: 'subnet-category',
       id: category.id,
       subnetId,
       label: category.label,
+      categoryData: category,
     };
 
-    group.add(mesh);
+    group.add(node.group);
 
     const label = createLabel(category.label, 'category', 'subnet');
-    label.object = mesh;
-    label.offset.set(0, 0.60, 0);
+    label.object = node.nucleusMesh;
+    label.offset.set(0, 0.72, 0);
 
-    const node = { ...category, mesh, label };
-    categoryNodes.set(category.id, node);
-    categories.push(node);
+    const categoryObj = { ...category, mesh: node.nucleusMesh, group: node.group, label };
+    categoryNodes.set(category.id, categoryObj);
+    categories.push(categoryObj);
 
-    edges.push(createEdge(subnetCore, mesh, group, 0.48));
+    edges.push(createEdge(coreNode.nucleusMesh, node.nucleusMesh, group, 0.48));
   }
 
   for (let i = 0; i < categories.length; i++) {
@@ -816,9 +999,7 @@ function createSubnetWorld(subnetId) {
     definition,
     group,
     core: subnetCore,
-    nucleus,
-    shell,
-    ring,
+    nucleus: coreNode.nucleusMesh,
     label: subnetLabel,
     subtitleLabel,
     categories,
@@ -843,45 +1024,22 @@ function createProjectWorld(projectId) {
   projectCore.name = 'PROJECT_CORE';
   group.add(projectCore);
 
-  const nucleus = new THREE.Mesh(
-    new THREE.SphereGeometry(0.88, 34, 34),
-    nodeMaterial(COLORS.bright, 0.92)
-  );
-  nucleus.userData = { type: 'project-core', projectId };
-  projectCore.add(nucleus);
-
-  const shell = new THREE.Mesh(
-    new THREE.SphereGeometry(1.18, 34, 34),
-    new THREE.MeshBasicMaterial({
-      color: COLORS.medium,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.35,
-      depthWrite: false,
-    })
-  );
-  shell.material.userData.baseOpacity = 0.35;
-  projectCore.add(shell);
-
-  const ring = new THREE.Mesh(
-    categoryTorusGeometry,
-    new THREE.MeshBasicMaterial({
-      color: COLORS.bright,
-      transparent: true,
-      opacity: 0.55,
-      depthWrite: false,
-    })
-  );
-  ring.material.userData.baseOpacity = 0.55;
-  ring.rotation.x = Math.PI / 2;
-  projectCore.add(ring);
+  const coreNode = createNeuralNodeGroup({
+    nucleusRadius: 0.88,
+    torusRadius: 0.98,
+    torusTube: 0.028,
+    color: COLORS.bright,
+    opacity: 0.92,
+  });
+  coreNode.nucleusMesh.userData = { type: 'project-core', projectId };
+  projectCore.add(coreNode.group);
 
   const projectLabel = createLabel(definition.title, 'project-core', 'project');
-  projectLabel.object = projectCore;
+  projectLabel.object = coreNode.nucleusMesh;
   projectLabel.offset.set(0, -2.10, 0);
 
   const subtitleLabel = createLabel(definition.subtitle, 'project-subtitle', 'project');
-  subtitleLabel.object = projectCore;
+  subtitleLabel.object = coreNode.nucleusMesh;
   subtitleLabel.offset.set(0, -2.65, 0);
 
   const categoryNodes = new Map();
@@ -889,26 +1047,34 @@ function createProjectWorld(projectId) {
   const edges = [];
 
   for (const category of definition.categories) {
-    const mesh = new THREE.Mesh(categoryGeometry, nodeMaterial(COLORS.medium));
-    mesh.position.set(...category.position);
-    mesh.userData = {
+    const node = createNeuralNodeGroup({
+      nucleusRadius: 0.42,
+      torusRadius: 0.56,
+      torusTube: 0.022,
+      color: COLORS.medium,
+      opacity: 0.95,
+    });
+
+    node.group.position.set(...category.position);
+    node.nucleusMesh.userData = {
       type: 'project-category',
       id: category.id,
       projectId,
       label: category.label,
+      categoryData: category,
     };
 
-    group.add(mesh);
+    group.add(node.group);
 
     const label = createLabel(category.label, 'category', 'project');
-    label.object = mesh;
-    label.offset.set(0, 0.60, 0);
+    label.object = node.nucleusMesh;
+    label.offset.set(0, 0.65, 0);
 
-    const node = { ...category, mesh, label };
-    categoryNodes.set(category.id, node);
-    categories.push(node);
+    const categoryObj = { ...category, mesh: node.nucleusMesh, group: node.group, label };
+    categoryNodes.set(category.id, categoryObj);
+    categories.push(categoryObj);
 
-    edges.push(createEdge(projectCore, mesh, group, 0.48));
+    edges.push(createEdge(coreNode.nucleusMesh, node.nucleusMesh, group, 0.48));
   }
 
   for (let i = 0; i < categories.length; i++) {
@@ -922,9 +1088,7 @@ function createProjectWorld(projectId) {
     definition,
     group,
     core: projectCore,
-    nucleus,
-    shell,
-    ring,
+    nucleus: coreNode.nucleusMesh,
     label: projectLabel,
     subtitleLabel,
     categories,
@@ -959,22 +1123,25 @@ function createDetailWorld(parentWorld, category) {
   group.name = `DETAIL_${category.id}`;
   scene.add(group);
 
-  const centerMesh = new THREE.Mesh(
-    categoryGeometry,
-    nodeMaterial(COLORS.bright, 0.95)
-  );
-  centerMesh.userData = { type: 'detail-center', id: category.id };
-  group.add(centerMesh);
+  const centerNode = createNeuralNodeGroup({
+    nucleusRadius: 0.48,
+    torusRadius: 0.62,
+    torusTube: 0.024,
+    color: COLORS.bright,
+    opacity: 0.95,
+  });
+  centerNode.nucleusMesh.userData = { type: 'detail-center', id: category.id };
+  group.add(centerNode.group);
 
   const categoryTitle = typeof category.label === 'string' ? category.label : (category.label?.label || category.id || 'CATEGORY');
   const centerLabel = createLabel(categoryTitle, 'category', 'detail');
-  centerLabel.object = centerMesh;
+  centerLabel.object = centerNode.nucleusMesh;
   centerLabel.offset.set(0, -0.95, 0);
 
   let descriptionLabel = null;
   if (category.description) {
     descriptionLabel = createLabel(category.description, 'detail-desc', 'detail');
-    descriptionLabel.object = centerMesh;
+    descriptionLabel.object = centerNode.nucleusMesh;
     descriptionLabel.offset.set(0, -1.45, 0);
   }
 
@@ -998,18 +1165,25 @@ function createDetailWorld(parentWorld, category) {
     const y = Math.sin(angle) * radius * 0.72;
     const z = (i % 2 === 0 ? 1 : -1) * 1.8;
 
-    const mesh = new THREE.Mesh(detailGeometry, nodeMaterial(COLORS.medium, 0.95));
-    mesh.position.set(x, y, z);
-    mesh.userData = { type: 'detail', label: details[i] };
-    group.add(mesh);
+    const node = createNeuralNodeGroup({
+      nucleusRadius: 0.28,
+      torusRadius: 0.38,
+      torusTube: 0.020,
+      color: COLORS.medium,
+      opacity: 0.95,
+    });
+
+    node.group.position.set(x, y, z);
+    node.nucleusMesh.userData = { type: 'detail', label: details[i] };
+    group.add(node.group);
 
     const label = createLabel(details[i], 'detail', 'detail');
-    label.object = mesh;
-    label.offset.set(0, 0.45, 0);
+    label.object = node.nucleusMesh;
+    label.offset.set(0, 0.48, 0);
 
-    detailNodes.push(mesh);
+    detailNodes.push(node.nucleusMesh);
     detailLabels.push(label);
-    edges.push(createEdge(centerMesh, mesh, group, 0.45));
+    edges.push(createEdge(centerNode.nucleusMesh, node.nucleusMesh, group, 0.45));
   }
 
   for (let i = 0; i < detailNodes.length; i++) {
@@ -1020,7 +1194,7 @@ function createDetailWorld(parentWorld, category) {
 
   return {
     group,
-    centerMesh,
+    centerMesh: centerNode.nucleusMesh,
     centerLabel,
     descriptionLabel,
     nodes: detailNodes,
@@ -1185,6 +1359,7 @@ function enterSubnet(subnetId) {
   activeProject = null;
   activeCategory = null;
   clearDetailWorld();
+  hideDetailPanel();
 
   setLayerVisibility('SUBNET');
 
@@ -1205,6 +1380,7 @@ function enterProject(projectId) {
   activeProject = world;
   activeCategory = null;
   clearDetailWorld();
+  hideDetailPanel();
 
   setLayerVisibility('PROJECT');
 
@@ -1224,6 +1400,7 @@ function enterCategory(category) {
 
   activeCategory = category;
   detailWorld = createDetailWorld(parentWorld, category);
+  hideDetailPanel();
 
   setLayerVisibility('DETAIL');
 
@@ -1240,6 +1417,7 @@ function returnToCore() {
   activeProject = null;
   activeCategory = null;
   clearDetailWorld();
+  hideDetailPanel();
 
   setLayerVisibility('MAIN');
 
@@ -1253,19 +1431,9 @@ function returnToCore() {
   startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 900);
 }
 
-function enterLayer(layerName, payload) {
-  if (layerName === 'SUBNET') {
-    enterSubnet(payload);
-  } else if (layerName === 'PROJECT') {
-    enterProject(payload);
-  } else if (layerName === 'DETAIL') {
-    enterCategory(payload);
-  } else if (layerName === 'MAIN') {
-    returnToCore();
-  }
-}
-
 function exitLayer() {
+  hideDetailPanel();
+
   if (currentLayer === 'DETAIL') {
     if (activeProject) {
       enterProject(activeProject.projectId);
@@ -1303,7 +1471,7 @@ function getPointerObject() {
   raycaster.setFromCamera(pointer, camera);
 
   /* Universal Neural Core & Core Beacon raycast anchor */
-  const coreTargets = [coreNucleus, beaconNucleus];
+  const coreTargets = [coreNode.nucleusMesh, beaconNode.nucleusMesh];
   if (activeSubnet) coreTargets.push(activeSubnet.nucleus);
   if (activeProject) coreTargets.push(activeProject.nucleus);
 
@@ -1393,22 +1561,42 @@ renderer.domElement.addEventListener('click', () => {
   }
 
   if (hit.type === 'subnet-category') {
-    const category = activeSubnet.categories.find(node => node.mesh === hit.object);
-    if (category) {
+    const categoryObj = activeSubnet.categories.find(node => node.mesh === hit.object);
+    if (categoryObj) {
       if (activeSubnet.subnetId === 'projects') {
-        enterProject(category.id);
+        enterProject(categoryObj.id);
       } else {
-        enterCategory(category);
+        // Show focused detail overlay panel with category data!
+        showDetailPanel(categoryObj.categoryData || categoryObj);
       }
     }
     return;
   }
 
   if (hit.type === 'project-category') {
-    const category = activeProject.categories.find(node => node.mesh === hit.object);
-    if (category) {
-      enterCategory(category);
+    const categoryObj = activeProject.categories.find(node => node.mesh === hit.object);
+    if (categoryObj) {
+      if (categoryObj.details && categoryObj.details.length) {
+        enterCategory(categoryObj);
+      } else {
+        showDetailPanel(categoryObj.categoryData || categoryObj);
+      }
     }
+    return;
+  }
+
+  if (hit.type === 'detail') {
+    const detailLabel = hit.object.userData.label;
+    showDetailPanel({
+      kicker: 'DETAIL NODE',
+      title: detailLabel,
+      subtitle: activeCategory ? activeCategory.label : 'NODE SPECIFICATION',
+      description: `Specific skill / technical element: ${detailLabel}. Part of the ${activeSubnet ? activeSubnet.definition.title : 'Neural Network'} capability graph.`,
+      tags: [detailLabel, 'Technical Skill'],
+      actions: [
+        { label: 'VIEW RESUME', type: 'primary', url: '/my_resume.pdf' },
+      ],
+    });
     return;
   }
 });
@@ -1441,7 +1629,8 @@ window.addEventListener('keydown', event => {
 });
 
 /* ============================================================
-   SIGNAL PARTICLES
+   STRICT SIGNAL PARTICLES (Travel strictly along connection edges)
+   Zero free-floating particles in empty space!
    ============================================================ */
 
 const signalGeometry = new THREE.SphereGeometry(0.075, 12, 12);
@@ -1455,7 +1644,7 @@ function createSignal(edge) {
   return { mesh, edge, progress: Math.random(), speed: 0.004 + Math.random() * 0.006 };
 }
 
-for (let i = 0; i < 18; i++) {
+for (let i = 0; i < 24; i++) {
   const edge = mainEdges[i % mainEdges.length];
   if (edge) signals.push(createSignal(edge));
 }
@@ -1465,9 +1654,13 @@ function updateSignals() {
   const end = new THREE.Vector3();
 
   for (const signal of signals) {
-    if (!signal.edge || !signal.edge.source || !signal.edge.target) continue;
+    if (!signal.edge || !signal.edge.source || !signal.edge.target) {
+      signal.mesh.visible = false;
+      continue;
+    }
 
-    if (!isObjectInVisibleWorld(signal.edge.source)) {
+    // Hide signal if source or target world is invisible
+    if (!isObjectInVisibleWorld(signal.edge.source) || !isObjectInVisibleWorld(signal.edge.target)) {
       signal.mesh.visible = false;
       continue;
     }
@@ -1475,9 +1668,11 @@ function updateSignals() {
     signal.progress += signal.speed;
     if (signal.progress > 1) signal.progress = 0;
 
+    // Calculate exact 3D world coordinates of edge endpoints
     signal.edge.source.getWorldPosition(start);
     signal.edge.target.getWorldPosition(end);
 
+    // Interpolate signal position strictly along edge line
     signal.mesh.position.lerpVectors(start, end, signal.progress);
     signal.mesh.visible = true;
   }
@@ -1493,20 +1688,10 @@ let fpsTimer = performance.now();
 function animate(currentTime) {
   requestAnimationFrame(animate);
 
-  /* Core & Subnet Internal Rotation */
-  coreRingA.rotation.z += 0.005;
+  /* Core Rotation */
+  coreWire.rotation.y += 0.002;
   coreRingB.rotation.x += 0.004;
   coreRingC.rotation.y += 0.006;
-  coreWire.rotation.y += 0.002;
-
-  if (activeSubnet) {
-    activeSubnet.ring.rotation.z += 0.006;
-    activeSubnet.shell.rotation.y += 0.003;
-  }
-  if (activeProject) {
-    activeProject.ring.rotation.z += 0.006;
-    activeProject.shell.rotation.y += 0.003;
-  }
 
   updateCameraTransition();
   controls.update();
