@@ -78,7 +78,7 @@ canvas:active {
 }
 
 /* ============================================================
-   ATMOSPHERE
+   ATMOSPHERE & AMBIENT ILLUMINATION
    ============================================================ */
 
 .atmosphere {
@@ -89,10 +89,10 @@ canvas:active {
   background:
     radial-gradient(
       circle at 50% 48%,
-      rgba(0, 255, 136, 0.055) 0%,
-      rgba(0, 255, 136, 0.016) 25%,
-      transparent 52%,
-      rgba(0, 0, 0, 0.68) 100%
+      rgba(0, 255, 136, 0.08) 0%,
+      rgba(0, 255, 136, 0.025) 30%,
+      transparent 60%,
+      rgba(0, 0, 0, 0.72) 100%
     );
 }
 
@@ -100,12 +100,12 @@ canvas:active {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.018;
+  opacity: 0.025;
   background-image:
-    linear-gradient(rgba(0, 255, 136, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 136, 0.08) 1px, transparent 1px);
-  background-size: 110px 110px;
-  mask-image: radial-gradient(ellipse at center, black 0%, transparent 78%);
+    linear-gradient(rgba(0, 255, 136, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 136, 0.12) 1px, transparent 1px);
+  background-size: 90px 90px;
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 82%);
 }
 
 /* ============================================================
@@ -132,9 +132,9 @@ canvas:active {
   font-size: clamp(24px, 2.2vw, 34px);
   line-height: 1;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  text-shadow: 0 0 24px rgba(0, 255, 136, 0.35);
+  text-shadow: 0 0 24px rgba(0, 255, 136, 0.4);
 }
 
 .identity span {
@@ -240,7 +240,9 @@ canvas:active {
   font-size: clamp(34px, 3.6vw, 56px);
   line-height: 0.95;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  text-shadow: 0 0 30px rgba(0, 255, 136, 0.35);
 }
 
 .intro p {
@@ -331,6 +333,61 @@ body.detail-mode .core-home-hint {
 }
 
 /* ============================================================
+   NETWORK LAB PLAYFUL CONTROLS (Lower Right HUD)
+   ============================================================ */
+
+.network-lab-panel {
+  position: absolute;
+  right: 34px;
+  bottom: 215px;
+  width: 196px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  background: rgba(5, 5, 5, 0.68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: auto;
+  transition: opacity 300ms ease;
+}
+
+.lab-title {
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 255, 136, 0.12);
+}
+
+.lab-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(0, 255, 136, 0.24);
+  background: rgba(0, 255, 136, 0.05);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-align: left;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.lab-btn:last-child {
+  margin-bottom: 0;
+}
+
+.lab-btn:hover {
+  background: var(--green-bright);
+  color: #050505;
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.6);
+}
+
+/* ============================================================
    LARGE TECHNICAL PRESENTATION OVERLAY (Projects & Experience & About)
    60-75vw width, 70-85vh height, Max 1180px, Centered
    Internal scrolling ONLY (no webpage scrolling!)
@@ -417,7 +474,7 @@ body.detail-mode .core-home-hint {
   font-family: var(--font-display);
   font-size: clamp(26px, 2.6vw, 36px);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   text-shadow: 0 0 20px rgba(0, 255, 136, 0.35);
 }
@@ -618,7 +675,7 @@ body.detail-mode .core-home-hint {
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   margin-bottom: 2px;
   text-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
 }
@@ -671,7 +728,6 @@ body.detail-mode .core-home-hint {
 
 /* ============================================================
    BACKGROUND FOCUS MODE (Preventing Text Collisions & Overlaps)
-   When detail presentation is open, fade out HTML graph labels!
    ============================================================ */
 
 body.detail-panel-open .graph-label {
@@ -683,12 +739,13 @@ body.detail-panel-open .graph-label {
 body.detail-panel-open .identity,
 body.detail-panel-open .system-panel,
 body.detail-panel-open .intro,
-body.detail-panel-open .interaction-legend {
-  opacity: 0.25;
+body.detail-panel-open .interaction-legend,
+body.detail-panel-open .network-lab-panel {
+  opacity: 0.22;
 }
 
 /* ============================================================
-   GRAPH LABELS
+   GRAPH LABELS & DELTHA TYPOGRAPHY HIERARCHY
    ============================================================ */
 
 .graph-label {
@@ -707,20 +764,23 @@ body.detail-panel-open .interaction-legend {
 }
 
 .graph-label.core {
-  color: var(--green-bright);
-  font-size: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-shadow: 0 0 20px rgba(0, 255, 136, 0.60);
+  letter-spacing: 0.14em;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.65);
 }
 
 .graph-label.primary-core {
-  color: var(--green-bright);
+  color: #f5f5f5;
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-shadow: 0 0 18px rgba(0, 255, 136, 0.45);
+  letter-spacing: 0.12em;
+  text-shadow:
+    0 0 16px rgba(0, 255, 136, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
 .graph-label.project {
@@ -743,11 +803,12 @@ body.detail-panel-open .interaction-legend {
 }
 
 .graph-label.project-core {
-  color: var(--green-bright);
-  font-size: 14px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  text-shadow: 0 0 20px rgba(0, 255, 136, 0.50);
+  letter-spacing: 0.14em;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.55);
 }
 
 .graph-label.project-subtitle {
@@ -835,6 +896,12 @@ body.detail-mode .intro {
   .interaction-legend {
     right: 18px;
     bottom: 18px;
+  }
+
+  .network-lab-panel {
+    right: 18px;
+    bottom: 300px;
+    width: 170px;
   }
 
   .core-home-hint {

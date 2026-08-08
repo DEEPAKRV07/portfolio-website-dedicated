@@ -5,16 +5,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — SKILLS SPATIAL REFINEMENT + DETAIL PANEL CLEANUP + LOADING SCREEN
- *
- * Refinements:
- * 1. Controlled 3D Radial Clustering Layout for Skills Subnetwork (Deterministic, clean separation).
- * 2. Category nodes do NOT open empty boxes (Structural grouping anchors only).
- * 3. Only individual skill nodes open the Small Contextual Tooltip Panel.
- * 4. Project & Experience panels cleaned up: Removed "Research Paper Mode" text & REMOVED ALL RESUME CTAs!
- * 5. Resume Action exists ONLY in ABOUT.
- * 6. Keyboard navigation (ArrowUp, ArrowDown, PageUp, PageDown) scrolls detail panel content internally.
- * 7. Neural Initialization Screen prevents white flash on refresh and smoothly fades out when ready.
+ * SPRINT — SCENE DEPTH, DELTHA TYPOGRAPHY, NODE-TRACKED LABELS,
+ *          HOME CARDS & PLAYFUL NETWORK EASTER EGGS
  * ============================================================
  */
 
@@ -71,6 +63,50 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
+
+/* ============================================================
+   ENVIRONMENTAL ATMOSPHERE & LIGHTING (Rich 3D Laboratory Scene)
+   ============================================================ */
+
+const ambientLight = new THREE.AmbientLight(0x00ff88, 0.35);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0x00ff88, 0.85);
+dirLight.position.set(10, 20, 15);
+scene.add(dirLight);
+
+const pointLight = new THREE.PointLight(0x00ff88, 1.6, 60);
+pointLight.position.set(0, 0, 0);
+scene.add(pointLight);
+
+/* 3D Glowing Perspective Floor Grid */
+const floorGrid = new THREE.PolarGridHelper(32, 16, 8, 64, 0x00ff88, 0x004422);
+floorGrid.position.set(0, -11.5, 0);
+floorGrid.material.transparent = true;
+floorGrid.material.opacity = 0.38;
+scene.add(floorGrid);
+
+/* Volumetric 3D Particle Cloud */
+const particleCount = 450;
+const particleGeo = new THREE.BufferGeometry();
+const particlePos = new Float32Array(particleCount * 3);
+
+for (let i = 0; i < particleCount * 3; i += 3) {
+  particlePos[i] = (Math.random() - 0.5) * 70;
+  particlePos[i + 1] = (Math.random() - 0.5) * 45;
+  particlePos[i + 2] = (Math.random() - 0.5) * 50;
+}
+
+particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+const particleMat = new THREE.PointsMaterial({
+  color: 0x00ff88,
+  size: 0.14,
+  transparent: true,
+  opacity: 0.45,
+  depthWrite: false,
+});
+const particleCloud = new THREE.Points(particleGeo, particleMat);
+scene.add(particleCloud);
 
 /* ============================================================
    CONTROLS (Full 360° Orbit, Pan, Zoom)
@@ -294,7 +330,7 @@ function showDetailPresentation(data) {
     }
   }
 
-  // Render Actions (RESUME BUTTON REMOVED FROM PROJECTS & EXPERIENCE!)
+  // Render Actions
   panelActionsEl.innerHTML = '';
   if (Array.isArray(data.actions)) {
     for (const act of data.actions) {
@@ -346,7 +382,6 @@ if (panelCloseBtn) {
 
 /* ============================================================
    SMALL CONTEXTUAL SKILL TOOLTIP PANEL SYSTEM
-   Answers: "Where did I actually use this skill?"
    ============================================================ */
 
 const skillContextPanelEl = document.getElementById('skillContextPanel');
@@ -626,9 +661,108 @@ for (const data of mainNodes) {
   label.object = node.nucleusMesh;
   label.offset.set(0, 1.35, 0);
 
-  const nodeObj = { ...data, mesh: node.nucleusMesh, group: node.group, label };
+  const nodeObj = { ...data, mesh: node.nucleusMesh, group: node.group, label, originalPos: node.group.position.clone() };
   mainNodeObjects.push(nodeObj);
   mainNodeMap.set(data.id, nodeObj);
+}
+
+/* ============================================================
+   3D FLOATING INTERACTIVE CARDS (Github, LinkedIn, Email, Resume, Hire Me)
+   ============================================================ */
+
+const floatingCardsGroup = new THREE.Group();
+floatingCardsGroup.name = 'FLOATING_ACTION_CARDS';
+mainGraph.add(floatingCardsGroup);
+
+const cardDataList = [
+  {
+    id: 'card-github',
+    title: 'GITHUB',
+    subtitle: 'code • commit • push',
+    position: [-14.2, 4.2, 2.5],
+    rotation: [0, 0.18, 0],
+    url: 'https://github.com/DEEPAKRV07',
+  },
+  {
+    id: 'card-resume',
+    title: 'RESUME',
+    subtitle: 'view my work',
+    position: [8.2, 7.8, -1.8],
+    rotation: [0, -0.12, 0],
+    url: '/my_resume.pdf',
+  },
+  {
+    id: 'card-email',
+    title: 'EMAIL',
+    subtitle: 'let\'s talk',
+    position: [-15.2, -3.2, 3.2],
+    rotation: [0, 0.22, 0],
+    url: 'mailto:deepakrv07@gmail.com',
+  },
+  {
+    id: 'card-linkedin',
+    title: 'LINKEDIN',
+    subtitle: 'let\'s connect',
+    position: [12.8, -0.8, -1.5],
+    rotation: [0, -0.16, 0],
+    url: 'https://linkedin.com/in/deepak-r-v',
+  },
+  {
+    id: 'card-hire',
+    title: 'HIRE ME',
+    subtitle: 'let\'s build together',
+    position: [10.2, -6.8, 1.2],
+    rotation: [0, -0.10, 0],
+    url: 'mailto:deepakrv07@gmail.com',
+  },
+];
+
+const floatingCardObjects = [];
+
+for (const item of cardDataList) {
+  const cardGroup = new THREE.Group();
+  cardGroup.position.set(...item.position);
+  cardGroup.rotation.set(...item.rotation);
+
+  // 1. Dark Glass Pane
+  const paneGeo = new THREE.PlaneGeometry(4.2, 4.8);
+  const paneMat = new THREE.MeshBasicMaterial({
+    color: 0x050505,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide,
+  });
+  paneMat.userData.baseOpacity = 0.65;
+  const paneMesh = new THREE.Mesh(paneGeo, paneMat);
+  paneMesh.userData = { type: 'floating-card', cardData: item };
+  cardGroup.add(paneMesh);
+
+  // 2. Wireframe / Glowing Green Border
+  const edgesGeo = new THREE.EdgesGeometry(paneGeo);
+  const edgesMat = lineMaterial(0.48, COLORS.bright);
+  const edgesLine = new THREE.LineSegments(edgesGeo, edgesMat);
+  cardGroup.add(edgesLine);
+
+  floatingCardsGroup.add(cardGroup);
+
+  // Tracked Deltha Label for Card Title & Subtitle
+  const cardLabel = createLabel(item.title, 'primary-core', 'main');
+  cardLabel.object = paneMesh;
+  cardLabel.offset.set(0, 0.4, 0);
+
+  const subLabel = createLabel(item.subtitle, 'detail-desc', 'main');
+  subLabel.object = paneMesh;
+  subLabel.offset.set(0, -0.6, 0);
+
+  floatingCardObjects.push({
+    ...item,
+    group: cardGroup,
+    mesh: paneMesh,
+    cardLabel,
+    subLabel,
+    originalPos: cardGroup.position.clone(),
+    originalRot: cardGroup.rotation.clone(),
+  });
 }
 
 /* ============================================================
@@ -1215,7 +1349,7 @@ function createSubnetWorld(subnetId) {
     label.object = node.nucleusMesh;
     label.offset.set(0, 0.72, 0);
 
-    const categoryObj = { ...category, mesh: node.nucleusMesh, group: node.group, label };
+    const categoryObj = { ...category, mesh: node.nucleusMesh, group: node.group, label, originalPos: node.group.position.clone() };
     categoryNodes.set(category.id, categoryObj);
     categories.push(categoryObj);
 
@@ -1282,7 +1416,7 @@ for (const subnetId of Object.keys(subnetDefinitions)) {
 
 let transitionState = null;
 
-function startTransition(targetPosition, targetLookAt, duration = 800) {
+function startTransition(targetPosition, targetLookAt, duration = 850) {
   transitionState = {
     startPosition: camera.position.clone(),
     targetPosition: targetPosition.clone(),
@@ -1423,6 +1557,78 @@ function exitLayer() {
 }
 
 /* ============================================================
+   PLAYFUL NETWORK EASTER EGGS — BURST & RECONSTRUCT
+   ============================================================ */
+
+let isBurstActive = false;
+let burstProgress = 0;
+const burstVelocities = new Map();
+
+const burstBtn = document.getElementById('burstBtn');
+const reconstructBtn = document.getElementById('reconstructBtn');
+
+function triggerBurstNetwork() {
+  isBurstActive = true;
+  burstProgress = 0;
+
+  burstVelocities.clear();
+  mainGraph.traverse(child => {
+    if (child.isGroup && child !== mainGraph && child !== core) {
+      const dir = child.position.clone().normalize();
+      if (dir.length() === 0) dir.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+      const velocity = dir.multiplyScalar(0.24 + Math.random() * 0.32);
+      const rotVelocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 0.08,
+        (Math.random() - 0.5) * 0.08,
+        (Math.random() - 0.5) * 0.08
+      );
+      burstVelocities.set(child, { velocity, rotVelocity, startPos: child.position.clone(), startRot: child.rotation.clone() });
+    }
+  });
+
+  setMode('NETWORK BURST');
+}
+
+function triggerReconstructNetwork() {
+  isBurstActive = false;
+  startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 900);
+  setMode('OVERVIEW');
+}
+
+if (burstBtn) burstBtn.addEventListener('click', triggerBurstNetwork);
+if (reconstructBtn) reconstructBtn.addEventListener('click', triggerReconstructNetwork);
+
+function animateBurstState() {
+  if (isBurstActive) {
+    burstProgress = Math.min(burstProgress + 0.02, 1.0);
+    for (const [obj, data] of burstVelocities.entries()) {
+      obj.position.add(data.velocity);
+      obj.rotation.x += data.rotVelocity.x;
+      obj.rotation.y += data.rotVelocity.y;
+    }
+  } else if (burstVelocities.size > 0) {
+    let allRestored = true;
+    for (const [obj, data] of burstVelocities.entries()) {
+      obj.position.lerp(data.startPos, 0.12);
+      obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, data.startRot.x, 0.12);
+      obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, data.startRot.y, 0.12);
+      obj.rotation.z = THREE.MathUtils.lerp(obj.rotation.z, data.startRot.z, 0.12);
+
+      if (obj.position.distanceTo(data.startPos) > 0.05) {
+        allRestored = false;
+      }
+    }
+    if (allRestored) {
+      for (const [obj, data] of burstVelocities.entries()) {
+        obj.position.copy(data.startPos);
+        obj.rotation.copy(data.startRot);
+      }
+      burstVelocities.clear();
+    }
+  }
+}
+
+/* ============================================================
    RAYCASTING & POINTER INTERACTION
    ============================================================ */
 
@@ -1446,6 +1652,17 @@ function getPointerObject() {
   const coreHit = raycaster.intersectObjects(coreTargets, false)[0];
   if (coreHit) {
     return { type: 'core', object: coreHit.object };
+  }
+
+  /* 3D Floating Action Cards Raycast */
+  if (currentLayer === 'MAIN') {
+    const cardHits = raycaster.intersectObjects(
+      floatingCardObjects.map(card => card.mesh),
+      false
+    );
+    if (cardHits.length) {
+      return { type: 'floating-card', object: cardHits[0].object };
+    }
   }
 
   /* Subnet Layer Skill Nodes */
@@ -1516,11 +1733,18 @@ renderer.domElement.addEventListener('click', () => {
     return;
   }
 
+  if (hit.type === 'floating-card') {
+    const cardData = hit.object.userData.cardData;
+    if (cardData && cardData.url) {
+      window.open(cardData.url, cardData.url.startsWith('http') ? '_blank' : '_self');
+    }
+    return;
+  }
+
   if (hit.type === 'main') {
     const node = mainNodeObjects.find(item => item.mesh === hit.object);
     if (node) {
       if (node.id === 'about') {
-        // ABOUT directly opens ONE combined profile detail presentation!
         showDetailPresentation(combinedAboutData);
       } else {
         enterSubnet(node.id);
@@ -1534,17 +1758,13 @@ renderer.domElement.addEventListener('click', () => {
     if (categoryObj) {
       const nodeData = categoryObj.nodeData || categoryObj;
       if (nodeData.actionUrl) {
-        // CONTACT SECTION: DIRECT EXTERNAL ACTION (NO MODAL!)
         window.open(
           nodeData.actionUrl,
           nodeData.actionUrl.startsWith('http') ? '_blank' : '_self'
         );
       } else if (activeSubnet.subnetId === 'skills') {
-        // SKILLS CATEGORY NODE: MUST NOT OPEN EMPTY BOX! (Grouping anchor only)
-        // Focus or highlight category branch without opening a modal
         return;
       } else {
-        // PROJECTS & EXPERIENCE: LARGE DETAIL PRESENTATION
         showDetailPresentation(nodeData);
       }
     }
@@ -1552,7 +1772,6 @@ renderer.domElement.addEventListener('click', () => {
   }
 
   if (hit.type === 'skill-node') {
-    // SKILLS SECTION: SMALL CONTEXTUAL TOOLTIP PANEL
     const skillData = hit.object.userData.skillData;
     if (skillData) {
       showSkillContextPanel(skillData);
@@ -1561,10 +1780,17 @@ renderer.domElement.addEventListener('click', () => {
   }
 });
 
-/* Hover Scaling Effect */
+/* Hover Scaling Effect for Nodes and Floating Cards */
 const tempScale = new THREE.Vector3();
 function updateHover() {
   const hit = getPointerObject();
+
+  for (const card of floatingCardObjects) {
+    const isHovered = hit?.type === 'floating-card' && hit.object === card.mesh;
+    const targetScale = isHovered ? 1.08 : 1.0;
+    tempScale.set(targetScale, targetScale, targetScale);
+    card.group.scale.lerp(tempScale, 0.16);
+  }
 
   if (coreBeacon.visible) {
     const beaconActive = hit?.type === 'core';
@@ -1577,7 +1803,7 @@ function updateHover() {
 }
 
 /* ============================================================
-   KEYBOARD NAVIGATION & DETAIL PANEL SCROLLING
+   KEYBOARD NAVIGATION & CAMERA RESET CONTROL
    ============================================================ */
 
 window.addEventListener('keydown', event => {
@@ -1609,6 +1835,12 @@ window.addEventListener('keydown', event => {
       panelBodyEl.scrollTop = panelBodyEl.scrollHeight;
       return;
     }
+  }
+
+  if (event.key === 'c' || event.key === 'C') {
+    // CAMERA RESET KEY 'C'
+    startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 850);
+    return;
   }
 
   if (event.key === 'Escape') {
@@ -1679,6 +1911,10 @@ function animate(currentTime) {
   coreRingB.rotation.x += 0.004;
   coreRingC.rotation.y += 0.006;
 
+  /* Ambient Particle Drift */
+  particleCloud.rotation.y += 0.0005;
+
+  animateBurstState();
   updateCameraTransition();
   controls.update();
 
