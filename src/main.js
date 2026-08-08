@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — RESTORE BURST/RECONSTRUCT + FIX GITHUB AMBIENT LOGO + FINAL HOME POLISH
+ * SPRINT — RESTORE THE ORIGINAL RANDOM 3D BURST + RECONSTRUCT + SQUARE AMBIENT APP ICONS
  * ============================================================
  */
 
@@ -684,7 +684,7 @@ for (const data of mainNodes) {
 }
 
 /* ============================================================
-   5 OFFICIAL AMBIENT 3D FLOATING LOGO OBJECTS (HOME SCENE ONLY!)
+   5 COMPACT SQUARE 3D AMBIENT APP ICONS (HOME SCENE ONLY!)
    With Official Standalone GitHub Invertocat Vector Asset
    ============================================================ */
 
@@ -700,21 +700,26 @@ function createLogoTexture(type) {
 
   ctx.clearRect(0, 0, 512, 512);
 
-  // Outer glowing circular border
+  // Rounded Square App Icon Container Fill
+  const radius = 64;
+  ctx.beginPath();
+  ctx.moveTo(32 + radius, 32);
+  ctx.arcTo(480, 32, 480, 480, radius);
+  ctx.arcTo(480, 480, 32, 480, radius);
+  ctx.arcTo(32, 480, 32, 32, radius);
+  ctx.arcTo(32, 32, 480, 32, radius);
+  ctx.closePath();
+
+  // Dark translucent glass fill
+  ctx.fillStyle = 'rgba(5, 15, 10, 0.88)';
+  ctx.fill();
+
+  // Glowing green border stroke
   ctx.strokeStyle = '#00ff88';
   ctx.lineWidth = 14;
   ctx.shadowColor = '#00ff88';
-  ctx.shadowBlur = 24;
-
-  ctx.beginPath();
-  ctx.arc(256, 256, 220, 0, Math.PI * 2);
+  ctx.shadowBlur = 20;
   ctx.stroke();
-
-  // Translucent dark glass disc background
-  ctx.fillStyle = 'rgba(5, 15, 10, 0.82)';
-  ctx.beginPath();
-  ctx.arc(256, 256, 214, 0, Math.PI * 2);
-  ctx.fill();
 
   ctx.fillStyle = '#00ff88';
   ctx.strokeStyle = '#00ff88';
@@ -729,27 +734,27 @@ function createLogoTexture(type) {
     ctx.scale(1.15, 1.15);
     ctx.fillStyle = '#00ff88';
 
-    // Invertocat Silhouette Path
+    // Invertocat Head Circle & Ears
     ctx.beginPath();
-    ctx.arc(0, -10, 90, 0, Math.PI * 2);
+    ctx.arc(0, -10, 88, 0, Math.PI * 2);
     ctx.fill();
 
     // Ears Cutout
     ctx.beginPath();
-    ctx.moveTo(-60, -65); ctx.lineTo(-85, -125); ctx.lineTo(-25, -95); ctx.closePath();
-    ctx.moveTo(60, -65);  ctx.lineTo(85, -125);  ctx.lineTo(25, -95);  ctx.closePath();
+    ctx.moveTo(-58, -65); ctx.lineTo(-82, -122); ctx.lineTo(-24, -92); ctx.closePath();
+    ctx.moveTo(58, -65);  ctx.lineTo(82, -122);  ctx.lineTo(24, -92);  ctx.closePath();
     ctx.fill();
 
     // Inner Body Arch Cutout
     ctx.fillStyle = 'rgba(5, 15, 10, 0.95)';
     ctx.beginPath();
-    ctx.arc(0, 55, 52, 0, Math.PI * 2);
+    ctx.arc(0, 52, 50, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
   } else if (type === 'linkedin') {
     // Official LinkedIn [in] logo asset rendering
-    ctx.font = '700 240px Deltha, sans-serif';
+    ctx.font = '700 230px Deltha, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('in', 256, 245);
@@ -789,7 +794,7 @@ const logoDataList = [
     id: 'logo-resume',
     type: 'resume',
     title: 'Resume',
-    basePos: new THREE.Vector3(0.0, 13.8, -6.5), // Positioned higher up to guarantee separation from ABOUT!
+    basePos: new THREE.Vector3(0.0, 13.8, -6.5), // Positioned high above ABOUT for clear separation
     baseRot: new THREE.Vector3(0, 0, 0),
     phase: 0.0,
     speedX: 0.35, speedY: 0.45, speedZ: 0.30,
@@ -800,7 +805,7 @@ const logoDataList = [
     id: 'logo-github',
     type: 'github',
     title: 'GitHub',
-    basePos: new THREE.Vector3(-14.8, 5.2, -4.5), // Valid seeded initial position
+    basePos: new THREE.Vector3(-14.8, 5.2, -4.5),
     baseRot: new THREE.Vector3(0, 0.18, 0),
     phase: 1.4,
     speedX: 0.40, speedY: 0.35, speedZ: 0.25,
@@ -849,26 +854,25 @@ for (const item of logoDataList) {
   group.position.copy(item.basePos);
   group.rotation.setFromVector3(item.baseRot);
 
-  // 1. Disc Geometry with Canvas 2D Vector Texture
+  // 1. Compact 3D Square Glass App Icon Geometry
   const texture = createLogoTexture(item.type);
-  const geo = new THREE.PlaneGeometry(1.6, 1.6);
-  const mat = new THREE.MeshBasicMaterial({
+  const boxGeo = new THREE.BoxGeometry(1.6, 1.6, 0.12);
+  const boxMat = new THREE.MeshBasicMaterial({
     map: texture,
     transparent: true,
-    side: THREE.DoubleSide,
-    depthWrite: false,
+    opacity: 0.95,
   });
-  mat.userData.baseOpacity = 0.95;
+  boxMat.userData.baseOpacity = 0.95;
 
-  const mesh = new THREE.Mesh(geo, mat);
+  const mesh = new THREE.Mesh(boxGeo, boxMat);
   mesh.userData = { type: 'ambient-logo', logoData: item };
   group.add(mesh);
 
-  // 2. 3D Glowing Wireframe Rim Ring
-  const rimGeo = new THREE.TorusGeometry(0.85, 0.022, 16, 64);
-  const rimMat = lineMaterial(0.48, COLORS.bright);
-  const rimMesh = new THREE.Mesh(rimGeo, rimMat);
-  group.add(rimMesh);
+  // 2. 3D Glowing Wireframe Rim Frame
+  const wireGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1.62, 1.62, 0.13));
+  const wireMat = lineMaterial(0.48, COLORS.bright);
+  const wireMesh = new THREE.LineSegments(wireGeo, wireMat);
+  group.add(wireMesh);
 
   ambientLogosGroup.add(group);
 
@@ -876,7 +880,7 @@ for (const item of logoDataList) {
   const hoverLabel = createLabel(`◉ ${item.title}`, 'ambient-hover', 'main');
   hoverLabel.object = mesh;
   hoverLabel.offset.set(0, 1.15, 0);
-  hoverLabel.hidden = true; // Hidden by default
+  hoverLabel.hidden = true;
 
   ambientLogoObjects.push({
     ...item,
@@ -1684,12 +1688,11 @@ function exitLayer() {
 }
 
 /* ============================================================
-   GLOBAL NETWORK BURST & RECONSTRUCT SYSTEM (FLUID 3D RUPTURE & LERP)
+   CANONICAL GLOBAL 3D BURST & RECONSTRUCT ENGINE
    ============================================================ */
 
-let burstState = 'IDLE'; // 'IDLE' | 'BURSTING' | 'BURSTED' | 'RECONSTRUCTING'
-let burstTimer = 0;
-const burstNodeDataMap = new Map();
+let isBurstActive = false;
+const burstVelocities = new Map();
 
 const burstBtn = document.getElementById('burstBtn');
 const reconstructBtn = document.getElementById('reconstructBtn');
@@ -1713,27 +1716,27 @@ function getActiveNetworkNodes() {
 }
 
 function triggerBurstNetwork() {
-  if (burstState === 'BURSTING' || burstState === 'BURSTED') return;
+  if (isBurstActive) return;
   if (document.body.classList.contains('detail-panel-open')) return;
 
-  burstState = 'BURSTING';
-  burstTimer = 0;
-  burstNodeDataMap.clear();
+  isBurstActive = true;
+  burstVelocities.clear();
 
   const targets = getActiveNetworkNodes();
   for (const nodeGroup of targets) {
-    const dir = nodeGroup.position.clone().normalize();
-    if (dir.length() === 0) dir.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-
-    const speed = 0.28 + Math.random() * 0.35;
-    const velocity = dir.clone().multiplyScalar(speed);
+    // Generate organic 3D random velocity vector (X, Y, Z) across broad environment
+    const velocity = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.42,
+      (Math.random() - 0.5) * 0.42,
+      (Math.random() - 0.5) * 0.42
+    );
     const rotVelocity = new THREE.Vector3(
       (Math.random() - 0.5) * 0.08,
       (Math.random() - 0.5) * 0.08,
       (Math.random() - 0.5) * 0.08
     );
 
-    burstNodeDataMap.set(nodeGroup, {
+    burstVelocities.set(nodeGroup, {
       velocity,
       rotVelocity,
       startPos: nodeGroup.position.clone(),
@@ -1745,49 +1748,41 @@ function triggerBurstNetwork() {
 }
 
 function triggerReconstructNetwork() {
-  if (burstState === 'IDLE' || burstNodeDataMap.size === 0) return;
-  burstState = 'RECONSTRUCTING';
+  if (!isBurstActive && burstVelocities.size === 0) return;
+  isBurstActive = false;
 }
 
 if (burstBtn) burstBtn.addEventListener('click', triggerBurstNetwork);
 if (reconstructBtn) reconstructBtn.addEventListener('click', triggerReconstructNetwork);
 
 function animateBurstState() {
-  if (burstState === 'BURSTING') {
-    burstTimer++;
-    for (const [obj, data] of burstNodeDataMap.entries()) {
+  if (isBurstActive) {
+    // Continuous random 3D travel through environment during burst state
+    for (const [obj, data] of burstVelocities.entries()) {
       obj.position.add(data.velocity);
       obj.rotation.x += data.rotVelocity.x;
       obj.rotation.y += data.rotVelocity.y;
-      data.velocity.multiplyScalar(0.97);
     }
-    if (burstTimer >= 45) {
-      burstState = 'BURSTED';
-    }
-  } else if (burstState === 'BURSTED') {
-    for (const [obj, data] of burstNodeDataMap.entries()) {
-      obj.rotation.x += data.rotVelocity.x * 0.15;
-      obj.rotation.y += data.rotVelocity.y * 0.15;
-    }
-  } else if (burstState === 'RECONSTRUCTING') {
+  } else if (burstVelocities.size > 0) {
+    // Reconstruct state: Smoothly lerp scattered nodes back to original positions
     let allRestored = true;
-    for (const [obj, data] of burstNodeDataMap.entries()) {
+    for (const [obj, data] of burstVelocities.entries()) {
       obj.position.lerp(data.startPos, 0.12);
       obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, data.startRot.x, 0.12);
       obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, data.startRot.y, 0.12);
       obj.rotation.z = THREE.MathUtils.lerp(obj.rotation.z, data.startRot.z, 0.12);
 
-      if (obj.position.distanceTo(data.startPos) > 0.02) {
+      if (obj.position.distanceTo(data.startPos) > 0.05) {
         allRestored = false;
       }
     }
+
     if (allRestored) {
-      for (const [obj, data] of burstNodeDataMap.entries()) {
+      for (const [obj, data] of burstVelocities.entries()) {
         obj.position.copy(data.startPos);
         obj.rotation.copy(data.startRot);
       }
-      burstNodeDataMap.clear();
-      burstState = 'IDLE';
+      burstVelocities.clear();
 
       if (currentLayer === 'MAIN') {
         setMode('OVERVIEW');
@@ -2096,7 +2091,7 @@ function animate(currentTime) {
   /* Ambient Particle Drift */
   particleCloud.rotation.y += 0.0005;
 
-  /* Organic 3D Multi-Axis Floating Motion for 5 Ambient Logos */
+  /* Organic 3D Multi-Axis Floating Motion for 5 Ambient Square App Icons */
   if (ambientLogosGroup.visible) {
     const t = currentTime * 0.001;
     for (const item of ambientLogoObjects) {
