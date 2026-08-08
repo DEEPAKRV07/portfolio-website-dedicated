@@ -6,13 +6,11 @@ on:
       - main
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
   group: 'pages'
   cancel-in-progress: false
@@ -38,6 +36,17 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+      - name: Verify build artifact integrity
+        run: |
+          echo "=== DIST CONTENTS ==="
+          find dist -maxdepth 3 -type f | sort
+          echo "=== DIST INDEX ==="
+          cat dist/index.html
+          echo "=== VERIFY REQUIRED FILES ==="
+          test -f dist/index.html || (echo "Error: dist/index.html missing" && exit 1)
+          test -d dist/assets || (echo "Error: dist/assets missing" && exit 1)
+          test -f dist/.nojekyll || (echo "Error: dist/.nojekyll missing" && exit 1)
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
