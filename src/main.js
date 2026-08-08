@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — CONVERT HOME CARDS INTO SUBTLE 3D ENVIRONMENT OBJECTS
+ * SPRINT — AMBIENT 3D SOCIAL / ACTION LOGOS + SKILL NODE TYPOGRAPHY
  * ============================================================
  */
 
@@ -345,9 +345,9 @@ function showDetailPresentation(data) {
     }
   }
 
-  // Hide 5 Home objects & Enable Focus Mode
-  if (typeof floatingCardsGroup !== 'undefined') {
-    floatingCardsGroup.visible = false;
+  // Hide 5 Ambient Home Logos & Enable Focus Mode
+  if (typeof ambientLogosGroup !== 'undefined') {
+    ambientLogosGroup.visible = false;
   }
 
   document.body.classList.add('detail-panel-open');
@@ -370,9 +370,9 @@ function hideDetailPresentation() {
   detailPanelEl.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('detail-panel-open');
 
-  // Restore Home background objects visibility if on Home scene
-  if (currentLayer === 'MAIN' && typeof floatingCardsGroup !== 'undefined') {
-    floatingCardsGroup.visible = true;
+  // Restore Home ambient logos visibility if on Home scene
+  if (currentLayer === 'MAIN' && typeof ambientLogosGroup !== 'undefined') {
+    ambientLogosGroup.visible = true;
   }
 
   // Restore background graph opacity to standard layer level
@@ -435,8 +435,8 @@ function showSkillContextPanel(skillData) {
     }
   }
 
-  if (typeof floatingCardsGroup !== 'undefined') {
-    floatingCardsGroup.visible = false;
+  if (typeof ambientLogosGroup !== 'undefined') {
+    ambientLogosGroup.visible = false;
   }
 
   skillContextPanelEl.classList.add('active');
@@ -449,8 +449,8 @@ function hideSkillContextPanel() {
   skillContextPanelEl.classList.remove('active');
   skillContextPanelEl.setAttribute('aria-hidden', 'true');
 
-  if (currentLayer === 'MAIN' && typeof floatingCardsGroup !== 'undefined') {
-    floatingCardsGroup.visible = true;
+  if (currentLayer === 'MAIN' && typeof ambientLogosGroup !== 'undefined') {
+    ambientLogosGroup.visible = true;
   }
 }
 
@@ -684,95 +684,188 @@ for (const data of mainNodes) {
 }
 
 /* ============================================================
-   5 SUBTLE 3D HOME ENVIRONMENT OBJECTS (HOME SCENE ONLY!)
+   5 AMBIENT 3D FLOATING LOGO OBJECTS (HOME SCENE ONLY!)
+   No rectangular cards, no plaques, no large text!
    ============================================================ */
 
-const floatingCardsGroup = new THREE.Group();
-floatingCardsGroup.name = 'FLOATING_ACTION_CARDS';
-mainGraph.add(floatingCardsGroup);
+const ambientLogosGroup = new THREE.Group();
+ambientLogosGroup.name = 'AMBIENT_FLOATING_LOGOS';
+mainGraph.add(ambientLogosGroup);
 
-const cardDataList = [
+function createLogoTexture(type) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, 512, 512);
+
+  // Outer glowing circular border
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 14;
+  ctx.shadowColor = '#00ff88';
+  ctx.shadowBlur = 24;
+
+  ctx.beginPath();
+  ctx.arc(256, 256, 220, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Translucent dark glass disc background
+  ctx.fillStyle = 'rgba(5, 15, 10, 0.78)';
+  ctx.beginPath();
+  ctx.arc(256, 256, 214, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#00ff88';
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 18;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (type === 'github') {
+    // Official Octocat silhouette / GitHub Mark
+    ctx.beginPath();
+    ctx.arc(256, 240, 105, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(5, 15, 10, 0.95)';
+    ctx.beginPath();
+    ctx.arc(256, 310, 62, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#00ff88';
+    ctx.beginPath();
+    ctx.moveTo(170, 160); ctx.lineTo(195, 95); ctx.lineTo(230, 140); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(342, 160); ctx.lineTo(317, 95); ctx.lineTo(282, 140); ctx.fill();
+  } else if (type === 'linkedin') {
+    // Official 3D "in" logo
+    ctx.font = '700 240px Deltha, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('in', 256, 245);
+  } else if (type === 'email') {
+    // Envelope Icon
+    ctx.strokeRect(140, 170, 232, 160);
+    ctx.beginPath();
+    ctx.moveTo(140, 170);
+    ctx.lineTo(256, 260);
+    ctx.lineTo(372, 170);
+    ctx.stroke();
+  } else if (type === 'resume') {
+    // Document / Resume Sheet Icon
+    ctx.strokeRect(165, 130, 182, 230);
+    ctx.beginPath();
+    ctx.moveTo(205, 190); ctx.lineTo(307, 190);
+    ctx.moveTo(205, 245); ctx.lineTo(307, 245);
+    ctx.moveTo(205, 300); ctx.lineTo(270, 300);
+    ctx.stroke();
+  } else if (type === 'hire') {
+    // Person / Contact Icon
+    ctx.beginPath();
+    ctx.arc(256, 190, 55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(256, 370, 105, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+const logoDataList = [
   {
-    id: 'card-resume',
+    id: 'logo-resume',
+    type: 'resume',
     title: 'RESUME',
-    position: [0.0, 11.2, -6.5], // Top framing behind About
-    rotation: [0, 0, 0],
+    basePos: new THREE.Vector3(0.0, 11.5, -6.5),
+    baseRot: new THREE.Vector3(0, 0, 0),
     phase: 0.0,
+    speedX: 0.35, speedY: 0.45, speedZ: 0.30,
+    ampX: 2.2, ampY: 1.2, ampZ: 2.8,
     url: '/my_resume.pdf',
   },
   {
-    id: 'card-github',
+    id: 'logo-github',
+    type: 'github',
     title: 'GITHUB',
-    position: [-14.5, 4.8, -4.5], // Upper left framing
-    rotation: [0, 0.18, 0],
-    phase: 1.2,
+    basePos: new THREE.Vector3(-14.8, 5.2, -4.5),
+    baseRot: new THREE.Vector3(0, 0.18, 0),
+    phase: 1.4,
+    speedX: 0.40, speedY: 0.35, speedZ: 0.25,
+    ampX: 2.8, ampY: 1.5, ampZ: 3.2,
     url: 'https://github.com/DEEPAKRV07',
   },
   {
-    id: 'card-email',
+    id: 'logo-email',
+    type: 'email',
     title: 'EMAIL',
-    position: [-14.5, -4.8, -4.5], // Lower left framing
-    rotation: [0, 0.22, 0],
-    phase: 2.4,
+    basePos: new THREE.Vector3(-14.8, -5.2, -4.5),
+    baseRot: new THREE.Vector3(0, 0.22, 0),
+    phase: 2.8,
+    speedX: 0.30, speedY: 0.40, speedZ: 0.35,
+    ampX: 2.5, ampY: 1.4, ampZ: 2.9,
     url: 'mailto:deepakrv07@gmail.com',
   },
   {
-    id: 'card-linkedin',
+    id: 'logo-linkedin',
+    type: 'linkedin',
     title: 'LINKEDIN',
-    position: [14.5, 4.8, -4.5], // Upper right framing
-    rotation: [0, -0.18, 0],
-    phase: 3.6,
+    basePos: new THREE.Vector3(14.8, 5.2, -4.5),
+    baseRot: new THREE.Vector3(0, -0.18, 0),
+    phase: 4.2,
+    speedX: 0.45, speedY: 0.30, speedZ: 0.28,
+    ampX: 2.6, ampY: 1.6, ampZ: 3.0,
     url: 'https://linkedin.com/in/deepak-r-v',
   },
   {
-    id: 'card-hire',
+    id: 'logo-hire',
+    type: 'hire',
     title: 'HIRE ME',
-    position: [14.5, -4.8, -4.5], // Lower right framing
-    rotation: [0, -0.12, 0],
-    phase: 4.8,
+    basePos: new THREE.Vector3(14.8, -5.2, -4.5),
+    baseRot: new THREE.Vector3(0, -0.12, 0),
+    phase: 5.6,
+    speedX: 0.32, speedY: 0.42, speedZ: 0.32,
+    ampX: 2.4, ampY: 1.3, ampZ: 2.6,
     url: 'mailto:deepakrv07@gmail.com',
   },
 ];
 
-const floatingCardObjects = [];
+const ambientLogoObjects = [];
 
-for (const item of cardDataList) {
-  const cardGroup = new THREE.Group();
-  cardGroup.position.set(...item.position);
-  cardGroup.rotation.set(...item.rotation);
+for (const item of logoDataList) {
+  const group = new THREE.Group();
+  group.position.copy(item.basePos);
+  group.rotation.setFromVector3(item.baseRot);
 
-  // Compact 3D Futuristic Glass Pane Artifact (2.4 x 2.6 x 0.1)
-  const paneGeo = new THREE.BoxGeometry(2.4, 2.6, 0.1);
-  const paneMat = new THREE.MeshBasicMaterial({
-    color: 0x050505,
+  // 1. Disc Geometry with Canvas 2D Vector Texture
+  const texture = createLogoTexture(item.type);
+  const geo = new THREE.PlaneGeometry(1.6, 1.6);
+  const mat = new THREE.MeshBasicMaterial({
+    map: texture,
     transparent: true,
-    opacity: 0.45,
+    side: THREE.DoubleSide,
+    depthWrite: false,
   });
-  paneMat.userData.baseOpacity = 0.45;
-  const paneMesh = new THREE.Mesh(paneGeo, paneMat);
-  paneMesh.userData = { type: 'floating-card', cardData: item };
-  cardGroup.add(paneMesh);
+  mat.userData.baseOpacity = 0.95;
 
-  // Wireframe Subdued Glowing Border Frame
-  const edgesGeo = new THREE.EdgesGeometry(paneGeo);
-  const edgesMat = lineMaterial(0.35, COLORS.bright);
-  const edgesLine = new THREE.LineSegments(edgesGeo, edgesMat);
-  cardGroup.add(edgesLine);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.userData = { type: 'ambient-logo', logoData: item };
+  group.add(mesh);
 
-  floatingCardsGroup.add(cardGroup);
+  // 2. 3D Glowing Wireframe Rim Ring
+  const rimGeo = new THREE.TorusGeometry(0.85, 0.022, 16, 64);
+  const rimMat = lineMaterial(0.48, COLORS.bright);
+  const rimMesh = new THREE.Mesh(rimGeo, rimMat);
+  group.add(rimMesh);
 
-  // Deltha Title Label attached directly to 3D artifact
-  const cardLabel = createLabel(item.title, 'primary-core', 'main');
-  cardLabel.object = paneMesh;
-  cardLabel.offset.set(0, 0.1, 0);
+  ambientLogosGroup.add(group);
 
-  floatingCardObjects.push({
+  ambientLogoObjects.push({
     ...item,
-    group: cardGroup,
-    mesh: paneMesh,
-    cardLabel,
-    originalPos: cardGroup.position.clone(),
-    originalRot: cardGroup.rotation.clone(),
+    group,
+    mesh,
   });
 }
 
@@ -1491,8 +1584,8 @@ function setLayerVisibility(layerName) {
     setWorldOpacity(mainGraph, 1.0);
     setWorldOpacity(core, 1.0);
 
-    /* 5 FLOATING 3D ENVIRONMENT OBJECTS EXIST ONLY ON HOME! */
-    floatingCardsGroup.visible = true;
+    /* 5 AMBIENT 3D FLOATING LOGOS EXIST ONLY ON HOME! */
+    ambientLogosGroup.visible = true;
 
     for (const world of subnetWorlds.values()) {
       setWorldVisibility(world.group, false);
@@ -1506,8 +1599,8 @@ function setLayerVisibility(layerName) {
     setWorldOpacity(mainGraph, 0.08); // Heavily faded Home network ghost
     setWorldOpacity(core, 0.18);       // Persistent core
 
-    /* HIDE THE 5 FLOATING 3D ENVIRONMENT OBJECTS COMPLETELY IN SUBNETWORKS! */
-    floatingCardsGroup.visible = false;
+    /* HIDE THE 5 AMBIENT 3D FLOATING LOGOS COMPLETELY IN SUBNETWORKS! */
+    ambientLogosGroup.visible = false;
 
     for (const world of subnetWorlds.values()) {
       const isCurrent = world === activeSubnet;
@@ -1671,14 +1764,14 @@ function getPointerObject() {
     return { type: 'core', object: coreHit.object };
   }
 
-  /* 3D Floating Action Objects Raycast (ONLY IN HOME MAIN LAYER) */
-  if (currentLayer === 'MAIN' && floatingCardsGroup.visible) {
-    const cardHits = raycaster.intersectObjects(
-      floatingCardObjects.map(card => card.mesh),
+  /* 3D Ambient Logo Objects Raycast (ONLY IN HOME MAIN LAYER) */
+  if (currentLayer === 'MAIN' && ambientLogosGroup.visible) {
+    const logoHits = raycaster.intersectObjects(
+      ambientLogoObjects.map(item => item.mesh),
       false
     );
-    if (cardHits.length) {
-      return { type: 'floating-card', object: cardHits[0].object };
+    if (logoHits.length) {
+      return { type: 'ambient-logo', object: logoHits[0].object };
     }
   }
 
@@ -1750,10 +1843,10 @@ renderer.domElement.addEventListener('click', () => {
     return;
   }
 
-  if (hit.type === 'floating-card') {
-    const cardData = hit.object.userData.cardData;
-    if (cardData && cardData.url) {
-      window.open(cardData.url, cardData.url.startsWith('http') ? '_blank' : '_self');
+  if (hit.type === 'ambient-logo') {
+    const logoData = hit.object.userData.logoData;
+    if (logoData && logoData.url) {
+      window.open(logoData.url, logoData.url.startsWith('http') ? '_blank' : '_self');
     }
     return;
   }
@@ -1797,17 +1890,17 @@ renderer.domElement.addEventListener('click', () => {
   }
 });
 
-/* Hover Scaling Effect for Nodes and Floating Objects */
+/* Hover Scaling Effect for Nodes and Ambient Logos */
 const tempScale = new THREE.Vector3();
 function updateHover() {
   const hit = getPointerObject();
 
-  if (floatingCardsGroup.visible) {
-    for (const card of floatingCardObjects) {
-      const isHovered = hit?.type === 'floating-card' && hit.object === card.mesh;
-      const targetScale = isHovered ? 1.10 : 1.0;
+  if (ambientLogosGroup.visible) {
+    for (const item of ambientLogoObjects) {
+      const isHovered = hit?.type === 'ambient-logo' && hit.object === item.mesh;
+      const targetScale = isHovered ? 1.15 : 1.0;
       tempScale.set(targetScale, targetScale, targetScale);
-      card.group.scale.lerp(tempScale, 0.16);
+      item.group.scale.lerp(tempScale, 0.16);
     }
   }
 
@@ -1933,13 +2026,26 @@ function animate(currentTime) {
   /* Ambient Particle Drift */
   particleCloud.rotation.y += 0.0005;
 
-  /* Slow Ambient Multi-Axis Floating Motion for 5 Home Objects */
-  if (!isBurstActive && floatingCardsGroup.visible) {
+  /* Organic 3D Multi-Axis Floating Motion for 5 Ambient Logos */
+  if (!isBurstActive && ambientLogosGroup.visible) {
     const t = currentTime * 0.001;
-    for (const card of floatingCardObjects) {
-      card.group.position.y = card.originalPos.y + Math.sin(t * 1.1 + card.phase) * 0.20;
-      card.group.position.z = card.originalPos.z + Math.cos(t * 0.8 + card.phase) * 0.12;
-      card.group.rotation.y = card.originalRot.y + Math.sin(t * 0.6 + card.phase) * 0.06;
+    for (const item of ambientLogoObjects) {
+      let rawX = item.basePos.x + Math.sin(t * item.speedX + item.phase) * item.ampX + Math.cos(t * 0.45 + item.phase) * 1.2;
+      let rawY = item.basePos.y + Math.sin(t * item.speedY + item.phase) * item.ampY + Math.sin(t * 0.35 + item.phase) * 0.8;
+      let rawZ = item.basePos.z + Math.cos(t * item.speedZ + item.phase) * item.ampZ; // Forward / Backward Z drift!
+
+      // Central Exclusion Zone: Ensure distance from origin stays outside central network radius (> 12.0)
+      const dist2D = Math.hypot(rawX, rawY);
+      if (dist2D < 12.0) {
+        const factor = 12.0 / (dist2D || 1);
+        rawX *= factor;
+        rawY *= factor;
+      }
+
+      item.group.position.set(rawX, rawY, rawZ);
+      item.group.rotation.x = Math.sin(t * 0.35 + item.phase) * 0.15;
+      item.group.rotation.y = item.baseRot.y + Math.sin(t * 0.5 + item.phase) * 0.25;
+      item.group.rotation.z = Math.cos(t * 0.25 + item.phase) * 0.08;
     }
   }
 
