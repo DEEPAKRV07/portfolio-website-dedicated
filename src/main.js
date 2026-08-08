@@ -5,8 +5,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — SCENE DEPTH, DELTHA TYPOGRAPHY, NODE-TRACKED LABELS,
- *          HOME CARDS & PLAYFUL NETWORK EASTER EGGS
+ * SPRINT — FINAL TYPOGRAPHY CONSISTENCY, HOME COMPOSITION,
+ *          3D FLOATING CARDS & PANEL DEPTH
  * ============================================================
  */
 
@@ -79,11 +79,11 @@ const pointLight = new THREE.PointLight(0x00ff88, 1.6, 60);
 pointLight.position.set(0, 0, 0);
 scene.add(pointLight);
 
-/* 3D Glowing Perspective Floor Grid */
+/* Subdued 3D Perspective Floor Grid */
 const floorGrid = new THREE.PolarGridHelper(32, 16, 8, 64, 0x00ff88, 0x004422);
 floorGrid.position.set(0, -11.5, 0);
 floorGrid.material.transparent = true;
-floorGrid.material.opacity = 0.38;
+floorGrid.material.opacity = 0.22; // Subdued grounding floor
 scene.add(floorGrid);
 
 /* Volumetric 3D Particle Cloud */
@@ -102,7 +102,7 @@ const particleMat = new THREE.PointsMaterial({
   color: 0x00ff88,
   size: 0.14,
   transparent: true,
-  opacity: 0.45,
+  opacity: 0.42,
   depthWrite: false,
 });
 const particleCloud = new THREE.Points(particleGeo, particleMat);
@@ -266,7 +266,7 @@ function createNeuralNodeGroup({
 }
 
 /* ============================================================
-   LARGE TECHNICAL PRESENTATION SYSTEM (Projects & Experience & About)
+   SOLID FOREGROUND PRESENTATION SYSTEM (Projects & Experience & About)
    ============================================================ */
 
 const detailPanelEl = document.getElementById('detailPanel');
@@ -346,10 +346,10 @@ function showDetailPresentation(data) {
     }
   }
 
-  // Enable Focus Mode (dims background graph & hides 2D labels)
+  // Enable Focus Mode (dims background graph & hides all 2D labels)
   document.body.classList.add('detail-panel-open');
   if (activeSubnet) {
-    setWorldOpacity(activeSubnet.group, 0.20);
+    setWorldOpacity(activeSubnet.group, 0.12);
   }
   if (mainGraph) {
     setWorldOpacity(mainGraph, 0.04);
@@ -667,7 +667,7 @@ for (const data of mainNodes) {
 }
 
 /* ============================================================
-   3D FLOATING INTERACTIVE CARDS (Github, LinkedIn, Email, Resume, Hire Me)
+   3D FLOATING HOME CARDS (Secondary Background Framing Subjects)
    ============================================================ */
 
 const floatingCardsGroup = new THREE.Group();
@@ -676,43 +676,48 @@ mainGraph.add(floatingCardsGroup);
 
 const cardDataList = [
   {
-    id: 'card-github',
-    title: 'GITHUB',
-    subtitle: 'code • commit • push',
-    position: [-14.2, 4.2, 2.5],
-    rotation: [0, 0.18, 0],
-    url: 'https://github.com/DEEPAKRV07',
-  },
-  {
     id: 'card-resume',
     title: 'RESUME',
     subtitle: 'view my work',
-    position: [8.2, 7.8, -1.8],
-    rotation: [0, -0.12, 0],
+    position: [0.0, 10.8, -6.5], // Top framing behind About
+    rotation: [0, 0, 0],
+    phase: 0.0,
     url: '/my_resume.pdf',
+  },
+  {
+    id: 'card-github',
+    title: 'GITHUB',
+    subtitle: 'code • commit • push',
+    position: [-14.5, 4.8, -4.5], // Upper left framing
+    rotation: [0, 0.18, 0],
+    phase: 1.2,
+    url: 'https://github.com/DEEPAKRV07',
   },
   {
     id: 'card-email',
     title: 'EMAIL',
     subtitle: 'let\'s talk',
-    position: [-15.2, -3.2, 3.2],
+    position: [-14.5, -4.8, -4.5], // Lower left framing
     rotation: [0, 0.22, 0],
+    phase: 2.4,
     url: 'mailto:deepakrv07@gmail.com',
   },
   {
     id: 'card-linkedin',
     title: 'LINKEDIN',
     subtitle: 'let\'s connect',
-    position: [12.8, -0.8, -1.5],
-    rotation: [0, -0.16, 0],
+    position: [14.5, 4.8, -4.5], // Upper right framing
+    rotation: [0, -0.18, 0],
+    phase: 3.6,
     url: 'https://linkedin.com/in/deepak-r-v',
   },
   {
     id: 'card-hire',
     title: 'HIRE ME',
     subtitle: 'let\'s build together',
-    position: [10.2, -6.8, 1.2],
-    rotation: [0, -0.10, 0],
+    position: [14.5, -4.8, -4.5], // Lower right framing
+    rotation: [0, -0.12, 0],
+    phase: 4.8,
     url: 'mailto:deepakrv07@gmail.com',
   },
 ];
@@ -724,22 +729,22 @@ for (const item of cardDataList) {
   cardGroup.position.set(...item.position);
   cardGroup.rotation.set(...item.rotation);
 
-  // 1. Dark Glass Pane
-  const paneGeo = new THREE.PlaneGeometry(4.2, 4.8);
+  // 1. Translucent Secondary Glass Pane (3.4 x 3.8)
+  const paneGeo = new THREE.PlaneGeometry(3.4, 3.8);
   const paneMat = new THREE.MeshBasicMaterial({
     color: 0x050505,
     transparent: true,
-    opacity: 0.65,
+    opacity: 0.45,
     side: THREE.DoubleSide,
   });
-  paneMat.userData.baseOpacity = 0.65;
+  paneMat.userData.baseOpacity = 0.45;
   const paneMesh = new THREE.Mesh(paneGeo, paneMat);
   paneMesh.userData = { type: 'floating-card', cardData: item };
   cardGroup.add(paneMesh);
 
-  // 2. Wireframe / Glowing Green Border
+  // 2. Wireframe Subdued Glowing Border
   const edgesGeo = new THREE.EdgesGeometry(paneGeo);
-  const edgesMat = lineMaterial(0.48, COLORS.bright);
+  const edgesMat = lineMaterial(0.32, COLORS.medium);
   const edgesLine = new THREE.LineSegments(edgesGeo, edgesMat);
   cardGroup.add(edgesLine);
 
@@ -748,11 +753,11 @@ for (const item of cardDataList) {
   // Tracked Deltha Label for Card Title & Subtitle
   const cardLabel = createLabel(item.title, 'primary-core', 'main');
   cardLabel.object = paneMesh;
-  cardLabel.offset.set(0, 0.4, 0);
+  cardLabel.offset.set(0, 0.35, 0);
 
   const subLabel = createLabel(item.subtitle, 'detail-desc', 'main');
   subLabel.object = paneMesh;
-  subLabel.offset.set(0, -0.6, 0);
+  subLabel.offset.set(0, -0.55, 0);
 
   floatingCardObjects.push({
     ...item,
@@ -1763,7 +1768,7 @@ renderer.domElement.addEventListener('click', () => {
           nodeData.actionUrl.startsWith('http') ? '_blank' : '_self'
         );
       } else if (activeSubnet.subnetId === 'skills') {
-        return;
+        return; // Category nodes in Skills are structural grouping anchors ONLY!
       } else {
         showDetailPresentation(nodeData);
       }
@@ -1913,6 +1918,13 @@ function animate(currentTime) {
 
   /* Ambient Particle Drift */
   particleCloud.rotation.y += 0.0005;
+
+  /* Subtle Ambient Floating Motion for Secondary 3D Home Cards */
+  if (!isBurstActive) {
+    for (const card of floatingCardObjects) {
+      card.group.position.y = card.originalPos.y + Math.sin(currentTime * 0.0012 + card.phase) * 0.22;
+    }
+  }
 
   animateBurstState();
   updateCameraTransition();

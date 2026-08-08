@@ -141,7 +141,7 @@ canvas:active {
   display: block;
   margin-top: 8px;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: 0.15em;
 }
@@ -169,7 +169,7 @@ canvas:active {
   align-items: center;
   padding-bottom: 9px;
   border-bottom: 1px solid rgba(0, 255, 136, 0.12);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: 0.14em;
 }
@@ -187,7 +187,7 @@ canvas:active {
   margin-top: 10px;
   margin-bottom: 11px;
   color: var(--green-medium);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: 0.09em;
   white-space: nowrap;
@@ -228,7 +228,7 @@ canvas:active {
 .intro-kicker {
   margin-bottom: 10px;
   color: var(--green-bright);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: 0.17em;
   font-weight: 600;
@@ -250,8 +250,8 @@ canvas:active {
   max-width: 100%;
   margin: 16px 0 0;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--font-body);
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -269,8 +269,8 @@ canvas:active {
   background: rgba(5, 5, 5, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  font-family: var(--font-mono);
-  font-size: 8px;
+  font-family: var(--font-display);
+  font-size: 9px;
   letter-spacing: 0.08em;
   transition: opacity 300ms ease;
 }
@@ -280,7 +280,7 @@ canvas:active {
   padding-bottom: 7px;
   border-bottom: 1px solid rgba(0, 255, 136, 0.10);
   color: var(--green-bright);
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.15em;
   font-weight: 600;
 }
@@ -296,11 +296,13 @@ canvas:active {
 .legend-key {
   color: var(--text-secondary);
   white-space: nowrap;
+  font-family: var(--font-display);
 }
 
 .legend-row span:last-child {
   color: var(--text-muted);
   text-align: right;
+  font-family: var(--font-display);
 }
 
 .core-home-hint {
@@ -312,8 +314,8 @@ canvas:active {
   align-items: center;
   gap: 8px;
   color: rgba(0, 255, 136, 0.65);
-  font-family: var(--font-mono);
-  font-size: 8px;
+  font-family: var(--font-display);
+  font-size: 9px;
   letter-spacing: 0.12em;
   opacity: 0;
   transition: opacity 300ms ease;
@@ -339,7 +341,7 @@ body.detail-mode .core-home-hint {
 .network-lab-panel {
   position: absolute;
   right: 34px;
-  bottom: 215px;
+  bottom: 225px;
   width: 196px;
   padding: 12px 14px;
   border: 1px solid rgba(0, 255, 136, 0.22);
@@ -352,7 +354,7 @@ body.detail-mode .core-home-hint {
 
 .lab-title {
   color: var(--green-bright);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: 0.16em;
   font-weight: 600;
@@ -369,7 +371,7 @@ body.detail-mode .core-home-hint {
   border: 1px solid rgba(0, 255, 136, 0.24);
   background: rgba(0, 255, 136, 0.05);
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: 0.10em;
   text-align: left;
@@ -388,9 +390,7 @@ body.detail-mode .core-home-hint {
 }
 
 /* ============================================================
-   LARGE TECHNICAL PRESENTATION OVERLAY (Projects & Experience & About)
-   60-75vw width, 70-85vh height, Max 1180px, Centered
-   Internal scrolling ONLY (no webpage scrolling!)
+   SOLID FOREGROUND PRESENTATION OVERLAY (Projects & Experience & About)
    ============================================================ */
 
 .node-detail-panel {
@@ -398,20 +398,20 @@ body.detail-mode .core-home-hint {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.94);
-  width: min(72vw, 1180px);
-  height: min(80vh, 820px);
+  width: min(74vw, 1180px);
+  height: min(82vh, 840px);
   display: flex;
   flex-direction: column;
-  z-index: 50;
+  z-index: 100;
   pointer-events: auto;
   padding: 34px 40px;
-  border: 1px solid rgba(0, 255, 136, 0.32);
-  background: rgba(5, 5, 5, 0.94);
+  border: 1px solid rgba(0, 255, 136, 0.38);
+  background: rgba(5, 5, 5, 0.96);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   box-shadow:
-    0 0 50px rgba(0, 255, 136, 0.15),
-    0 30px 60px rgba(0, 0, 0, 0.92);
+    0 0 60px rgba(0, 255, 136, 0.18),
+    0 30px 70px rgba(0, 0, 0, 0.96);
   opacity: 0;
   visibility: hidden;
   outline: none;
@@ -436,7 +436,7 @@ body.detail-mode .core-home-hint {
   border: 1px solid rgba(0, 255, 136, 0.28);
   background: rgba(0, 255, 136, 0.05);
   color: var(--green-bright);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -461,7 +461,7 @@ body.detail-mode .core-home-hint {
 
 .panel-kicker {
   color: var(--green-bright);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: 0.20em;
   font-weight: 600;
@@ -481,7 +481,7 @@ body.detail-mode .core-home-hint {
 
 .panel-subtitle {
   color: var(--green-medium);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 11px;
   letter-spacing: 0.14em;
 }
@@ -518,8 +518,8 @@ body.detail-mode .core-home-hint {
 }
 
 .research-section h3 {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
   color: var(--green-bright);
   letter-spacing: 0.18em;
   margin: 0 0 8px;
@@ -563,7 +563,7 @@ body.detail-mode .core-home-hint {
   border: 1px solid rgba(0, 255, 136, 0.22);
   background: rgba(0, 255, 136, 0.05);
   color: var(--green-bright);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: 0.08em;
 }
@@ -581,7 +581,7 @@ body.detail-mode .core-home-hint {
   gap: 8px;
   padding: 10px 20px;
   border: 1px solid var(--green-bright);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: 0.14em;
   font-weight: 600;
@@ -613,7 +613,6 @@ body.detail-mode .core-home-hint {
 
 /* ============================================================
    SMALL CONTEXTUAL SKILL TOOLTIP PANEL
-   Answers: "Where did I actually use this skill?"
    ============================================================ */
 
 .skill-context-panel {
@@ -622,12 +621,12 @@ body.detail-mode .core-home-hint {
   right: 34px;
   width: 320px;
   padding: 20px 22px;
-  z-index: 45;
+  z-index: 90;
   pointer-events: auto;
   border: 1px solid rgba(0, 255, 136, 0.32);
-  background: rgba(5, 5, 5, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(5, 5, 5, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   box-shadow:
     0 0 30px rgba(0, 255, 136, 0.12),
     0 16px 36px rgba(0, 0, 0, 0.85);
@@ -655,7 +654,7 @@ body.detail-mode .core-home-hint {
   border: 1px solid rgba(0, 255, 136, 0.22);
   background: rgba(0, 255, 136, 0.05);
   color: var(--green-bright);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 11px;
   line-height: 1;
   cursor: pointer;
@@ -682,7 +681,7 @@ body.detail-mode .core-home-hint {
 
 .skill-subtitle {
   color: var(--green-medium);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: 0.12em;
   margin-bottom: 14px;
@@ -690,8 +689,8 @@ body.detail-mode .core-home-hint {
 
 .skill-section-title {
   color: var(--green-bright);
-  font-family: var(--font-mono);
-  font-size: 8px;
+  font-family: var(--font-display);
+  font-size: 9px;
   letter-spacing: 0.16em;
   font-weight: 600;
   margin-bottom: 6px;
@@ -745,7 +744,7 @@ body.detail-panel-open .network-lab-panel {
 }
 
 /* ============================================================
-   GRAPH LABELS & DELTHA TYPOGRAPHY HIERARCHY
+   GRAPH LABELS & UNIFIED DELTHA TYPOGRAPHY HIERARCHY
    ============================================================ */
 
 .graph-label {
@@ -755,8 +754,8 @@ body.detail-panel-open .network-lab-panel {
   pointer-events: none;
   white-space: nowrap;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 9px;
+  font-family: var(--font-display);
+  font-size: 10px;
   letter-spacing: 0.09em;
   text-shadow: 0 0 16px rgba(0, 255, 136, 0.22);
   transition: opacity 180ms ease, color 180ms ease, transform 180ms ease;
@@ -783,21 +782,36 @@ body.detail-panel-open .network-lab-panel {
     0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
+.graph-label.category {
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-shadow:
+    0 0 14px rgba(0, 255, 136, 0.40),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.graph-label.skill {
+  color: var(--green-bright);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
 .graph-label.project {
   color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.09em;
 }
 
-.graph-label.skill {
-  color: var(--green-medium);
-  font-size: 9px;
-  font-weight: 500;
-}
-
 .graph-label.experience {
   color: var(--green-bright);
+  font-family: var(--font-display);
   font-size: 10px;
   font-weight: 600;
 }
@@ -814,20 +828,14 @@ body.detail-panel-open .network-lab-panel {
 .graph-label.project-subtitle {
   color: var(--green-medium);
   font-size: 10px;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   letter-spacing: 0.14em;
   font-weight: 500;
 }
 
-.graph-label.category {
-  color: var(--text-primary);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.10em;
-}
-
 .graph-label.detail {
   color: var(--green-medium);
+  font-family: var(--font-display);
   font-size: 9px;
   font-weight: 500;
 }
@@ -835,7 +843,7 @@ body.detail-panel-open .network-lab-panel {
 .graph-label.detail-desc {
   color: var(--text-secondary);
   font-size: 8px;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   letter-spacing: 0.06em;
   white-space: normal;
   max-width: 240px;
@@ -844,10 +852,12 @@ body.detail-panel-open .network-lab-panel {
 
 .graph-label.ghost {
   color: rgba(240, 240, 240, 0.24);
+  font-family: var(--font-display);
 }
 
 .graph-label.core-home {
   color: var(--green-bright);
+  font-family: var(--font-display);
   font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.12em;
