@@ -692,7 +692,7 @@ const ambientLogosGroup = new THREE.Group();
 ambientLogosGroup.name = 'AMBIENT_FLOATING_LOGOS';
 mainGraph.add(ambientLogosGroup);
 
-function createLogoTexture(type) {
+function createLogoTexture(type, imgElement = null) {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
@@ -721,61 +721,79 @@ function createLogoTexture(type) {
   ctx.shadowBlur = 20;
   ctx.stroke();
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
+  ctx.fillStyle = '#00ff88';
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 18;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
   if (type === 'github') {
-    // Exact uploaded GitHub Invertocat PNG Asset from public/gitlogo.png
-    const img = new Image();
-    img.src = '/gitlogo.png';
-    img.onload = () => {
+    if (imgElement && imgElement.complete && imgElement.naturalWidth !== 0) {
       ctx.save();
       ctx.shadowColor = '#00ff88';
       ctx.shadowBlur = 18;
-      ctx.drawImage(img, 126, 126, 260, 260);
+      ctx.drawImage(imgElement, 96, 96, 320, 320);
       ctx.restore();
-      texture.needsUpdate = true;
-    };
-  } else {
-    ctx.fillStyle = '#00ff88';
-    ctx.strokeStyle = '#00ff88';
-    ctx.lineWidth = 18;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    } else {
+      // Official GitHub Standalone Invertocat Silhouette Path
+      ctx.save();
+      ctx.translate(256, 245);
+      ctx.scale(1.15, 1.15);
+      ctx.fillStyle = '#00ff88';
 
-    if (type === 'linkedin') {
-      // Official LinkedIn [in] logo asset rendering
-      ctx.font = '700 230px Deltha, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('in', 256, 245);
-    } else if (type === 'email') {
-      // Professional Mail / Envelope Icon
-      ctx.strokeRect(140, 170, 232, 160);
+      // Invertocat Head Circle & Ears
       ctx.beginPath();
-      ctx.moveTo(140, 170);
-      ctx.lineTo(256, 260);
-      ctx.lineTo(372, 170);
-      ctx.stroke();
-    } else if (type === 'resume') {
-      // Professional Document / Resume Sheet Icon
-      ctx.strokeRect(165, 130, 182, 230);
-      ctx.beginPath();
-      ctx.moveTo(205, 190); ctx.lineTo(307, 190);
-      ctx.moveTo(205, 245); ctx.lineTo(307, 245);
-      ctx.moveTo(205, 300); ctx.lineTo(270, 300);
-      ctx.stroke();
-    } else if (type === 'hire') {
-      // Professional Person / Contact Icon
-      ctx.beginPath();
-      ctx.arc(256, 190, 55, 0, Math.PI * 2);
+      ctx.arc(0, -10, 88, 0, Math.PI * 2);
       ctx.fill();
+
+      // Ears Cutout
       ctx.beginPath();
-      ctx.arc(256, 370, 105, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.moveTo(-58, -65); ctx.lineTo(-82, -122); ctx.lineTo(-24, -92); ctx.closePath();
+      ctx.moveTo(58, -65);  ctx.lineTo(82, -122);  ctx.lineTo(24, -92);  ctx.closePath();
       ctx.fill();
+
+      // Inner Body Arch Cutout
+      ctx.fillStyle = 'rgba(5, 15, 10, 0.95)';
+      ctx.beginPath();
+      ctx.arc(0, 52, 50, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
     }
+  } else if (type === 'linkedin') {
+    // Official LinkedIn [in] logo asset rendering
+    ctx.font = '700 230px Deltha, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('in', 256, 245);
+  } else if (type === 'email') {
+    // Professional Mail / Envelope Icon
+    ctx.strokeRect(140, 170, 232, 160);
+    ctx.beginPath();
+    ctx.moveTo(140, 170);
+    ctx.lineTo(256, 260);
+    ctx.lineTo(372, 170);
+    ctx.stroke();
+  } else if (type === 'resume') {
+    // Professional Document / Resume Sheet Icon
+    ctx.strokeRect(165, 130, 182, 230);
+    ctx.beginPath();
+    ctx.moveTo(205, 190); ctx.lineTo(307, 190);
+    ctx.moveTo(205, 245); ctx.lineTo(307, 245);
+    ctx.moveTo(205, 300); ctx.lineTo(270, 300);
+    ctx.stroke();
+  } else if (type === 'hire') {
+    // Professional Person / Contact Icon
+    ctx.beginPath();
+    ctx.arc(256, 190, 55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(256, 370, 105, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.fill();
   }
 
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
 
@@ -878,6 +896,21 @@ for (const item of logoDataList) {
     mesh,
     hoverLabel,
   });
+}
+
+// Load uploaded official GitHub PNG asset from public/gitlogo.png
+const gitLogoImg = new Image();
+gitLogoImg.src = '/gitlogo.png';
+gitLogoImg.onload = () => {
+  const githubObj = ambientLogoObjects.find(item => item.type === 'github');
+  if (githubObj) {
+    const updatedTexture = createLogoTexture('github', gitLogoImg);
+    githubObj.mesh.material.map = updatedTexture;
+    githubObj.mesh.material.needsUpdate = true;
+  }
+};
+if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
+  gitLogoImg.onload();
 }
 
 /* ============================================================
