@@ -5,8 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — FINAL TYPOGRAPHY CONSISTENCY, HOME COMPOSITION,
- *          3D FLOATING CARDS & PANEL DEPTH
+ * SPRINT — CONVERT HOME CARDS INTO SUBTLE 3D ENVIRONMENT OBJECTS
  * ============================================================
  */
 
@@ -346,7 +345,11 @@ function showDetailPresentation(data) {
     }
   }
 
-  // Enable Focus Mode (dims background graph & hides all 2D labels)
+  // Hide 5 Home objects & Enable Focus Mode
+  if (typeof floatingCardsGroup !== 'undefined') {
+    floatingCardsGroup.visible = false;
+  }
+
   document.body.classList.add('detail-panel-open');
   if (activeSubnet) {
     setWorldOpacity(activeSubnet.group, 0.12);
@@ -366,6 +369,11 @@ function hideDetailPresentation() {
   detailPanelEl.classList.remove('active');
   detailPanelEl.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('detail-panel-open');
+
+  // Restore Home background objects visibility if on Home scene
+  if (currentLayer === 'MAIN' && typeof floatingCardsGroup !== 'undefined') {
+    floatingCardsGroup.visible = true;
+  }
 
   // Restore background graph opacity to standard layer level
   if (currentLayer === 'SUBNET' && activeSubnet) {
@@ -427,14 +435,23 @@ function showSkillContextPanel(skillData) {
     }
   }
 
+  if (typeof floatingCardsGroup !== 'undefined') {
+    floatingCardsGroup.visible = false;
+  }
+
   skillContextPanelEl.classList.add('active');
   skillContextPanelEl.setAttribute('aria-hidden', 'false');
 }
 
 function hideSkillContextPanel() {
   if (!skillContextPanelEl) return;
+
   skillContextPanelEl.classList.remove('active');
   skillContextPanelEl.setAttribute('aria-hidden', 'true');
+
+  if (currentLayer === 'MAIN' && typeof floatingCardsGroup !== 'undefined') {
+    floatingCardsGroup.visible = true;
+  }
 }
 
 if (skillCloseBtn) {
@@ -667,7 +684,7 @@ for (const data of mainNodes) {
 }
 
 /* ============================================================
-   3D FLOATING HOME CARDS (Secondary Background Framing Subjects)
+   5 SUBTLE 3D HOME ENVIRONMENT OBJECTS (HOME SCENE ONLY!)
    ============================================================ */
 
 const floatingCardsGroup = new THREE.Group();
@@ -678,8 +695,7 @@ const cardDataList = [
   {
     id: 'card-resume',
     title: 'RESUME',
-    subtitle: 'view my work',
-    position: [0.0, 10.8, -6.5], // Top framing behind About
+    position: [0.0, 11.2, -6.5], // Top framing behind About
     rotation: [0, 0, 0],
     phase: 0.0,
     url: '/my_resume.pdf',
@@ -687,7 +703,6 @@ const cardDataList = [
   {
     id: 'card-github',
     title: 'GITHUB',
-    subtitle: 'code • commit • push',
     position: [-14.5, 4.8, -4.5], // Upper left framing
     rotation: [0, 0.18, 0],
     phase: 1.2,
@@ -696,7 +711,6 @@ const cardDataList = [
   {
     id: 'card-email',
     title: 'EMAIL',
-    subtitle: 'let\'s talk',
     position: [-14.5, -4.8, -4.5], // Lower left framing
     rotation: [0, 0.22, 0],
     phase: 2.4,
@@ -705,7 +719,6 @@ const cardDataList = [
   {
     id: 'card-linkedin',
     title: 'LINKEDIN',
-    subtitle: 'let\'s connect',
     position: [14.5, 4.8, -4.5], // Upper right framing
     rotation: [0, -0.18, 0],
     phase: 3.6,
@@ -714,7 +727,6 @@ const cardDataList = [
   {
     id: 'card-hire',
     title: 'HIRE ME',
-    subtitle: 'let\'s build together',
     position: [14.5, -4.8, -4.5], // Lower right framing
     rotation: [0, -0.12, 0],
     phase: 4.8,
@@ -729,42 +741,36 @@ for (const item of cardDataList) {
   cardGroup.position.set(...item.position);
   cardGroup.rotation.set(...item.rotation);
 
-  // 1. Translucent Secondary Glass Pane (3.4 x 3.8)
-  const paneGeo = new THREE.PlaneGeometry(3.4, 3.8);
+  // Compact 3D Futuristic Glass Pane Artifact (2.4 x 2.6 x 0.1)
+  const paneGeo = new THREE.BoxGeometry(2.4, 2.6, 0.1);
   const paneMat = new THREE.MeshBasicMaterial({
     color: 0x050505,
     transparent: true,
     opacity: 0.45,
-    side: THREE.DoubleSide,
   });
   paneMat.userData.baseOpacity = 0.45;
   const paneMesh = new THREE.Mesh(paneGeo, paneMat);
   paneMesh.userData = { type: 'floating-card', cardData: item };
   cardGroup.add(paneMesh);
 
-  // 2. Wireframe Subdued Glowing Border
+  // Wireframe Subdued Glowing Border Frame
   const edgesGeo = new THREE.EdgesGeometry(paneGeo);
-  const edgesMat = lineMaterial(0.32, COLORS.medium);
+  const edgesMat = lineMaterial(0.35, COLORS.bright);
   const edgesLine = new THREE.LineSegments(edgesGeo, edgesMat);
   cardGroup.add(edgesLine);
 
   floatingCardsGroup.add(cardGroup);
 
-  // Tracked Deltha Label for Card Title & Subtitle
+  // Deltha Title Label attached directly to 3D artifact
   const cardLabel = createLabel(item.title, 'primary-core', 'main');
   cardLabel.object = paneMesh;
-  cardLabel.offset.set(0, 0.35, 0);
-
-  const subLabel = createLabel(item.subtitle, 'detail-desc', 'main');
-  subLabel.object = paneMesh;
-  subLabel.offset.set(0, -0.55, 0);
+  cardLabel.offset.set(0, 0.1, 0);
 
   floatingCardObjects.push({
     ...item,
     group: cardGroup,
     mesh: paneMesh,
     cardLabel,
-    subLabel,
     originalPos: cardGroup.position.clone(),
     originalRot: cardGroup.rotation.clone(),
   });
@@ -1474,7 +1480,7 @@ function updateCounters(nodeCount, edgeCount) {
 }
 
 /* ============================================================
-   LAYER CONTROL FUNCTIONS
+   LAYER CONTROL FUNCTIONS (HOME-ONLY FLOATING 3D OBJECT VISIBILITY)
    ============================================================ */
 
 function setLayerVisibility(layerName) {
@@ -1484,6 +1490,9 @@ function setLayerVisibility(layerName) {
     setWorldVisibility(mainGraph, true);
     setWorldOpacity(mainGraph, 1.0);
     setWorldOpacity(core, 1.0);
+
+    /* 5 FLOATING 3D ENVIRONMENT OBJECTS EXIST ONLY ON HOME! */
+    floatingCardsGroup.visible = true;
 
     for (const world of subnetWorlds.values()) {
       setWorldVisibility(world.group, false);
@@ -1496,6 +1505,9 @@ function setLayerVisibility(layerName) {
     setWorldVisibility(mainGraph, true);
     setWorldOpacity(mainGraph, 0.08); // Heavily faded Home network ghost
     setWorldOpacity(core, 0.18);       // Persistent core
+
+    /* HIDE THE 5 FLOATING 3D ENVIRONMENT OBJECTS COMPLETELY IN SUBNETWORKS! */
+    floatingCardsGroup.visible = false;
 
     for (const world of subnetWorlds.values()) {
       const isCurrent = world === activeSubnet;
@@ -1659,8 +1671,8 @@ function getPointerObject() {
     return { type: 'core', object: coreHit.object };
   }
 
-  /* 3D Floating Action Cards Raycast */
-  if (currentLayer === 'MAIN') {
+  /* 3D Floating Action Objects Raycast (ONLY IN HOME MAIN LAYER) */
+  if (currentLayer === 'MAIN' && floatingCardsGroup.visible) {
     const cardHits = raycaster.intersectObjects(
       floatingCardObjects.map(card => card.mesh),
       false
@@ -1785,16 +1797,18 @@ renderer.domElement.addEventListener('click', () => {
   }
 });
 
-/* Hover Scaling Effect for Nodes and Floating Cards */
+/* Hover Scaling Effect for Nodes and Floating Objects */
 const tempScale = new THREE.Vector3();
 function updateHover() {
   const hit = getPointerObject();
 
-  for (const card of floatingCardObjects) {
-    const isHovered = hit?.type === 'floating-card' && hit.object === card.mesh;
-    const targetScale = isHovered ? 1.08 : 1.0;
-    tempScale.set(targetScale, targetScale, targetScale);
-    card.group.scale.lerp(tempScale, 0.16);
+  if (floatingCardsGroup.visible) {
+    for (const card of floatingCardObjects) {
+      const isHovered = hit?.type === 'floating-card' && hit.object === card.mesh;
+      const targetScale = isHovered ? 1.10 : 1.0;
+      tempScale.set(targetScale, targetScale, targetScale);
+      card.group.scale.lerp(tempScale, 0.16);
+    }
   }
 
   if (coreBeacon.visible) {
@@ -1919,10 +1933,13 @@ function animate(currentTime) {
   /* Ambient Particle Drift */
   particleCloud.rotation.y += 0.0005;
 
-  /* Subtle Ambient Floating Motion for Secondary 3D Home Cards */
-  if (!isBurstActive) {
+  /* Slow Ambient Multi-Axis Floating Motion for 5 Home Objects */
+  if (!isBurstActive && floatingCardsGroup.visible) {
+    const t = currentTime * 0.001;
     for (const card of floatingCardObjects) {
-      card.group.position.y = card.originalPos.y + Math.sin(currentTime * 0.0012 + card.phase) * 0.22;
+      card.group.position.y = card.originalPos.y + Math.sin(t * 1.1 + card.phase) * 0.20;
+      card.group.position.z = card.originalPos.z + Math.cos(t * 0.8 + card.phase) * 0.12;
+      card.group.rotation.y = card.originalRot.y + Math.sin(t * 0.6 + card.phase) * 0.06;
     }
   }
 
