@@ -255,11 +255,25 @@ function createNeuralNodeGroup({
   volumeMesh.userData.isInteractionTarget = false;
   group.add(volumeMesh);
 
+  // 4. Dedicated Invisible Interaction Hitbox Sphere (1.35x outer shell radius for comfortable mobile tap accuracy)
+  const hitboxRadius = nucleusRadius * 1.35;
+  const hitboxGeo = new THREE.SphereGeometry(hitboxRadius, 16, 16);
+  const hitboxMat = new THREE.MeshBasicMaterial({
+    visible: false,
+    depthWrite: false,
+    transparent: true,
+    opacity: 0,
+  });
+  const hitboxMesh = new THREE.Mesh(hitboxGeo, hitboxMat);
+  hitboxMesh.userData = { isHitbox: true, targetMesh: nucleusMesh };
+  group.add(hitboxMesh);
+
   return {
     group,
     nucleusMesh,
     shellMesh,
     volumeMesh,
+    hitboxMesh,
   };
 }
 
@@ -684,7 +698,7 @@ for (const data of mainNodes) {
   label.object = node.nucleusMesh;
   label.offset.set(0, 1.35, 0);
 
-  const nodeObj = { ...data, mesh: node.nucleusMesh, group: node.group, label, originalPos: node.group.position.clone() };
+  const nodeObj = { ...data, mesh: node.nucleusMesh, hitboxMesh: node.hitboxMesh, group: node.group, label, originalPos: node.group.position.clone() };
   mainNodeObjects.push(nodeObj);
   mainNodeMap.set(data.id, nodeObj);
 }
@@ -1650,7 +1664,7 @@ function createSubnetWorld(subnetId) {
     label.object = node.nucleusMesh;
     label.offset.set(0, 0.72, 0);
 
-    const categoryObj = { ...category, mesh: node.nucleusMesh, group: node.group, label, originalPos: node.group.position.clone() };
+    const categoryObj = { ...category, mesh: node.nucleusMesh, hitboxMesh: node.hitboxMesh, group: node.group, label, originalPos: node.group.position.clone() };
     categoryNodes.set(category.id, categoryObj);
     categories.push(categoryObj);
 
@@ -1977,6 +1991,8 @@ const pointer = new THREE.Vector2();
 const pointerDown = new THREE.Vector2();
 let pointerMoved = false;
 
+let touchStartTime = 0;
+
 function updatePointer(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -1986,12 +2002,17 @@ function getPointerObject() {
   raycaster.setFromCamera(pointer, camera);
 
   /* Universal Neural Core & Core Beacon raycast anchor */
-  const coreTargets = [coreNode.nucleusMesh, beaconNode.nucleusMesh];
-  if (activeSubnet) coreTargets.push(activeSubnet.nucleus);
+  const coreTargets = [
+    coreNode.hitboxMesh || coreNode.nucleusMesh,
+    beaconNode.hitboxMesh || beaconNode.nucleusMesh,
+  ];
+  if (activeSubnet && activeSubnet.coreHitbox) coreTargets.push(activeSubnet.coreHitbox);
+  else if (activeSubnet) coreTargets.push(activeSubnet.nucleus);
 
   const coreHit = raycaster.intersectObjects(coreTargets, false)[0];
   if (coreHit) {
-    return { type: 'core', object: coreHit.object };
+    const targetObj = coreHit.object.userData.targetMesh || coreHit.object;
+    return { type: 'core', object: targetObj };
   }
 
   /* 3D Ambient Logo Objects Raycast (ONLY IN HOME MAIN LAYER) */
@@ -2009,36 +2030,35 @@ function getPointerObject() {
   if (activeSubnet) {
     const skillMeshes = [];
     activeSubnet.group.traverse(child => {
-      if (child.isMesh && child.userData.type === 'skill-node') {
+      if (child.isMesh && (child.userData.isHitbox || child.userData.type === 'skill-node')) {
         skillMeshes.push(child);
       }
     });
 
     const skillHits = raycaster.intersectObjects(skillMeshes, false);
     if (skillHits.length) {
-      return { type: 'skill-node', object: skillHits[0].object };
+      const targetObj = skillHits[0].object.userData.targetMesh || skillHits[0].object;
+      return { type: 'skill-node', object: targetObj };
     }
   }
 
   /* Subnet Layer Category / Terminal Nodes */
   if (activeSubnet) {
-    const hits = raycaster.intersectObjects(
-      activeSubnet.categories.map(node => node.mesh),
-      false
-    );
+    const categoryTargets = activeSubnet.categories.map(node => node.hitboxMesh || node.mesh);
+    const hits = raycaster.intersectObjects(categoryTargets, false);
     if (hits.length) {
-      return { type: 'category-node', object: hits[0].object };
+      const targetObj = hits[0].object.userData.targetMesh || hits[0].object;
+      return { type: 'category-node', object: targetObj };
     }
   }
 
   /* Main Homepage Layer (5 Primary Destination Nodes) */
   if (currentLayer === 'MAIN') {
-    const hits = raycaster.intersectObjects(
-      mainNodeObjects.map(node => node.mesh),
-      false
-    );
+    const mainTargets = mainNodeObjects.map(node => node.hitboxMesh || node.mesh);
+    const hits = raycaster.intersectObjects(mainTargets, false);
     if (hits.length) {
-      return { type: 'main', object: hits[0].object };
+      const targetObj = hits[0].object.userData.targetMesh || hits[0].object;
+      return { type: 'main', object: targetObj };
     }
   }
 
@@ -2048,12 +2068,13 @@ function getPointerObject() {
 renderer.domElement.addEventListener('pointerdown', event => {
   pointerDown.set(event.clientX, event.clientY);
   pointerMoved = false;
+  touchStartTime = performance.now();
 });
 
 renderer.domElement.addEventListener('pointermove', event => {
   updatePointer(event);
   const distance = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
-  if (distance > 7) {
+  if (distance > 8) {
     pointerMoved = true;
   }
 });
@@ -2062,9 +2083,10 @@ renderer.domElement.addEventListener('contextmenu', event => {
   event.preventDefault();
 });
 
-renderer.domElement.addEventListener('click', () => {
-  if (pointerMoved) return;
+renderer.domElement.addEventListener('click', event => {
+  if (pointerMoved || (touchStartTime > 0 && performance.now() - touchStartTime > 500)) return;
 
+  updatePointer(event);
   const hit = getPointerObject();
   if (!hit) return;
 
