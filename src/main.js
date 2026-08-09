@@ -1000,15 +1000,13 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
 const unitCylinderGeometry = new THREE.CylinderGeometry(0.065, 0.065, 1, 8, 1);
 unitCylinderGeometry.translate(0, 0.5, 0);
 
-const particleCoreGeometry = new THREE.SphereGeometry(0.09, 12, 12);
-const particleCoreMaterial = new THREE.MeshBasicMaterial({
+const particleSolidGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+const particleSolidMaterial = new THREE.MeshBasicMaterial({
   color: COLORS.bright,
   transparent: false,
   opacity: 1.0,
+  depthWrite: true,
 });
-particleCoreMaterial.userData = { baseOpacity: 1.0 };
-
-const particleHaloGeometry = new THREE.SphereGeometry(0.15, 12, 12);
 
 function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
   // 1. Core Tracking Line (for compatibility)
@@ -1034,28 +1032,16 @@ function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
   filamentMesh.frustumCulled = false;
   parent.add(filamentMesh);
 
-  // 3. SMALL SOLID GREEN ELECTRIC PARTICLE PULSE (Solid green core + soft glow halo along edge centerline)
-  const particleHaloMat = new THREE.MeshBasicMaterial({
-    color: COLORS.bright,
-    transparent: true,
-    opacity: 0.38,
-    depthWrite: false,
-  });
-  particleHaloMat.userData.baseOpacity = 0.38;
-
-  const particleGroup = new THREE.Group();
-  const coreMesh = new THREE.Mesh(particleCoreGeometry, particleCoreMaterial);
-  const haloMesh = new THREE.Mesh(particleHaloGeometry, particleHaloMat);
-  particleGroup.add(coreMesh);
-  particleGroup.add(haloMesh);
-  parent.add(particleGroup);
+  // 3. SINGLE SMALL SOLID OPAQUE BRIGHT GREEN ELECTRIC PARTICLE (No translucent halo layer!)
+  const particleMesh = new THREE.Mesh(particleSolidGeometry, particleSolidMaterial);
+  parent.add(particleMesh);
 
   return {
     line,
     filamentMesh,
     filamentMaterial,
-    particleGroup,
-    particleHaloMat,
+    particleMesh,
+    particleGroup: particleMesh, // Alias for animation loop pulseProgress calculation
     source,
     target,
     material,
@@ -1111,7 +1097,7 @@ function updateEdge(edge) {
 
   if (fullDist < 0.05) {
     if (edge.filamentMesh) edge.filamentMesh.visible = false;
-    if (edge.particleGroup) edge.particleGroup.visible = false;
+    if (edge.particleMesh) edge.particleMesh.visible = false;
     return;
   }
 
@@ -1139,14 +1125,13 @@ function updateEdge(edge) {
     }
   }
 
-  // 2. Small Electric Particle Pulse (travels centerline from offsetStart -> offsetEnd)
-  if (edge.particleGroup) {
-    edge.particleGroup.visible = isVisible;
+  // 2. Small Solid Green Electric Particle Pulse (travels centerline from offsetStart -> offsetEnd)
+  if (edge.particleMesh) {
+    edge.particleMesh.visible = isVisible;
     if (isVisible) {
       const p = edge.pulseProgress;
       const particlePos = new THREE.Vector3().lerpVectors(offsetStart, offsetEnd, p);
-      edge.particleGroup.position.copy(particlePos);
-      setMaterialVisualOpacity(edge.particleHaloMat, opacityRatio);
+      edge.particleMesh.position.copy(particlePos);
     }
   }
 }
