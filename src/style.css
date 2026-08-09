@@ -5,8 +5,8 @@
 @font-face {
   font-family: 'Deltha';
   src:
-    url('../public/fonts/Deltha.otf') format('opentype'),
-    url('../public/fonts/Deltha.ttf') format('truetype');
+    url('./assets/fonts/Deltha.otf') format('opentype'),
+    url('./assets/fonts/Deltha.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
