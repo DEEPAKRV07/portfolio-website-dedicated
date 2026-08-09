@@ -1,6 +1,9 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 /*
  * ============================================================
@@ -942,46 +945,81 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
 }
 
 /* ============================================================
-   DYNAMIC EDGE CREATION & UPDATING
+   DYNAMIC 3D NEURAL CABLE & ELECTRIC PULSE ARCHITECTURE
    ============================================================ */
 
+const lineMaterialsRegistry = [];
+
+function createCableMaterial(opacity, linewidth = 2.8, color = COLORS.medium) {
+  const mat = new LineMaterial({
+    color,
+    linewidth,
+    dashed: false,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+  });
+  mat.resolution.set(window.innerWidth, window.innerHeight);
+  mat.userData.baseOpacity = opacity;
+  lineMaterialsRegistry.push(mat);
+  return mat;
+}
+
+const pulseCoreGeometry = new THREE.SphereGeometry(0.08, 12, 12);
+const pulseCoreMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98, depthWrite: false });
+
+const pulseHaloGeometry = new THREE.SphereGeometry(0.18, 12, 12);
+const pulseHaloMaterial = new THREE.MeshBasicMaterial({ color: COLORS.bright, transparent: true, opacity: 0.75, depthWrite: false });
+
 function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
-  // 1. Persistent subtle base wire
+  // 1. Core Line (for base tracking compatibility)
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(6);
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-  const material = lineMaterial(opacity * 0.45, color);
+  const material = lineMaterial(opacity * 0.25, color);
   const line = new THREE.Line(geometry, material);
   line.frustumCulled = false;
   parent.add(line);
 
-  // 2. Luminous electric data packet travelling along connection path
-  const dashGeometry = new THREE.BufferGeometry();
-  dashGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
-  const dashMaterial = new THREE.LineDashedMaterial({
-    color: COLORS.bright,
-    linewidth: 1,
-    scale: 1,
-    dashSize: 0.75,
-    gapSize: 3.8,
-    transparent: true,
-    opacity: opacity * 0.92,
-    depthWrite: false,
-  });
-  dashMaterial.userData.baseOpacity = opacity * 0.92;
-  const dashLine = new THREE.Line(dashGeometry, dashMaterial);
-  dashLine.frustumCulled = false;
-  parent.add(dashLine);
+  // 2. LAYER A: Continuous Thick 3D Neural Cable (No dashes, continuous emission)
+  const cableGeo = new LineGeometry();
+  cableGeo.setPositions([0, 0, 0, 0, 0, 0]);
+  const cableMat = createCableMaterial(opacity * 0.72, 2.6, COLORS.medium);
+  const cable = new Line2(cableGeo, cableMat);
+  cable.frustumCulled = false;
+  parent.add(cable);
+
+  // 3. LOCALIZED GLOW: High-intensity cable glow segment attached to travelling pulse
+  const glowGeo = new LineGeometry();
+  glowGeo.setPositions([0, 0, 0, 0, 0, 0]);
+  const glowMat = createCableMaterial(opacity * 0.95, 4.5, COLORS.bright);
+  const glowCable = new Line2(glowGeo, glowMat);
+  glowCable.frustumCulled = false;
+  parent.add(glowCable);
+
+  // 4. LAYER B: Separate Travelling Electric Pulse Object (Bright white-green core + halo)
+  const pulseGroup = new THREE.Group();
+  const coreMesh = new THREE.Mesh(pulseCoreGeometry, pulseCoreMaterial);
+  const haloMesh = new THREE.Mesh(pulseHaloGeometry, pulseHaloMaterial);
+  pulseGroup.add(coreMesh);
+  pulseGroup.add(haloMesh);
+  parent.add(pulseGroup);
 
   return {
     line,
-    dashLine,
+    cable,
+    cableGeo,
+    cableMat,
+    glowCable,
+    glowGeo,
+    glowMat,
+    pulseGroup,
     source,
     target,
     material,
-    dashMaterial,
-    speed: 0.035 + Math.random() * 0.025,
+    pulseProgress: Math.random(),
+    pulseSpeed: 0.005 + Math.random() * 0.004,
   };
 }
 
@@ -999,22 +1037,42 @@ function updateEdge(edge) {
     edge.line.parent.worldToLocal(end);
   }
 
-  // Update base wire
+  // 1. Update Core Line
   const position = edge.line.geometry.attributes.position;
   position.setXYZ(0, start.x, start.y, start.z);
   position.setXYZ(1, end.x, end.y, end.z);
   position.needsUpdate = true;
 
-  // Update luminous dash line & line distances for travelling data flow
-  if (edge.dashLine) {
-    const dashPos = edge.dashLine.geometry.attributes.position;
-    dashPos.setXYZ(0, start.x, start.y, start.z);
-    dashPos.setXYZ(1, end.x, end.y, end.z);
-    dashPos.needsUpdate = true;
-    edge.dashLine.computeLineDistances();
+  // 2. Update Continuous Thick 3D Neural Cable (Layer A)
+  if (edge.cableGeo) {
+    edge.cableGeo.setPositions([start.x, start.y, start.z, end.x, end.y, end.z]);
+    edge.cable.visible = edge.line.visible;
+    const opacityRatio = edge.material.opacity / (edge.material.userData.baseOpacity || 1);
+    setMaterialVisualOpacity(edge.cableMat, opacityRatio);
 
-    edge.dashLine.visible = edge.line.visible;
-    edge.dashMaterial.opacity = edge.material.opacity * 1.8;
+    // 3. Update Travelling Pulse Position & Localized Cable Glow Segment (Layer B)
+    if (edge.pulseGroup && edge.glowGeo) {
+      const isVisible = edge.line.visible && isObjectInVisibleWorld(edge.source) && isObjectInVisibleWorld(edge.target);
+      edge.pulseGroup.visible = isVisible;
+      edge.glowCable.visible = isVisible;
+
+      if (isVisible) {
+        // Pulse moves along source -> target
+        const p = edge.pulseProgress;
+        const pulsePos = new THREE.Vector3().lerpVectors(start, end, p);
+        edge.pulseGroup.position.copy(pulsePos);
+
+        // Localized Cable Glow around travelling pulse (short segment)
+        const glowHalfSpan = 0.12;
+        const pStart = Math.max(0, p - glowHalfSpan);
+        const pEnd = Math.min(1, p + glowHalfSpan);
+        const gStart = new THREE.Vector3().lerpVectors(start, end, pStart);
+        const gEnd = new THREE.Vector3().lerpVectors(start, end, pEnd);
+
+        edge.glowGeo.setPositions([gStart.x, gStart.y, gStart.z, gEnd.x, gEnd.y, gEnd.z]);
+        setMaterialVisualOpacity(edge.glowMat, opacityRatio);
+      }
+    }
   }
 }
 
@@ -2208,16 +2266,18 @@ function animate(currentTime) {
   updateCameraTransition();
   controls.update();
 
-  /* Continuous Electric Data Flow Motion (Dash Offset Animation) */
+  /* Continuous Travelling Electric Pulse Motion */
   for (const edge of mainEdges) {
-    if (edge.dashMaterial) {
-      edge.dashMaterial.dashOffset -= edge.speed;
+    if (edge.pulseGroup) {
+      edge.pulseProgress += edge.pulseSpeed;
+      if (edge.pulseProgress > 1) edge.pulseProgress = 0;
     }
   }
   if (activeSubnet) {
     for (const edge of activeSubnet.edges) {
-      if (edge.dashMaterial) {
-        edge.dashMaterial.dashOffset -= edge.speed;
+      if (edge.pulseGroup) {
+        edge.pulseProgress += edge.pulseSpeed;
+        if (edge.pulseProgress > 1) edge.pulseProgress = 0;
       }
     }
   }
@@ -2258,6 +2318,10 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  for (const mat of lineMaterialsRegistry) {
+    mat.resolution.set(window.innerWidth, window.innerHeight);
+  }
 });
 
 requestAnimationFrame(animate);
