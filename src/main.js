@@ -438,7 +438,6 @@ function showSkillContextPanel(skillData) {
     ambientLogosGroup.visible = false;
   }
 
-  document.body.classList.add('detail-panel-open');
   skillContextPanelEl.classList.add('active');
   skillContextPanelEl.setAttribute('aria-hidden', 'false');
 }
@@ -448,10 +447,14 @@ function hideSkillContextPanel() {
 
   skillContextPanelEl.classList.remove('active');
   skillContextPanelEl.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('detail-panel-open');
 
   if (currentLayer === 'MAIN' && typeof ambientLogosGroup !== 'undefined') {
     ambientLogosGroup.visible = true;
+  }
+
+  if (currentLayer === 'SUBNET' && activeSubnet) {
+    setWorldOpacity(activeSubnet.group, 1.0);
+    setWorldOpacity(mainGraph, 0.08);
   }
 }
 
@@ -498,14 +501,18 @@ function setLabelMode(mode) {
 }
 
 function updateLabels() {
-  // If detail presentation or skill context panel is open, hide all graph labels to prevent visual collisions!
-  if (document.body.classList.contains('detail-panel-open') || (skillContextPanelEl && skillContextPanelEl.classList.contains('active'))) {
+  // If full-screen detail presentation is open, hide all graph labels to prevent visual collisions!
+  if (document.body.classList.contains('detail-panel-open') || detailPanelEl?.classList.contains('active')) {
     for (const label of labels) {
       label.element.style.opacity = '0';
       label.element.style.display = 'none';
     }
     return;
   }
+
+  // Get skill context panel bounding box if active to prevent localized text collisions in bottom-right corner
+  const isSkillPanelActive = skillContextPanelEl && skillContextPanelEl.classList.contains('active');
+  const panelRect = isSkillPanelActive ? skillContextPanelEl.getBoundingClientRect() : null;
 
   const position = new THREE.Vector3();
 
@@ -539,7 +546,14 @@ function updateLabels() {
     label.element.style.left = `${x}px`;
     label.element.style.top = `${y}px`;
 
-    // 4. Layer Mode Rules
+    // 4. Panel Overlap Collision Check (Hide ONLY if label projected inside bottom-right panel rectangle)
+    if (panelRect && x >= panelRect.left - 20 && x <= panelRect.right + 20 && y >= panelRect.top - 20 && y <= panelRect.bottom + 20) {
+      label.element.style.opacity = '0';
+      label.element.style.display = 'none';
+      continue;
+    }
+
+    // 5. Layer Mode Rules
     let shouldShow = false;
     let effectiveOpacity = label.baseOpacity;
 
@@ -1834,12 +1848,11 @@ function returnToCore() {
 }
 
 function exitLayer() {
-  if (document.body.classList.contains('detail-panel-open')) {
-    hideDetailPresentation();
-    return;
-  }
+  const isDetailOpen = document.body.classList.contains('detail-panel-open') || detailPanelEl?.classList.contains('active');
+  const isSkillOpen = skillContextPanelEl?.classList.contains('active');
 
-  if (skillContextPanelEl?.classList.contains('active')) {
+  if (isDetailOpen || isSkillOpen) {
+    hideDetailPresentation();
     hideSkillContextPanel();
     return;
   }
