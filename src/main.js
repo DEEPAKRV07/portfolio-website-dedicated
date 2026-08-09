@@ -217,8 +217,6 @@ function setGroupVisualOpacity(group, factor) {
 
 function createNeuralNodeGroup({
   nucleusRadius = 0.88,
-  torusRadius = 0.98,
-  torusTube = 0.032,
   color = COLORS.bright,
   opacity = 0.95,
 }) {
@@ -243,20 +241,7 @@ function createNeuralNodeGroup({
   const shellMesh = new THREE.Mesh(shellGeo, shellMat);
   group.add(shellMesh);
 
-  // 3. 3D Torus Structural Ring
-  const ringGeo = new THREE.TorusGeometry(torusRadius, torusTube, 8, 100);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: COLORS.medium,
-    transparent: true,
-    opacity: 0.50,
-    depthWrite: false,
-  });
-  ringMat.userData.baseOpacity = 0.50;
-  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-  ringMesh.rotation.x = Math.PI / 2;
-  group.add(ringMesh);
-
-  // 4. Subtle Internal Holographic Volume Sphere (Subtle Dark Green Glass Core)
+  // 3. Subtle Internal Holographic Volume Sphere (Subtle Dark Green Glass Core)
   const volumeRadius = nucleusRadius * 1.08; // ~87% of outer shell radius (nucleusRadius * 1.24)
   const volumeGeo = new THREE.SphereGeometry(volumeRadius, 32, 32);
   const volumeMat = new THREE.MeshBasicMaterial({
@@ -274,7 +259,6 @@ function createNeuralNodeGroup({
     group,
     nucleusMesh,
     shellMesh,
-    ringMesh,
     volumeMesh,
   };
 }
@@ -627,15 +611,6 @@ const coreWire = new THREE.Mesh(
 );
 coreWire.material.userData.baseOpacity = 0.40;
 core.add(coreWire);
-
-/* Extra Core Ring Rotations */
-const coreRingB = coreNode.ringMesh.clone();
-coreRingB.rotation.set(Math.PI / 2, 0, 0);
-core.add(coreRingB);
-
-const coreRingC = coreNode.ringMesh.clone();
-coreRingC.rotation.set(0, Math.PI / 2, 0);
-core.add(coreRingC);
 
 const coreLabel = createLabel('NEURAL CORE', 'core', 'main');
 coreLabel.object = coreNode.nucleusMesh;
@@ -2270,8 +2245,6 @@ function animate(currentTime) {
 
   /* Core Rotation */
   coreWire.rotation.y += 0.002;
-  coreRingB.rotation.x += 0.004;
-  coreRingC.rotation.y += 0.006;
 
   /* Ambient Particle Drift */
   particleCloud.rotation.y += 0.0005;
