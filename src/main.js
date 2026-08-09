@@ -256,11 +256,26 @@ function createNeuralNodeGroup({
   ringMesh.rotation.x = Math.PI / 2;
   group.add(ringMesh);
 
+  // 4. Subtle Internal Holographic Volume Sphere (Subtle Dark Green Glass Core)
+  const volumeRadius = nucleusRadius * 1.08; // ~87% of outer shell radius (nucleusRadius * 1.24)
+  const volumeGeo = new THREE.SphereGeometry(volumeRadius, 32, 32);
+  const volumeMat = new THREE.MeshBasicMaterial({
+    color: COLORS.trace,
+    transparent: true,
+    opacity: 0.36,
+    depthWrite: false,
+  });
+  volumeMat.userData.baseOpacity = 0.36;
+  const volumeMesh = new THREE.Mesh(volumeGeo, volumeMat);
+  volumeMesh.userData.isInteractionTarget = false;
+  group.add(volumeMesh);
+
   return {
     group,
     nucleusMesh,
     shellMesh,
     ringMesh,
+    volumeMesh,
   };
 }
 
