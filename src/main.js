@@ -946,14 +946,16 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
    ============================================================ */
 
 /* ============================================================
-   PHYSICAL 3D NEURAL FILAMENT & ELECTRIC FLOW ARCHITECTURE
+   PHYSICAL 3D NEURAL FILAMENT & ELECTRIC PARTICLE ARCHITECTURE
    ============================================================ */
 
 const unitCylinderGeometry = new THREE.CylinderGeometry(0.065, 0.065, 1, 8, 1);
 unitCylinderGeometry.translate(0, 0.5, 0);
 
-const unitEnergyCylinderGeo = new THREE.CylinderGeometry(0.095, 0.095, 1, 8, 1);
-unitEnergyCylinderGeo.translate(0, 0.5, 0);
+const particleCoreGeometry = new THREE.SphereGeometry(0.065, 12, 12);
+const particleCoreMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98, depthWrite: false });
+
+const particleHaloGeometry = new THREE.SphereGeometry(0.125, 12, 12);
 
 function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
   // 1. Core Tracking Line (for compatibility)
@@ -966,43 +968,46 @@ function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
   line.frustumCulled = false;
   parent.add(line);
 
-  // 2. PRIMARY VISIBLE 3D NEURAL FILAMENT (Physical 3D Cylinder Mesh)
+  // 2. PRIMARY VISIBLE 3D NEURAL FILAMENT (Continuous Translucent 3D Cylinder Mesh)
   const filamentMaterial = new THREE.MeshBasicMaterial({
     color: COLORS.medium,
     transparent: true,
-    opacity: opacity * 0.75,
+    opacity: opacity * 0.50, // Slightly reduced intensity so nodes remain dominant
     depthWrite: false,
   });
-  filamentMaterial.userData.baseOpacity = opacity * 0.75;
+  filamentMaterial.userData.baseOpacity = opacity * 0.50;
   const filamentMesh = new THREE.Mesh(unitCylinderGeometry, filamentMaterial);
   filamentMesh.matrixAutoUpdate = false;
   filamentMesh.frustumCulled = false;
   parent.add(filamentMesh);
 
-  // 3. ENERGETIC ELECTRICAL REGION (High-intensity neon-white/green physical 3D segment along same filament)
-  const energyMaterial = new THREE.MeshBasicMaterial({
+  // 3. SMALL ELECTRIC PARTICLE PULSE (Small glowing particle traveling parent -> child along edge centerline)
+  const particleHaloMat = new THREE.MeshBasicMaterial({
     color: COLORS.bright,
     transparent: true,
-    opacity: opacity * 0.95,
+    opacity: opacity * 0.88,
     depthWrite: false,
   });
-  energyMaterial.userData.baseOpacity = opacity * 0.95;
-  const energyMesh = new THREE.Mesh(unitEnergyCylinderGeo, energyMaterial);
-  energyMesh.matrixAutoUpdate = false;
-  energyMesh.frustumCulled = false;
-  parent.add(energyMesh);
+  particleHaloMat.userData.baseOpacity = opacity * 0.88;
+
+  const particleGroup = new THREE.Group();
+  const coreMesh = new THREE.Mesh(particleCoreGeometry, particleCoreMaterial);
+  const haloMesh = new THREE.Mesh(particleHaloGeometry, particleHaloMat);
+  particleGroup.add(coreMesh);
+  particleGroup.add(haloMesh);
+  parent.add(particleGroup);
 
   return {
     line,
     filamentMesh,
     filamentMaterial,
-    energyMesh,
-    energyMaterial,
+    particleGroup,
+    particleHaloMat,
     source,
     target,
     material,
-    energyProgress: Math.random(),
-    energySpeed: 0.005 + Math.random() * 0.004,
+    pulseProgress: Math.random(),
+    pulseSpeed: 0.004 + Math.random() * 0.003,
   };
 }
 
@@ -1053,7 +1058,7 @@ function updateEdge(edge) {
 
   if (fullDist < 0.05) {
     if (edge.filamentMesh) edge.filamentMesh.visible = false;
-    if (edge.energyMesh) edge.energyMesh.visible = false;
+    if (edge.particleGroup) edge.particleGroup.visible = false;
     return;
   }
 
@@ -1070,32 +1075,25 @@ function updateEdge(edge) {
   }
 
   const isVisible = edge.line.visible && isObjectInVisibleWorld(edge.source) && isObjectInVisibleWorld(edge.target);
+  const opacityRatio = edge.material.opacity / (edge.material.userData.baseOpacity || 1);
 
-  // 1. Transform Primary Physical 3D Neural Filament (offsetStart -> offsetEnd)
+  // 1. Continuous Physical 3D Neural Filament (offsetStart -> offsetEnd)
   if (edge.filamentMesh) {
     edge.filamentMesh.visible = isVisible;
     if (isVisible) {
       transformCylinderToSegment(edge.filamentMesh, offsetStart, offsetEnd);
-      const opacityRatio = edge.material.opacity / (edge.material.userData.baseOpacity || 1);
       setMaterialVisualOpacity(edge.filamentMaterial, opacityRatio);
     }
   }
 
-  // 2. Transform Energetic Electrical Traveling Region (Sub-segment along same 3D filament)
-  if (edge.energyMesh) {
-    edge.energyMesh.visible = isVisible;
+  // 2. Small Electric Particle Pulse (travels centerline from offsetStart -> offsetEnd)
+  if (edge.particleGroup) {
+    edge.particleGroup.visible = isVisible;
     if (isVisible) {
-      const p = edge.energyProgress;
-      const glowHalfSpan = 0.14;
-      const pStart = Math.max(0, p - glowHalfSpan);
-      const pEnd = Math.min(1, p + glowHalfSpan);
-
-      const eStart = new THREE.Vector3().lerpVectors(offsetStart, offsetEnd, pStart);
-      const eEnd = new THREE.Vector3().lerpVectors(offsetStart, offsetEnd, pEnd);
-
-      transformCylinderToSegment(edge.energyMesh, eStart, eEnd);
-      const opacityRatio = edge.material.opacity / (edge.material.userData.baseOpacity || 1);
-      setMaterialVisualOpacity(edge.energyMaterial, opacityRatio);
+      const p = edge.pulseProgress;
+      const particlePos = new THREE.Vector3().lerpVectors(offsetStart, offsetEnd, p);
+      edge.particleGroup.position.copy(particlePos);
+      setMaterialVisualOpacity(edge.particleHaloMat, opacityRatio);
     }
   }
 }
@@ -2290,18 +2288,18 @@ function animate(currentTime) {
   updateCameraTransition();
   controls.update();
 
-  /* Continuous Energetic Electrical Flow Motion */
+  /* Continuous Travelling Electric Particle Pulse Motion */
   for (const edge of mainEdges) {
-    if (edge.energyMesh) {
-      edge.energyProgress += edge.energySpeed;
-      if (edge.energyProgress > 1) edge.energyProgress = 0;
+    if (edge.particleGroup) {
+      edge.pulseProgress += edge.pulseSpeed;
+      if (edge.pulseProgress > 1) edge.pulseProgress = 0;
     }
   }
   if (activeSubnet) {
     for (const edge of activeSubnet.edges) {
-      if (edge.energyMesh) {
-        edge.energyProgress += edge.energySpeed;
-        if (edge.energyProgress > 1) edge.energyProgress = 0;
+      if (edge.particleGroup) {
+        edge.pulseProgress += edge.pulseSpeed;
+        if (edge.pulseProgress > 1) edge.pulseProgress = 0;
       }
     }
   }
