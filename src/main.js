@@ -529,6 +529,8 @@ function setLabelMode(mode) {
   labelMode = mode;
 }
 
+const labelPosTemp = new THREE.Vector3();
+
 function updateLabels() {
   // If full-screen detail presentation is open, hide all graph labels to prevent visual collisions!
   if (document.body.classList.contains('detail-panel-open') || detailPanelEl?.classList.contains('active')) {
@@ -543,8 +545,6 @@ function updateLabels() {
   const isSkillPanelActive = skillContextPanelEl && skillContextPanelEl.classList.contains('active');
   const panelRect = isSkillPanelActive ? skillContextPanelEl.getBoundingClientRect() : null;
 
-  const position = new THREE.Vector3();
-
   for (const label of labels) {
     if (!label.object) continue;
 
@@ -555,12 +555,15 @@ function updateLabels() {
       continue;
     }
 
-    // 2. Frustum / Camera Check
-    label.object.getWorldPosition(position);
-    position.add(label.offset);
+    // Force update matrix world so label reads the exact current rendered frame position
+    label.object.updateMatrixWorld(true);
 
-    const projected = position.clone().project(camera);
-    const inFront = projected.z > -1 && projected.z < 1;
+    // 2. Frustum / Camera Check
+    label.object.getWorldPosition(labelPosTemp);
+    labelPosTemp.add(label.offset);
+
+    labelPosTemp.project(camera);
+    const inFront = labelPosTemp.z > -1 && labelPosTemp.z < 1;
 
     if (!inFront || label.hidden) {
       label.element.style.opacity = '0';
@@ -568,12 +571,11 @@ function updateLabels() {
       continue;
     }
 
-    // 3. Screen Projection
-    const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-projected.y * 0.5 + 0.5) * window.innerHeight;
+    // 3. Hardware Accelerated Screen Projection
+    const x = Math.round((labelPosTemp.x * 0.5 + 0.5) * window.innerWidth);
+    const y = Math.round((-labelPosTemp.y * 0.5 + 0.5) * window.innerHeight);
 
-    label.element.style.left = `${x}px`;
-    label.element.style.top = `${y}px`;
+    label.element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
 
     // 4. Panel Overlap Collision Check (Hide ONLY if label projected inside bottom-right panel rectangle)
     if (panelRect && x >= panelRect.left - 20 && x <= panelRect.right + 20 && y >= panelRect.top - 20 && y <= panelRect.bottom + 20) {

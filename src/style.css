@@ -749,8 +749,9 @@ body.detail-panel-open .network-lab-panel {
 
 .graph-label {
   position: fixed;
+  top: 0;
+  left: 0;
   z-index: 30;
-  transform: translate(-50%, -50%);
   pointer-events: none;
   white-space: nowrap;
   color: var(--text-secondary);
@@ -758,8 +759,8 @@ body.detail-panel-open .network-lab-panel {
   font-size: 10px;
   letter-spacing: 0.09em;
   text-shadow: 0 0 16px rgba(0, 255, 136, 0.22);
-  transition: opacity 180ms ease, color 180ms ease, transform 180ms ease;
-  will-change: left, top, opacity;
+  transition: opacity 180ms ease, color 180ms ease;
+  will-change: transform, opacity;
 }
 
 .graph-label.core {
