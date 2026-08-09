@@ -641,6 +641,7 @@ const coreNode = createNeuralNodeGroup({
   opacity: 0.95,
 });
 coreNode.nucleusMesh.userData = { type: 'core', id: 'core' };
+coreNode.originalPos = coreNode.group.position.clone();
 core.add(coreNode.group);
 
 /* Core Outer Wireframe Sphere */
@@ -1669,6 +1670,7 @@ function createSubnetWorld(subnetId) {
     hitboxMesh: coreNode.hitboxMesh,
     group: coreNode.group,
     label: subnetLabel,
+    originalPos: coreNode.group.position.clone(),
   };
 
   const categoryNodes = new Map();
@@ -1751,6 +1753,7 @@ function createSubnetWorld(subnetId) {
           hitboxMesh: skillNode.hitboxMesh,
           group: skillNode.group,
           label: skillLabel,
+          originalPos: skillNode.group.position.clone(),
         };
 
         skillNode.nucleusMesh.userData = skillObj;
@@ -2309,6 +2312,77 @@ function updateHover() {
   renderer.domElement.style.cursor = hit ? 'pointer' : 'grab';
 }
 
+/* ============================================================
+   REDUCED MOTION & CINEMATIC ATMOSPHERIC DEPTH
+   ============================================================ */
+
+const prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+let prefersReducedMotion = prefersReducedMotionQuery.matches;
+prefersReducedMotionQuery.addEventListener('change', event => {
+  prefersReducedMotion = event.matches;
+});
+
+function animateAmbientDepthAndBreathing(currentTime) {
+  if (isBurstActive || burstVelocities.size > 0) return;
+
+  const t = currentTime * 0.001;
+  const isReduced = prefersReducedMotion;
+
+  const activeNodes = [];
+  if (currentLayer === 'MAIN') {
+    if (coreNode) activeNodes.push(coreNode);
+    for (const item of mainNodeObjects) activeNodes.push(item);
+  } else if (currentLayer === 'SUBNET' && activeSubnet) {
+    if (activeSubnet.coreNode) activeNodes.push(activeSubnet.coreNode);
+    for (const category of activeSubnet.categories) activeNodes.push(category);
+    activeSubnet.group.traverse(child => {
+      if (child.userData && child.userData.type === 'skill-node') {
+        activeNodes.push(child.userData);
+      }
+    });
+  }
+
+  for (let i = 0; i < activeNodes.length; i++) {
+    const node = activeNodes[i];
+    if (!node.originalPos || !node.group) continue;
+
+    /* 1. Ambient Micro-Motion (Sinusoidal Breathing relative to canonical originalPos) */
+    if (!isReduced) {
+      const phase = i * 0.85;
+      const ambientY = Math.sin(t * 0.75 + phase) * 0.08;
+      const ambientX = Math.cos(t * 0.55 + phase) * 0.04;
+      node.group.position.x = node.originalPos.x + ambientX;
+      node.group.position.y = node.originalPos.y + ambientY;
+    } else {
+      node.group.position.copy(node.originalPos);
+    }
+
+    /* 2. Distance-Based Atmospheric Depth Falloff */
+    const distToCam = camera.position.distanceTo(node.group.position);
+    const depthFactor = THREE.MathUtils.clamp(1.0 - (distToCam - 20) / 75, 0.75, 1.0);
+
+    const shellMesh = node.shellMesh;
+    const nucleusMesh = node.nucleusMesh || node.mesh;
+
+    const isHovered = currentHoveredMesh && (
+      node.mesh === currentHoveredMesh ||
+      node.hitboxMesh === currentHoveredMesh ||
+      node.nucleusMesh === currentHoveredMesh
+    );
+
+    if (!isHovered) {
+      if (shellMesh && shellMesh.material) {
+        const baseShellOpacity = shellMesh.material.userData.baseOpacity || 0.32;
+        shellMesh.material.userData.currentBaseOpacity = baseShellOpacity * depthFactor;
+      }
+      if (nucleusMesh && nucleusMesh.material) {
+        const baseNucleusOpacity = nucleusMesh.material.userData.baseOpacity || 0.95;
+        nucleusMesh.material.userData.currentBaseOpacity = baseNucleusOpacity * depthFactor;
+      }
+    }
+  }
+}
+
 function animateHoverEffects() {
   const activeNodes = [];
 
@@ -2343,13 +2417,13 @@ function animateHoverEffects() {
     }
 
     if (shellMesh && shellMesh.material) {
-      const baseShellOpacity = shellMesh.material.userData.baseOpacity || 0.32;
+      const baseShellOpacity = shellMesh.material.userData.currentBaseOpacity || shellMesh.material.userData.baseOpacity || 0.32;
       const targetShellOpacity = isHovered ? 0.75 : baseShellOpacity;
       shellMesh.material.opacity = THREE.MathUtils.lerp(shellMesh.material.opacity, targetShellOpacity, 0.18);
     }
 
     if (nucleusMesh && nucleusMesh.material) {
-      const baseNucleusOpacity = nucleusMesh.material.userData.baseOpacity || 0.95;
+      const baseNucleusOpacity = nucleusMesh.material.userData.currentBaseOpacity || nucleusMesh.material.userData.baseOpacity || 0.95;
       const targetNucleusOpacity = isHovered ? 1.0 : baseNucleusOpacity;
       nucleusMesh.material.opacity = THREE.MathUtils.lerp(nucleusMesh.material.opacity, targetNucleusOpacity, 0.18);
     }
@@ -2499,6 +2573,7 @@ function animate(currentTime) {
     }
   }
 
+  animateAmbientDepthAndBreathing(currentTime);
   animateBurstState();
   updateCameraTransition();
   controls.update();
