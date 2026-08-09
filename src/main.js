@@ -1,6 +1,9 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 /*
  * ============================================================
@@ -942,21 +945,70 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
 }
 
 /* ============================================================
-   DYNAMIC EDGE CREATION & UPDATING
+   DYNAMIC EDGE CREATION & UPDATING (Line2 Electric Data Flow)
    ============================================================ */
 
+const edgeMaterialsList = [];
+
 function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(6);
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const lineGroup = new THREE.Group();
 
-  const material = lineMaterial(opacity, color);
-  const line = new THREE.Line(geometry, material);
-  line.frustumCulled = false;
+  // 1. Base Wire (Subtle persistent connection wire)
+  const baseGeo = new LineGeometry();
+  baseGeo.setPositions([0, 0, 0, 0, 0, 0]);
 
-  parent.add(line);
+  const baseMat = new LineMaterial({
+    color: color,
+    linewidth: 1.5,
+    transparent: true,
+    opacity: opacity * 0.45,
+    depthTest: true,
+  });
+  baseMat.resolution.set(window.innerWidth, window.innerHeight);
 
-  return { line, source, target, material };
+  const baseLine = new Line2(baseGeo, baseMat);
+  baseLine.frustumCulled = false;
+  lineGroup.add(baseLine);
+
+  // 2. Electric Data Pulse Wire (Animated luminous travelling packet)
+  const pulseGeo = new LineGeometry();
+  pulseGeo.setPositions([0, 0, 0, 0, 0, 0]);
+
+  const pulseMat = new LineMaterial({
+    color: COLORS.bright,
+    linewidth: 2.2,
+    dashed: true,
+    dashSize: 1.8,
+    gapSize: 6.5,
+    dashOffset: Math.random() * 10.0,
+    transparent: true,
+    opacity: opacity * 0.95,
+    depthTest: true,
+  });
+  pulseMat.resolution.set(window.innerWidth, window.innerHeight);
+
+  const pulseLine = new Line2(pulseGeo, pulseMat);
+  pulseLine.frustumCulled = false;
+  lineGroup.add(pulseLine);
+
+  parent.add(lineGroup);
+
+  const edgeObj = {
+    line: lineGroup,
+    baseLine,
+    pulseLine,
+    baseMat,
+    pulseMat,
+    baseGeo,
+    pulseGeo,
+    source,
+    target,
+    material: baseMat,
+    speed: 0.04 + Math.random() * 0.03,
+  };
+
+  edgeMaterialsList.push(baseMat, pulseMat);
+  return edgeObj;
 }
 
 function updateEdge(edge) {
@@ -973,10 +1025,13 @@ function updateEdge(edge) {
     edge.line.parent.worldToLocal(end);
   }
 
-  const position = edge.line.geometry.attributes.position;
-  position.setXYZ(0, start.x, start.y, start.z);
-  position.setXYZ(1, end.x, end.y, end.z);
-  position.needsUpdate = true;
+  const posArray = [start.x, start.y, start.z, end.x, end.y, end.z];
+  if (edge.baseGeo) edge.baseGeo.setPositions(posArray);
+  if (edge.pulseGeo) edge.pulseGeo.setPositions(posArray);
+
+  if (edge.pulseMat) {
+    edge.pulseMat.dashOffset -= edge.speed;
+  }
 }
 
 function updateEdges(edgeArray) {
@@ -2205,6 +2260,12 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  for (const mat of edgeMaterialsList) {
+    if (mat && mat.resolution) {
+      mat.resolution.set(window.innerWidth, window.innerHeight);
+    }
+  }
 });
 
 requestAnimationFrame(animate);
