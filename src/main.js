@@ -231,6 +231,7 @@ function createNeuralNodeGroup({
   const nucleusGeo = new THREE.SphereGeometry(nucleusRadius, 32, 32);
   const nucleusMat = nodeMaterial(color, opacity);
   const nucleusMesh = new THREE.Mesh(nucleusGeo, nucleusMat);
+  nucleusMesh.userData = { visualRadius: nucleusRadius * 1.15 };
   group.add(nucleusMesh);
 
   // 2. Structural Wireframe Outer Shell
@@ -948,22 +949,30 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
    DYNAMIC 3D NEURAL CABLE & ELECTRIC PULSE ARCHITECTURE
    ============================================================ */
 
-const lineMaterialsRegistry = [];
+/* Reusable 3D Cable Unit Geometry (cylinder centered along +Z axis from 0,0,0 to 0,0,1) */
+const unitCylinderGeo = new THREE.CylinderGeometry(0.055, 0.055, 1, 8, 1);
+unitCylinderGeo.translate(0, 0.5, 0); // Shift origin to base
+unitCylinderGeo.rotateX(Math.PI / 2); // Orient along +Z axis
 
-function createCableMaterial(opacity, linewidth = 2.8, color = COLORS.medium) {
-  const mat = new LineMaterial({
-    color,
-    linewidth,
-    dashed: false,
-    transparent: true,
-    opacity,
-    depthWrite: false,
-  });
-  mat.resolution.set(window.innerWidth, window.innerHeight);
-  mat.userData.baseOpacity = opacity;
-  lineMaterialsRegistry.push(mat);
-  return mat;
-}
+const unitGlowCylinderGeo = new THREE.CylinderGeometry(0.088, 0.088, 1, 8, 1);
+unitGlowCylinderGeo.translate(0, 0.5, 0);
+unitGlowCylinderGeo.rotateX(Math.PI / 2);
+
+const cableMaterial = new THREE.MeshBasicMaterial({
+  color: COLORS.medium,
+  transparent: true,
+  opacity: 0.65,
+  depthWrite: false,
+});
+cableMaterial.userData.baseOpacity = 0.65;
+
+const cableGlowMaterial = new THREE.MeshBasicMaterial({
+  color: COLORS.bright,
+  transparent: true,
+  opacity: 0.95,
+  depthWrite: false,
+});
+cableGlowMaterial.userData.baseOpacity = 0.95;
 
 const pulseCoreGeometry = new THREE.SphereGeometry(0.08, 12, 12);
 const pulseCoreMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98, depthWrite: false });
@@ -971,34 +980,100 @@ const pulseCoreMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transpa
 const pulseHaloGeometry = new THREE.SphereGeometry(0.18, 12, 12);
 const pulseHaloMaterial = new THREE.MeshBasicMaterial({ color: COLORS.bright, transparent: true, opacity: 0.75, depthWrite: false });
 
+function alignCylinderBetweenPoints(mesh, start, end, radiusScale = 1.0) {
+  const dir = new THREE.Vector3().subVectors(end, start);
+  const dist = dir.length();
+
+  if (dist < 0.0001) {
+    mesh.visible = false;
+    return;
+  }
+
+  mesh.position.copy(start);
+  mesh.lookAt(end);
+  mesh.scale.set(radiusScale, radiusScale, dist);
+  mesh.visible = true;
+}
+
+function getNodeWorldCenterAndRadius(node) {
+  if (!node) return { center: new THREE.Vector3(), radius: 0.85 };
+  const center = new THREE.Vector3();
+  node.getWorldPosition(center);
+
+  let radius = 0.85;
+  if (node.userData && typeof node.userData.visualRadius === 'number') {
+    radius = node.userData.visualRadius;
+  }
+
+  const worldScale = new THREE.Vector3();
+  node.getWorldScale(worldScale);
+  const avgScale = (Math.abs(worldScale.x) + Math.abs(worldScale.y) + Math.abs(worldScale.z)) / 3;
+  radius *= avgScale > 0.001 ? avgScale : 1.0;
+
+  return { center, radius };
+}
+
+function calculateSurfaceEndpoints(sourceObj, targetObj, parentGroup) {
+  const { center: sCenter, radius: sRadius } = getNodeWorldCenterAndRadius(sourceObj);
+  const { center: tCenter, radius: tRadius } = getNodeWorldCenterAndRadius(targetObj);
+
+  const dir = new THREE.Vector3().subVectors(tCenter, sCenter);
+  const dist = dir.length();
+
+  if (dist < 0.001) {
+    const localStart = sCenter.clone();
+    const localEnd = tCenter.clone();
+    if (parentGroup) {
+      parentGroup.worldToLocal(localStart);
+      parentGroup.worldToLocal(localEnd);
+    }
+    return { start: localStart, end: localEnd, distance: 0 };
+  }
+
+  dir.normalize();
+
+  // Offset start and end vectors to the actual visual surface of each node sphere
+  const startWorld = sCenter.clone().add(dir.clone().multiplyScalar(Math.min(sRadius, dist * 0.4)));
+  const endWorld = tCenter.clone().sub(dir.clone().multiplyScalar(Math.min(tRadius, dist * 0.4)));
+
+  const startLocal = startWorld.clone();
+  const endLocal = endWorld.clone();
+
+  if (parentGroup) {
+    parentGroup.worldToLocal(startLocal);
+    parentGroup.worldToLocal(endLocal);
+  }
+
+  return { start: startLocal, end: endLocal, distance: startWorld.distanceTo(endWorld) };
+}
+
 function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
-  // 1. Core Line (for base tracking compatibility)
+  // 1. Core Line (for base tracking & opacity inheritance)
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(6);
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-  const material = lineMaterial(opacity * 0.25, color);
+  const material = lineMaterial(opacity * 0.1, color);
   const line = new THREE.Line(geometry, material);
   line.frustumCulled = false;
+  line.visible = false; // Hide 1px line so ONLY the 3D tube is visible!
   parent.add(line);
 
-  // 2. LAYER A: Continuous Thick 3D Neural Cable (No dashes, continuous emission)
-  const cableGeo = new LineGeometry();
-  cableGeo.setPositions([0, 0, 0, 0, 0, 0]);
-  const cableMat = createCableMaterial(opacity * 0.72, 2.6, COLORS.medium);
-  const cable = new Line2(cableGeo, cableMat);
-  cable.frustumCulled = false;
-  parent.add(cable);
+  // 2. LAYER A: Permanent True 3D Neural Cable Mesh (3D Cylinder Geometry)
+  const cableMat = cableMaterial.clone();
+  cableMat.userData.baseOpacity = opacity * 0.75;
+  const cableMesh = new THREE.Mesh(unitCylinderGeo, cableMat);
+  cableMesh.frustumCulled = false;
+  parent.add(cableMesh);
 
-  // 3. LOCALIZED GLOW: High-intensity cable glow segment attached to travelling pulse
-  const glowGeo = new LineGeometry();
-  glowGeo.setPositions([0, 0, 0, 0, 0, 0]);
-  const glowMat = createCableMaterial(opacity * 0.95, 4.5, COLORS.bright);
-  const glowCable = new Line2(glowGeo, glowMat);
-  glowCable.frustumCulled = false;
-  parent.add(glowCable);
+  // 3. LOCALIZED GLOW: High-intensity 3D cable glow section attached to travelling pulse
+  const glowMat = cableGlowMaterial.clone();
+  glowMat.userData.baseOpacity = opacity * 0.95;
+  const glowMesh = new THREE.Mesh(unitGlowCylinderGeo, glowMat);
+  glowMesh.frustumCulled = false;
+  parent.add(glowMesh);
 
-  // 4. LAYER B: Separate Travelling Electric Pulse Object (Bright white-green core + halo)
+  // 4. LAYER B: Separate Travelling Electric Pulse Object (Bright white core + green halo)
   const pulseGroup = new THREE.Group();
   const coreMesh = new THREE.Mesh(pulseCoreGeometry, pulseCoreMaterial);
   const haloMesh = new THREE.Mesh(pulseHaloGeometry, pulseHaloMaterial);
@@ -1008,11 +1083,9 @@ function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
 
   return {
     line,
-    cable,
-    cableGeo,
+    cableMesh,
     cableMat,
-    glowCable,
-    glowGeo,
+    glowMesh,
     glowMat,
     pulseGroup,
     source,
@@ -1026,52 +1099,50 @@ function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
 function updateEdge(edge) {
   if (!edge || !edge.source || !edge.target || !edge.line) return;
 
-  const start = new THREE.Vector3();
-  const end = new THREE.Vector3();
+  // Calculate surface endpoints connecting source node surface to target node surface
+  const { start, end, distance } = calculateSurfaceEndpoints(edge.source, edge.target, edge.line.parent);
 
-  edge.source.getWorldPosition(start);
-  edge.target.getWorldPosition(end);
-
-  if (edge.line.parent) {
-    edge.line.parent.worldToLocal(start);
-    edge.line.parent.worldToLocal(end);
-  }
-
-  // 1. Update Core Line
+  // 1. Update Core Line (kept for layer opacity tracking)
   const position = edge.line.geometry.attributes.position;
   position.setXYZ(0, start.x, start.y, start.z);
   position.setXYZ(1, end.x, end.y, end.z);
   position.needsUpdate = true;
 
-  // 2. Update Continuous Thick 3D Neural Cable (Layer A)
-  if (edge.cableGeo) {
-    edge.cableGeo.setPositions([start.x, start.y, start.z, end.x, end.y, end.z]);
-    edge.cable.visible = edge.line.visible;
-    const opacityRatio = edge.material.opacity / (edge.material.userData.baseOpacity || 1);
-    setMaterialVisualOpacity(edge.cableMat, opacityRatio);
+  const isVisible = edge.line.visible && isObjectInVisibleWorld(edge.source) && isObjectInVisibleWorld(edge.target);
+  const opacityRatio = edge.material.opacity / (edge.material.userData.baseOpacity || 1);
 
-    // 3. Update Travelling Pulse Position & Localized Cable Glow Segment (Layer B)
-    if (edge.pulseGroup && edge.glowGeo) {
-      const isVisible = edge.line.visible && isObjectInVisibleWorld(edge.source) && isObjectInVisibleWorld(edge.target);
-      edge.pulseGroup.visible = isVisible;
-      edge.glowCable.visible = isVisible;
+  // 2. Update Permanent 3D Neural Cable (Layer A)
+  if (edge.cableMesh) {
+    if (isVisible && distance > 0.05) {
+      alignCylinderBetweenPoints(edge.cableMesh, start, end, 1.0);
+      setMaterialVisualOpacity(edge.cableMat, opacityRatio);
+    } else {
+      edge.cableMesh.visible = false;
+    }
+  }
 
-      if (isVisible) {
-        // Pulse moves along source -> target
-        const p = edge.pulseProgress;
-        const pulsePos = new THREE.Vector3().lerpVectors(start, end, p);
-        edge.pulseGroup.position.copy(pulsePos);
+  // 3. Update Travelling Pulse Position & Localized Cable Glow Segment (Layer B)
+  if (edge.pulseGroup && edge.glowMesh) {
+    if (isVisible && distance > 0.05) {
+      const p = edge.pulseProgress;
 
-        // Localized Cable Glow around travelling pulse (short segment)
-        const glowHalfSpan = 0.12;
-        const pStart = Math.max(0, p - glowHalfSpan);
-        const pEnd = Math.min(1, p + glowHalfSpan);
-        const gStart = new THREE.Vector3().lerpVectors(start, end, pStart);
-        const gEnd = new THREE.Vector3().lerpVectors(start, end, pEnd);
+      // Pulse moves along centerline from start (source surface) to end (target surface)
+      const pulsePos = new THREE.Vector3().lerpVectors(start, end, p);
+      edge.pulseGroup.position.copy(pulsePos);
+      edge.pulseGroup.visible = true;
 
-        edge.glowGeo.setPositions([gStart.x, gStart.y, gStart.z, gEnd.x, gEnd.y, gEnd.z]);
-        setMaterialVisualOpacity(edge.glowMat, opacityRatio);
-      }
+      // Localized Cable Glow around travelling pulse (short 3D tube segment)
+      const glowHalfSpan = 0.12;
+      const pStart = Math.max(0, p - glowHalfSpan);
+      const pEnd = Math.min(1, p + glowHalfSpan);
+      const gStart = new THREE.Vector3().lerpVectors(start, end, pStart);
+      const gEnd = new THREE.Vector3().lerpVectors(start, end, pEnd);
+
+      alignCylinderBetweenPoints(edge.glowMesh, gStart, gEnd, 1.0);
+      setMaterialVisualOpacity(edge.glowMat, opacityRatio);
+    } else {
+      edge.pulseGroup.visible = false;
+      edge.glowMesh.visible = false;
     }
   }
 }
