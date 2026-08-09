@@ -2032,37 +2032,14 @@ function updatePointer(event) {
 function getPointerObject() {
   raycaster.setFromCamera(pointer, camera);
 
-  /* Universal Neural Core & Core Beacon raycast anchor */
-  const coreTargets = [
-    coreNode.hitboxMesh || coreNode.nucleusMesh,
-    beaconNode.hitboxMesh || beaconNode.nucleusMesh,
-  ];
-  if (activeSubnet && activeSubnet.coreHitbox) coreTargets.push(activeSubnet.coreHitbox);
-  else if (activeSubnet) coreTargets.push(activeSubnet.nucleus);
-
-  const coreHit = raycaster.intersectObjects(coreTargets, false)[0];
-  if (coreHit) {
-    const targetObj = coreHit.object.userData.targetMesh || coreHit.object;
-    return { type: 'core', object: targetObj };
-  }
-
-  /* 3D Ambient Logo Objects Raycast (ONLY IN HOME MAIN LAYER) */
-  if (currentLayer === 'MAIN' && ambientLogosGroup.visible) {
-    const logoHits = raycaster.intersectObjects(
-      ambientLogoObjects.map(item => item.mesh),
-      false
-    );
-    if (logoHits.length) {
-      return { type: 'ambient-logo', object: logoHits[0].object };
-    }
-  }
-
-  /* Subnet Layer Skill Nodes */
-  if (activeSubnet) {
+  /* 1. Subnet Layer Active Skill Nodes (for Skills Subnet) */
+  if (currentLayer === 'SUBNET' && activeSubnet) {
     const skillMeshes = [];
     activeSubnet.group.traverse(child => {
       if (child.isMesh && (child.userData.isHitbox || child.userData.type === 'skill-node')) {
-        skillMeshes.push(child);
+        if (child.userData.type === 'skill-node' || (child.userData.targetMesh && child.userData.targetMesh.userData.type === 'skill-node')) {
+          skillMeshes.push(child);
+        }
       }
     });
 
@@ -2073,9 +2050,14 @@ function getPointerObject() {
     }
   }
 
-  /* Subnet Layer Category / Terminal Nodes */
-  if (activeSubnet) {
-    const categoryTargets = activeSubnet.categories.map(node => node.hitboxMesh || node.mesh);
+  /* 2. Subnet Layer Active Category / Destination Nodes (Projects, Experience, Contact, Skills categories) */
+  if (currentLayer === 'SUBNET' && activeSubnet) {
+    const categoryTargets = [];
+    for (const node of activeSubnet.categories) {
+      if (node.hitboxMesh) categoryTargets.push(node.hitboxMesh);
+      if (node.mesh) categoryTargets.push(node.mesh);
+    }
+
     const hits = raycaster.intersectObjects(categoryTargets, false);
     if (hits.length) {
       const targetObj = hits[0].object.userData.targetMesh || hits[0].object;
@@ -2083,9 +2065,42 @@ function getPointerObject() {
     }
   }
 
-  /* Main Homepage Layer (5 Primary Destination Nodes) */
+  /* 3. Universal Neural Core & Central Core Node Anchor */
+  const coreTargets = [];
   if (currentLayer === 'MAIN') {
-    const mainTargets = mainNodeObjects.map(node => node.hitboxMesh || node.mesh);
+    if (coreNode.hitboxMesh) coreTargets.push(coreNode.hitboxMesh);
+    if (coreNode.nucleusMesh) coreTargets.push(coreNode.nucleusMesh);
+    if (beaconNode.hitboxMesh) coreTargets.push(beaconNode.hitboxMesh);
+    if (beaconNode.nucleusMesh) coreTargets.push(beaconNode.nucleusMesh);
+  } else if (currentLayer === 'SUBNET' && activeSubnet) {
+    if (activeSubnet.coreHitbox) coreTargets.push(activeSubnet.coreHitbox);
+    if (activeSubnet.nucleus) coreTargets.push(activeSubnet.nucleus);
+  }
+
+  const coreHit = raycaster.intersectObjects(coreTargets, false)[0];
+  if (coreHit) {
+    const targetObj = coreHit.object.userData.targetMesh || coreHit.object;
+    return { type: 'core', object: targetObj };
+  }
+
+  /* 4. 3D Ambient Logo Objects Raycast (ONLY IN HOME MAIN LAYER) */
+  if (currentLayer === 'MAIN' && ambientLogosGroup.visible) {
+    const logoHits = raycaster.intersectObjects(
+      ambientLogoObjects.map(item => item.mesh),
+      false
+    );
+    if (logoHits.length) {
+      return { type: 'ambient-logo', object: logoHits[0].object };
+    }
+  }
+
+  /* 5. Main Homepage Layer (5 Primary Destination Nodes) */
+  if (currentLayer === 'MAIN') {
+    const mainTargets = [];
+    for (const node of mainNodeObjects) {
+      if (node.hitboxMesh) mainTargets.push(node.hitboxMesh);
+      if (node.mesh) mainTargets.push(node.mesh);
+    }
     const hits = raycaster.intersectObjects(mainTargets, false);
     if (hits.length) {
       const targetObj = hits[0].object.userData.targetMesh || hits[0].object;
@@ -2135,7 +2150,7 @@ renderer.domElement.addEventListener('click', event => {
   }
 
   if (hit.type === 'main') {
-    const node = mainNodeObjects.find(item => item.mesh === hit.object);
+    const node = mainNodeObjects.find(item => item.mesh === hit.object || item.hitboxMesh === hit.object || (item.mesh && item.mesh.userData && hit.object.userData && item.mesh.userData.id === hit.object.userData.id));
     if (node) {
       if (node.id === 'about') {
         showDetailPresentation(combinedAboutData);
@@ -2148,7 +2163,11 @@ renderer.domElement.addEventListener('click', event => {
   }
 
   if (hit.type === 'category-node') {
-    const categoryObj = activeSubnet.categories.find(node => node.mesh === hit.object);
+    const categoryObj = activeSubnet.categories.find(node =>
+      node.mesh === hit.object ||
+      node.hitboxMesh === hit.object ||
+      (node.mesh && node.mesh.userData && hit.object.userData && node.mesh.userData.id === hit.object.userData.id)
+    );
     if (categoryObj) {
       const nodeData = categoryObj.nodeData || categoryObj;
       if (nodeData.actionUrl) {
