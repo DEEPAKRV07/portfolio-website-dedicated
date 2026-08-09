@@ -1,9 +1,6 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 /*
  * ============================================================
@@ -945,69 +942,39 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
 }
 
 /* ============================================================
-   DYNAMIC EDGE CREATION & UPDATING (Line2 Electric Data Flow)
+   DYNAMIC EDGE CREATION & UPDATING (Permanent Wires + Traveling Sparks)
    ============================================================ */
 
-const edgeMaterialsList = [];
+const sparkGeometry = new THREE.SphereGeometry(0.085, 12, 12);
+const sparkMaterial = nodeMaterial(COLORS.bright, 0.95);
 
 function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
-  const lineGroup = new THREE.Group();
+  // 1. Permanent Visible Base Wire (ALWAYS visible!)
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(6);
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-  // 1. Base Wire (Subtle persistent connection wire)
-  const baseGeo = new LineGeometry();
-  baseGeo.setPositions([0, 0, 0, 0, 0, 0]);
+  const material = lineMaterial(opacity * 0.85, color);
+  const line = new THREE.Line(geometry, material);
+  line.frustumCulled = false;
+  parent.add(line);
 
-  const baseMat = new LineMaterial({
-    color: color,
-    linewidth: 1.5,
-    transparent: true,
-    opacity: opacity * 0.45,
-    depthTest: true,
-  });
-  baseMat.resolution.set(window.innerWidth, window.innerHeight);
-
-  const baseLine = new Line2(baseGeo, baseMat);
-  baseLine.frustumCulled = false;
-  lineGroup.add(baseLine);
-
-  // 2. Electric Data Pulse Wire (Animated luminous travelling packet)
-  const pulseGeo = new LineGeometry();
-  pulseGeo.setPositions([0, 0, 0, 0, 0, 0]);
-
-  const pulseMat = new LineMaterial({
-    color: COLORS.bright,
-    linewidth: 2.2,
-    dashed: true,
-    dashSize: 1.8,
-    gapSize: 6.5,
-    dashOffset: Math.random() * 10.0,
-    transparent: true,
-    opacity: opacity * 0.95,
-    depthTest: true,
-  });
-  pulseMat.resolution.set(window.innerWidth, window.innerHeight);
-
-  const pulseLine = new Line2(pulseGeo, pulseMat);
-  pulseLine.frustumCulled = false;
-  lineGroup.add(pulseLine);
-
-  parent.add(lineGroup);
+  // 2. Separate Traveling Electric Spark Packet
+  const sparkMesh = new THREE.Mesh(sparkGeometry, sparkMaterial);
+  sparkMesh.frustumCulled = false;
+  sparkMesh.visible = false;
+  parent.add(sparkMesh);
 
   const edgeObj = {
-    line: lineGroup,
-    baseLine,
-    pulseLine,
-    baseMat,
-    pulseMat,
-    baseGeo,
-    pulseGeo,
+    line,
+    sparkMesh,
     source,
     target,
-    material: baseMat,
-    speed: 0.04 + Math.random() * 0.03,
+    material,
+    progress: Math.random(), // Randomized initial phase offset (0 -> 1)
+    speed: 0.005 + Math.random() * 0.005, // Varied subtle flow speed
   };
 
-  edgeMaterialsList.push(baseMat, pulseMat);
   return edgeObj;
 }
 
@@ -1025,16 +992,29 @@ function updateEdge(edge) {
     edge.line.parent.worldToLocal(end);
   }
 
-  const posArray = [start.x, start.y, start.z, end.x, end.y, end.z];
-  if (edge.baseGeo) edge.baseGeo.setPositions(posArray);
-  if (edge.pulseGeo) edge.pulseGeo.setPositions(posArray);
+  // 1. Update Permanent Base Wire Endpoints (Never disappears!)
+  const position = edge.line.geometry.attributes.position;
+  position.setXYZ(0, start.x, start.y, start.z);
+  position.setXYZ(1, end.x, end.y, end.z);
+  position.needsUpdate = true;
 
-  if (edge.pulseMat) {
-    edge.pulseMat.dashOffset -= edge.speed;
+  // 2. Animate Traveling Electric Spark along source -> target
+  if (edge.sparkMesh) {
+    const isVisible = isObjectInVisibleWorld(edge.source) && isObjectInVisibleWorld(edge.target);
+    if (!isVisible) {
+      edge.sparkMesh.visible = false;
+    } else {
+      edge.progress += edge.speed;
+      if (edge.progress > 1) edge.progress = 0;
+
+      edge.sparkMesh.position.lerpVectors(start, end, edge.progress);
+      edge.sparkMesh.visible = true;
+    }
   }
 }
 
 function updateEdges(edgeArray) {
+  if (!Array.isArray(edgeArray)) return;
   for (const edge of edgeArray) {
     updateEdge(edge);
   }
@@ -2260,12 +2240,6 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-
-  for (const mat of edgeMaterialsList) {
-    if (mat && mat.resolution) {
-      mat.resolution.set(window.innerWidth, window.innerHeight);
-    }
-  }
 });
 
 requestAnimationFrame(animate);
