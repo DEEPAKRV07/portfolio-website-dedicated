@@ -268,12 +268,27 @@ function createNeuralNodeGroup({
   hitboxMesh.userData = { isHitbox: true, targetMesh: nucleusMesh };
   group.add(hitboxMesh);
 
+  // 5. Subtle Localized Hover Glow Halo (Electric Bloom Response)
+  const glowGeo = new THREE.SphereGeometry(nucleusRadius * 1.32, 24, 24);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    side: THREE.BackSide,
+  });
+  glowMat.userData.baseOpacity = 0;
+  const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+  glowMesh.userData.isInteractionTarget = false;
+  group.add(glowMesh);
+
   return {
     group,
     nucleusMesh,
     shellMesh,
     volumeMesh,
     hitboxMesh,
+    glowMesh,
   };
 }
 
@@ -698,7 +713,17 @@ for (const data of mainNodes) {
   label.object = node.nucleusMesh;
   label.offset.set(0, 1.35, 0);
 
-  const nodeObj = { ...data, mesh: node.nucleusMesh, hitboxMesh: node.hitboxMesh, group: node.group, label, originalPos: node.group.position.clone() };
+  const nodeObj = {
+    ...data,
+    mesh: node.nucleusMesh,
+    nucleusMesh: node.nucleusMesh,
+    shellMesh: node.shellMesh,
+    glowMesh: node.glowMesh,
+    hitboxMesh: node.hitboxMesh,
+    group: node.group,
+    label,
+    originalPos: node.group.position.clone(),
+  };
   mainNodeObjects.push(nodeObj);
   mainNodeMap.set(data.id, nodeObj);
 }
@@ -1625,6 +1650,15 @@ function createSubnetWorld(subnetId) {
     color: COLORS.bright,
     opacity: 0.92,
   });
+  const coreNodeObj = {
+    mesh: coreNode.nucleusMesh,
+    nucleusMesh: coreNode.nucleusMesh,
+    shellMesh: coreNode.shellMesh,
+    glowMesh: coreNode.glowMesh,
+    hitboxMesh: coreNode.hitboxMesh,
+    group: coreNode.group,
+    label: subnetLabel,
+  };
   coreNode.nucleusMesh.userData = { type: 'subnet-core', subnetId };
   subnetCore.add(coreNode.group);
 
@@ -1656,7 +1690,13 @@ function createSubnetWorld(subnetId) {
       subnetId,
       label: category.label,
       nodeData: category,
+      glowMesh: node.glowMesh,
+      shellMesh: node.shellMesh,
+      nucleusMesh: node.nucleusMesh,
+      hitboxMesh: node.hitboxMesh,
+      group: node.group,
     };
+    node.hitboxMesh.userData.targetMesh = node.nucleusMesh;
 
     group.add(node.group);
 
@@ -1664,7 +1704,17 @@ function createSubnetWorld(subnetId) {
     label.object = node.nucleusMesh;
     label.offset.set(0, 0.72, 0);
 
-    const categoryObj = { ...category, mesh: node.nucleusMesh, hitboxMesh: node.hitboxMesh, group: node.group, label, originalPos: node.group.position.clone() };
+    const categoryObj = { 
+      ...category, 
+      mesh: node.nucleusMesh, 
+      nucleusMesh: node.nucleusMesh,
+      shellMesh: node.shellMesh,
+      glowMesh: node.glowMesh,
+      hitboxMesh: node.hitboxMesh,
+      group: node.group, 
+      label, 
+      originalPos: node.group.position.clone() 
+    };
     categoryNodes.set(category.id, categoryObj);
     categories.push(categoryObj);
 
@@ -1682,19 +1732,31 @@ function createSubnetWorld(subnetId) {
         });
 
         skillNode.group.position.set(...skill.position);
-        skillNode.nucleusMesh.userData = {
+
+        const skillLabel = createLabel(skill.label, 'skill', 'subnet');
+        skillLabel.object = skillNode.nucleusMesh;
+        skillLabel.offset.set(0, 0.45, 0);
+
+        const skillObj = {
           type: 'skill-node',
           id: skill.id,
           subnetId,
           label: skill.label,
           skillData: skill,
+          mesh: skillNode.nucleusMesh,
+          nucleusMesh: skillNode.nucleusMesh,
+          shellMesh: skillNode.shellMesh,
+          glowMesh: skillNode.glowMesh,
+          hitboxMesh: skillNode.hitboxMesh,
+          group: skillNode.group,
+          label: skillLabel,
         };
 
-        group.add(skillNode.group);
+        skillNode.nucleusMesh.userData = skillObj;
+        skillNode.hitboxMesh.userData = { isHitbox: true, targetMesh: skillNode.nucleusMesh };
+        skillNode.group.userData = skillObj;
 
-        const skillLabel = createLabel(skill.label, 'skill', 'subnet');
-        skillLabel.object = skillNode.nucleusMesh;
-        skillLabel.offset.set(0, 0.45, 0);
+        group.add(skillNode.group);
 
         edges.push(createEdge(node.nucleusMesh, skillNode.nucleusMesh, group, 0.35));
       }
@@ -1712,7 +1774,9 @@ function createSubnetWorld(subnetId) {
     definition,
     group,
     core: subnetCore,
+    coreNode: coreNodeObj,
     nucleus: coreNode.nucleusMesh,
+    coreHitbox: coreNode.hitboxMesh,
     label: subnetLabel,
     subtitleLabel,
     categories,
@@ -2136,6 +2200,15 @@ renderer.domElement.addEventListener('click', event => {
   const hit = getPointerObject();
   if (!hit) return;
 
+  /* Part 9 — Short Node Press Tactile Feedback (120ms Micro-Pulse) */
+  if (hit.object && hit.object.parent && hit.object.parent.scale) {
+    const pressGroup = hit.object.parent;
+    pressGroup.scale.set(1.05, 1.05, 1.05);
+    setTimeout(() => {
+      if (pressGroup && pressGroup.scale) pressGroup.scale.set(1.0, 1.0, 1.0);
+    }, 120);
+  }
+
   if (hit.type === 'core') {
     returnToCore();
     return;
@@ -2195,9 +2268,17 @@ renderer.domElement.addEventListener('click', event => {
 
 /* Hover Scaling Effect for Nodes and Ambient Logos with 3D Tracked Hover Tooltip */
 const tempScale = new THREE.Vector3();
+let currentHoveredMesh = null;
 
 function updateHover() {
+  if (isBurstActive) {
+    currentHoveredMesh = null;
+    renderer.domElement.style.cursor = 'grab';
+    return;
+  }
+
   const hit = getPointerObject();
+  currentHoveredMesh = hit ? hit.object : null;
 
   if (ambientLogosGroup.visible && !document.body.classList.contains('detail-panel-open')) {
     for (const item of ambientLogoObjects) {
@@ -2225,6 +2306,63 @@ function updateHover() {
   }
 
   renderer.domElement.style.cursor = hit ? 'pointer' : 'grab';
+}
+
+function animateHoverEffects() {
+  const activeNodes = [];
+
+  if (currentLayer === 'MAIN') {
+    if (coreNode) activeNodes.push(coreNode);
+    for (const item of mainNodeObjects) activeNodes.push(item);
+  } else if (currentLayer === 'SUBNET' && activeSubnet) {
+    if (activeSubnet.coreNode) activeNodes.push(activeSubnet.coreNode);
+    for (const category of activeSubnet.categories) activeNodes.push(category);
+    activeSubnet.group.traverse(child => {
+      if (child.userData && child.userData.type === 'skill-node') {
+        activeNodes.push(child.userData);
+      }
+    });
+  }
+
+  for (const node of activeNodes) {
+    const isHovered = currentHoveredMesh && (
+      node.mesh === currentHoveredMesh ||
+      node.hitboxMesh === currentHoveredMesh ||
+      node.nucleusMesh === currentHoveredMesh ||
+      (node.mesh && node.mesh.userData && currentHoveredMesh.userData && node.mesh.userData.id === currentHoveredMesh.userData.id)
+    );
+
+    const glowMesh = node.glowMesh;
+    const shellMesh = node.shellMesh;
+    const nucleusMesh = node.nucleusMesh || node.mesh;
+
+    if (glowMesh && glowMesh.material) {
+      const targetGlowOpacity = isHovered ? 0.28 : 0.0;
+      glowMesh.material.opacity = THREE.MathUtils.lerp(glowMesh.material.opacity, targetGlowOpacity, 0.18);
+    }
+
+    if (shellMesh && shellMesh.material) {
+      const baseShellOpacity = shellMesh.material.userData.baseOpacity || 0.32;
+      const targetShellOpacity = isHovered ? 0.75 : baseShellOpacity;
+      shellMesh.material.opacity = THREE.MathUtils.lerp(shellMesh.material.opacity, targetShellOpacity, 0.18);
+    }
+
+    if (nucleusMesh && nucleusMesh.material) {
+      const baseNucleusOpacity = nucleusMesh.material.userData.baseOpacity || 0.95;
+      const targetNucleusOpacity = isHovered ? 1.0 : baseNucleusOpacity;
+      nucleusMesh.material.opacity = THREE.MathUtils.lerp(nucleusMesh.material.opacity, targetNucleusOpacity, 0.18);
+    }
+
+    if (node.label && node.label.element) {
+      if (isHovered) {
+        node.label.element.style.color = '#ffffff';
+        node.label.element.style.textShadow = '0 0 16px rgba(0, 255, 136, 0.65)';
+      } else {
+        node.label.element.style.color = '';
+        node.label.element.style.textShadow = '';
+      }
+    }
+  }
 }
 
 /* ============================================================
@@ -2388,6 +2526,7 @@ function animate(currentTime) {
 
   updateSignals();
   updateHover();
+  animateHoverEffects();
   updateLabels();
 
   renderer.render(scene, camera);
