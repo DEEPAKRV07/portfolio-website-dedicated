@@ -394,6 +394,8 @@ function showDetailPresentation(data) {
 function hideDetailPresentation() {
   if (!detailPanelEl) return;
 
+  const wasAbout = window.location.pathname.toLowerCase().endsWith('/about');
+
   detailPanelEl.classList.remove('active');
   detailPanelEl.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('detail-panel-open');
@@ -409,6 +411,12 @@ function hideDetailPresentation() {
     setWorldOpacity(mainGraph, 0.08);
   } else if (currentLayer === 'MAIN') {
     setWorldOpacity(mainGraph, 1.0);
+  }
+
+  // If closing detail presentation while on /about route, sync browser route back to active layer or home
+  if (wasAbout) {
+    const currentSubnetKey = activeSubnet ? activeSubnet.subnetId : 'home';
+    updateBrowserRoute(currentSubnetKey, true);
   }
 }
 
