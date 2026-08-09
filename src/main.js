@@ -946,17 +946,43 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
    ============================================================ */
 
 function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
+  // 1. Persistent subtle base wire
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(6);
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-  const material = lineMaterial(opacity, color);
+  const material = lineMaterial(opacity * 0.45, color);
   const line = new THREE.Line(geometry, material);
   line.frustumCulled = false;
-
   parent.add(line);
 
-  return { line, source, target, material };
+  // 2. Luminous electric data packet travelling along connection path
+  const dashGeometry = new THREE.BufferGeometry();
+  dashGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+  const dashMaterial = new THREE.LineDashedMaterial({
+    color: COLORS.bright,
+    linewidth: 1,
+    scale: 1,
+    dashSize: 0.75,
+    gapSize: 3.8,
+    transparent: true,
+    opacity: opacity * 0.92,
+    depthWrite: false,
+  });
+  dashMaterial.userData.baseOpacity = opacity * 0.92;
+  const dashLine = new THREE.Line(dashGeometry, dashMaterial);
+  dashLine.frustumCulled = false;
+  parent.add(dashLine);
+
+  return {
+    line,
+    dashLine,
+    source,
+    target,
+    material,
+    dashMaterial,
+    speed: 0.035 + Math.random() * 0.025,
+  };
 }
 
 function updateEdge(edge) {
@@ -973,10 +999,23 @@ function updateEdge(edge) {
     edge.line.parent.worldToLocal(end);
   }
 
+  // Update base wire
   const position = edge.line.geometry.attributes.position;
   position.setXYZ(0, start.x, start.y, start.z);
   position.setXYZ(1, end.x, end.y, end.z);
   position.needsUpdate = true;
+
+  // Update luminous dash line & line distances for travelling data flow
+  if (edge.dashLine) {
+    const dashPos = edge.dashLine.geometry.attributes.position;
+    dashPos.setXYZ(0, start.x, start.y, start.z);
+    dashPos.setXYZ(1, end.x, end.y, end.z);
+    dashPos.needsUpdate = true;
+    edge.dashLine.computeLineDistances();
+
+    edge.dashLine.visible = edge.line.visible;
+    edge.dashMaterial.opacity = edge.material.opacity * 1.8;
+  }
 }
 
 function updateEdges(edgeArray) {
@@ -2168,6 +2207,20 @@ function animate(currentTime) {
   animateBurstState();
   updateCameraTransition();
   controls.update();
+
+  /* Continuous Electric Data Flow Motion (Dash Offset Animation) */
+  for (const edge of mainEdges) {
+    if (edge.dashMaterial) {
+      edge.dashMaterial.dashOffset -= edge.speed;
+    }
+  }
+  if (activeSubnet) {
+    for (const edge of activeSubnet.edges) {
+      if (edge.dashMaterial) {
+        edge.dashMaterial.dashOffset -= edge.speed;
+      }
+    }
+  }
 
   /* Dynamic 3D Edge Updating */
   updateEdges(mainEdges);
