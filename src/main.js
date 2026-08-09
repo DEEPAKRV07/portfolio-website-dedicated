@@ -438,6 +438,7 @@ function showSkillContextPanel(skillData) {
     ambientLogosGroup.visible = false;
   }
 
+  document.body.classList.add('detail-panel-open');
   skillContextPanelEl.classList.add('active');
   skillContextPanelEl.setAttribute('aria-hidden', 'false');
 }
@@ -447,6 +448,7 @@ function hideSkillContextPanel() {
 
   skillContextPanelEl.classList.remove('active');
   skillContextPanelEl.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('detail-panel-open');
 
   if (currentLayer === 'MAIN' && typeof ambientLogosGroup !== 'undefined') {
     ambientLogosGroup.visible = true;
@@ -496,8 +498,8 @@ function setLabelMode(mode) {
 }
 
 function updateLabels() {
-  // If detail presentation is open, hide all graph labels to prevent visual collisions!
-  if (document.body.classList.contains('detail-panel-open')) {
+  // If detail presentation or skill context panel is open, hide all graph labels to prevent visual collisions!
+  if (document.body.classList.contains('detail-panel-open') || (skillContextPanelEl && skillContextPanelEl.classList.contains('active'))) {
     for (const label of labels) {
       label.element.style.opacity = '0';
       label.element.style.display = 'none';
