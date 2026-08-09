@@ -1784,7 +1784,36 @@ function updateCounters(nodeCount, edgeCount) {
 }
 
 /* ============================================================
-   LAYER CONTROL FUNCTIONS (HOME-ONLY FLOATING 3D OBJECT VISIBILITY)
+   CLIENT-SIDE ROUTING & BROWSER HISTORY API
+   ============================================================ */
+
+const ROUTES = {
+  home: { path: '/portfolio-website-dedicated/', title: 'DEEPAK R V — Neural Network' },
+  about: { path: '/portfolio-website-dedicated/about', title: 'DEEPAK R V — About' },
+  skills: { path: '/portfolio-website-dedicated/skills', title: 'DEEPAK R V — Skills' },
+  projects: { path: '/portfolio-website-dedicated/projects', title: 'DEEPAK R V — Projects' },
+  experience: { path: '/portfolio-website-dedicated/experience', title: 'DEEPAK R V — Experience' },
+  contact: { path: '/portfolio-website-dedicated/contact', title: 'DEEPAK R V — Contact' },
+};
+
+function updateBrowserRoute(routeKey, isPush = true) {
+  const route = ROUTES[routeKey] || ROUTES.home;
+  document.title = route.title;
+
+  const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/portfolio-website-dedicated';
+  const targetPath = route.path.toLowerCase().replace(/\/$/, '') || '/portfolio-website-dedicated';
+
+  if (currentPath !== targetPath) {
+    if (isPush) {
+      history.pushState({ routeKey }, route.title, route.path);
+    } else {
+      history.replaceState({ routeKey }, route.title, route.path);
+    }
+  }
+}
+
+/* ============================================================
+   LAYER CONTROL FUNCTIONS (ACTIVE-LAYER ISOLATION)
    ============================================================ */
 
 function setLayerVisibility(layerName) {
@@ -1806,11 +1835,11 @@ function setLayerVisibility(layerName) {
     setLabelMode('main');
     showCoreBeacon(false);
   } else if (layerName === 'SUBNET') {
-    setWorldVisibility(mainGraph, true);
-    setWorldOpacity(mainGraph, 0.08); // Heavily faded Home network ghost
-    setWorldOpacity(core, 0.18);       // Persistent core
+    /* STRICT ACTIVE-LAYER ISOLATION: Hide Home network completely in subnets! */
+    setWorldVisibility(mainGraph, false);
+    setWorldOpacity(mainGraph, 0.0);
+    setWorldOpacity(core, 0.0);
 
-    /* HIDE THE 5 AMBIENT 3D FLOATING LOGOS COMPLETELY IN SUBNETWORKS! */
     ambientLogosGroup.visible = false;
 
     for (const world of subnetWorlds.values()) {
@@ -1820,11 +1849,11 @@ function setLayerVisibility(layerName) {
     }
 
     setLabelMode('subnet');
-    showCoreBeacon(true);
+    showCoreBeacon(false); // Remove redundant MAIN CORE floating node in subnets!
   }
 }
 
-function enterSubnet(subnetId) {
+function enterSubnet(subnetId, isPush = true) {
   const world = subnetWorlds.get(subnetId);
   if (!world) return;
 
@@ -1842,9 +1871,10 @@ function enterSubnet(subnetId) {
   updateCounters(world.categories.length + 1, world.edges.length);
 
   startTransition(new THREE.Vector3(0, 1.2, 18.5), new THREE.Vector3(0, 0, 0), 850);
+  updateBrowserRoute(subnetId, isPush);
 }
 
-function returnToCore() {
+function returnToCore(isPush = true) {
   activeSubnet = null;
   hideDetailPresentation();
   hideSkillContextPanel();
@@ -1859,6 +1889,7 @@ function returnToCore() {
   updateCounters(mainNodeObjects.length + 1, mainEdges.length);
 
   startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 900);
+  updateBrowserRoute('home', isPush);
 }
 
 function exitLayer() {
@@ -2108,6 +2139,7 @@ renderer.domElement.addEventListener('click', event => {
     if (node) {
       if (node.id === 'about') {
         showDetailPresentation(combinedAboutData);
+        updateBrowserRoute('about', true);
       } else {
         enterSubnet(node.id);
       }
@@ -2353,13 +2385,64 @@ function animate(currentTime) {
 }
 
 /* ============================================================
-   INITIALIZATION & RESIZE HANDLERS
+   INITIALIZATION, ROUTING & RESIZE HANDLERS
    ============================================================ */
 
-setLayerVisibility('MAIN');
-setMode('OVERVIEW');
-setLayerPath('NEURAL NETWORK / OVERVIEW');
-updateCounters(mainNodeObjects.length + 1, mainEdges.length);
+window.addEventListener('popstate', () => {
+  const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
+
+  if (path.endsWith('/about')) {
+    returnToCore(false);
+    showDetailPresentation(combinedAboutData);
+    updateBrowserRoute('about', false);
+  } else if (path.endsWith('/skills')) {
+    enterSubnet('skills', false);
+  } else if (path.endsWith('/projects')) {
+    enterSubnet('projects', false);
+  } else if (path.endsWith('/experience')) {
+    enterSubnet('experience', false);
+  } else if (path.endsWith('/contact')) {
+    enterSubnet('contact', false);
+  } else {
+    hideDetailPresentation();
+    hideSkillContextPanel();
+    returnToCore(false);
+  }
+});
+
+function initRouteFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const redirectedPath = params.get('p');
+  let path = window.location.pathname;
+
+  if (redirectedPath) {
+    path = `/portfolio-website-dedicated/${redirectedPath}`.replace(/\/+/g, '/');
+    history.replaceState(null, '', path);
+  }
+
+  const normalizedPath = path.toLowerCase().replace(/\/$/, '');
+
+  if (normalizedPath.endsWith('/about')) {
+    showDetailPresentation(combinedAboutData);
+    updateBrowserRoute('about', false);
+  } else if (normalizedPath.endsWith('/skills')) {
+    enterSubnet('skills', false);
+  } else if (normalizedPath.endsWith('/projects')) {
+    enterSubnet('projects', false);
+  } else if (normalizedPath.endsWith('/experience')) {
+    enterSubnet('experience', false);
+  } else if (normalizedPath.endsWith('/contact')) {
+    enterSubnet('contact', false);
+  } else {
+    setLayerVisibility('MAIN');
+    setMode('OVERVIEW');
+    setLayerPath('NEURAL NETWORK / OVERVIEW');
+    updateCounters(mainNodeObjects.length + 1, mainEdges.length);
+    updateBrowserRoute('home', false);
+  }
+}
+
+initRouteFromUrl();
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;

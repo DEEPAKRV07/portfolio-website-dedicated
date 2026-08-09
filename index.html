@@ -8,9 +8,20 @@
       name="description"
       content="Deepak R V — AI/ML Engineer & Computer Vision Specialist portfolio built as an interactive 3D neural network."
     />
-    <title>Deepak R V — Inside My Neural Network</title>
-    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!-- GitHub Pages SPA Redirect Decoder -->
+    <script type="text/javascript">
+      (function(l) {
+        if (l.search && l.search[1] === 'p') {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&');
+          }).filter(function(s) { return s.slice(0, 2) === 'p='; })[0];
+          if (decoded) {
+            var targetPath = (l.pathname.slice(0, -1) + '/' + decoded.slice(2)).replace(/\/+/g, '/');
+            window.history.replaceState(null, null, targetPath + (l.hash || ''));
+          }
+        }
+      }(window.location));
+    </script>
     <!-- Inline Critical CSS for Neural Initialization Screen (Eliminating White Flash) -->
     <style>
       html,
