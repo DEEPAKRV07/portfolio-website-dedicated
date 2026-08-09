@@ -942,37 +942,51 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
 }
 
 /* ============================================================
-   DYNAMIC EDGE CREATION & UPDATING (Permanent Wires + Traveling Sparks)
+   DYNAMIC EDGE CREATION & UPDATING (Thicker Wire + Localized Electric Glow Pulse)
    ============================================================ */
 
-const sparkGeometry = new THREE.SphereGeometry(0.085, 12, 12);
-const sparkMaterial = nodeMaterial(COLORS.bright, 0.95);
+const pulseCoreGeometry = new THREE.SphereGeometry(0.09, 14, 14);
+const pulseCoreMaterial = nodeMaterial(COLORS.bright, 0.98);
 
-function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
-  // 1. Permanent Visible Base Wire (ALWAYS visible!)
+const pulseGlowGeometry = new THREE.SphereGeometry(0.18, 14, 14);
+const pulseGlowMaterial = new THREE.MeshBasicMaterial({
+  color: COLORS.bright,
+  transparent: true,
+  opacity: 0.42,
+  depthWrite: false,
+});
+
+function createEdge(source, target, parent, opacity = 0.5, color = COLORS.medium) {
+  // 1. Permanent Visible Base Wire (ALWAYS VISIBLE!)
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(6);
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-  const material = lineMaterial(opacity * 0.85, color);
+  const material = lineMaterial(Math.min(opacity * 1.15, 0.85), color);
   const line = new THREE.Line(geometry, material);
   line.frustumCulled = false;
   parent.add(line);
 
-  // 2. Separate Traveling Electric Spark Packet
-  const sparkMesh = new THREE.Mesh(sparkGeometry, sparkMaterial);
-  sparkMesh.frustumCulled = false;
-  sparkMesh.visible = false;
-  parent.add(sparkMesh);
+  // 2. Separate Traveling Electric Pulse Group (Spark Core + Localized Wire Glow Halo)
+  const pulseGroup = new THREE.Group();
+  pulseGroup.frustumCulled = false;
+  pulseGroup.visible = false;
+
+  const coreMesh = new THREE.Mesh(pulseCoreGeometry, pulseCoreMaterial);
+  const glowMesh = new THREE.Mesh(pulseGlowGeometry, pulseGlowMaterial);
+  pulseGroup.add(coreMesh);
+  pulseGroup.add(glowMesh);
+
+  parent.add(pulseGroup);
 
   const edgeObj = {
     line,
-    sparkMesh,
+    pulseGroup,
     source,
     target,
     material,
     progress: Math.random(), // Randomized initial phase offset (0 -> 1)
-    speed: 0.005 + Math.random() * 0.005, // Varied subtle flow speed
+    speed: 0.004 + Math.random() * 0.005, // Smooth calm data flow speed
   };
 
   return edgeObj;
@@ -992,23 +1006,23 @@ function updateEdge(edge) {
     edge.line.parent.worldToLocal(end);
   }
 
-  // 1. Update Permanent Base Wire Endpoints (Never disappears!)
+  // 1. Update Permanent Base Wire Endpoints (ALWAYS VISIBLE!)
   const position = edge.line.geometry.attributes.position;
   position.setXYZ(0, start.x, start.y, start.z);
   position.setXYZ(1, end.x, end.y, end.z);
   position.needsUpdate = true;
 
-  // 2. Animate Traveling Electric Spark along source -> target
-  if (edge.sparkMesh) {
+  // 2. Animate Traveling Electric Pulse + Localized Glow along source -> target
+  if (edge.pulseGroup) {
     const isVisible = isObjectInVisibleWorld(edge.source) && isObjectInVisibleWorld(edge.target);
     if (!isVisible) {
-      edge.sparkMesh.visible = false;
+      edge.pulseGroup.visible = false;
     } else {
       edge.progress += edge.speed;
       if (edge.progress > 1) edge.progress = 0;
 
-      edge.sparkMesh.position.lerpVectors(start, end, edge.progress);
-      edge.sparkMesh.visible = true;
+      edge.pulseGroup.position.lerpVectors(start, end, edge.progress);
+      edge.pulseGroup.visible = true;
     }
   }
 }
