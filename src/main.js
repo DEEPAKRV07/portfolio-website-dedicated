@@ -2278,58 +2278,6 @@ function animate(currentTime) {
   updateCameraTransition();
   controls.update();
 
-  /* Subtle Living/Breathing Neural Network Motion (Idle State Only) */
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isNetworkIdle = !isBurstActive && burstVelocities.size === 0;
-
-  if (isNetworkIdle && !prefersReducedMotion) {
-    const t = currentTime * 0.001;
-    const breathScale = 1.0 + Math.sin(t * 0.4) * 0.004;
-
-    if (currentLayer === 'MAIN') {
-      mainGraph.scale.set(breathScale, breathScale, breathScale);
-
-      // Node Micro-Motion & Micro-Scale Breathing
-      for (let i = 0; i < mainNodeObjects.length; i++) {
-        const item = mainNodeObjects[i];
-        if (!item.originalPos) item.originalPos = item.group.position.clone();
-
-        const phase = i * 1.25;
-        const microY = Math.sin(t * 0.6 + phase) * 0.035;
-        const microScale = 1.0 + Math.sin(t * 0.8 + phase) * 0.005;
-
-        item.group.position.y = item.originalPos.y + microY;
-        item.group.scale.set(microScale, microScale, microScale);
-      }
-
-      // Core Node Micro-Motion
-      if (coreNode && coreNode.group) {
-        if (!coreNode.originalPos) coreNode.originalPos = coreNode.group.position.clone();
-        const coreMicroY = Math.sin(t * 0.5) * 0.028;
-        const coreMicroScale = 1.0 + Math.sin(t * 0.7) * 0.004;
-        coreNode.group.position.y = coreNode.originalPos.y + coreMicroY;
-        coreNode.group.scale.set(coreMicroScale, coreMicroScale, coreMicroScale);
-      }
-    } else if (currentLayer === 'SUBNET' && activeSubnet) {
-      activeSubnet.group.scale.set(breathScale, breathScale, breathScale);
-
-      for (let i = 0; i < activeSubnet.nodes.length; i++) {
-        const item = activeSubnet.nodes[i];
-        if (!item.originalPos) item.originalPos = item.group.position.clone();
-
-        const phase = i * 1.25;
-        const microY = Math.sin(t * 0.6 + phase) * 0.035;
-        const microScale = 1.0 + Math.sin(t * 0.8 + phase) * 0.005;
-
-        item.group.position.y = item.originalPos.y + microY;
-        item.group.scale.set(microScale, microScale, microScale);
-      }
-    }
-  } else if (!isNetworkIdle) {
-    mainGraph.scale.set(1, 1, 1);
-    if (activeSubnet) activeSubnet.group.scale.set(1, 1, 1);
-  }
-
   /* Continuous Travelling Electric Particle Pulse Motion */
   for (const edge of mainEdges) {
     if (edge.particleGroup) {
