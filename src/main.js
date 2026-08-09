@@ -1650,15 +1650,6 @@ function createSubnetWorld(subnetId) {
     color: COLORS.bright,
     opacity: 0.92,
   });
-  const coreNodeObj = {
-    mesh: coreNode.nucleusMesh,
-    nucleusMesh: coreNode.nucleusMesh,
-    shellMesh: coreNode.shellMesh,
-    glowMesh: coreNode.glowMesh,
-    hitboxMesh: coreNode.hitboxMesh,
-    group: coreNode.group,
-    label: subnetLabel,
-  };
   coreNode.nucleusMesh.userData = { type: 'subnet-core', subnetId };
   subnetCore.add(coreNode.group);
 
@@ -1669,6 +1660,16 @@ function createSubnetWorld(subnetId) {
   const subtitleLabel = createLabel(definition.subtitle, 'project-subtitle', 'subnet');
   subtitleLabel.object = coreNode.nucleusMesh;
   subtitleLabel.offset.set(0, -2.65, 0);
+
+  const coreNodeObj = {
+    mesh: coreNode.nucleusMesh,
+    nucleusMesh: coreNode.nucleusMesh,
+    shellMesh: coreNode.shellMesh,
+    glowMesh: coreNode.glowMesh,
+    hitboxMesh: coreNode.hitboxMesh,
+    group: coreNode.group,
+    label: subnetLabel,
+  };
 
   const categoryNodes = new Map();
   const categories = [];
