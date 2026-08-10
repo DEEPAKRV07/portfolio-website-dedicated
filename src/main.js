@@ -1027,9 +1027,9 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
 const unitCylinderGeometry = new THREE.CylinderGeometry(0.065, 0.065, 1, 8, 1);
 unitCylinderGeometry.translate(0, 0.5, 0);
 
-const particleSolidGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+const particleSolidGeometry = new THREE.SphereGeometry(0.15, 16, 16);
 const particleSolidMaterial = new THREE.MeshBasicMaterial({
-  color: COLORS.bright,
+  color: 0x00ff88,
   transparent: false,
   opacity: 1.0,
   depthWrite: true,
@@ -2804,6 +2804,14 @@ let fpsTimer = performance.now();
 function animate(currentTime) {
   requestAnimationFrame(animate);
 
+  if (isMobileViewport()) {
+    renderer.domElement.style.display = 'none';
+    renderMobileExperience();
+    return; // Completely bypass desktop 3D graph processing on mobile
+  }
+
+  renderer.domElement.style.display = 'block';
+
   /* Core Rotation */
   coreWire.rotation.y += 0.002;
 
@@ -3079,19 +3087,4 @@ window.addEventListener('resize', () => {
 });
 
 // Run initial layout check
-updateResponsiveLayout();
-
-function mainAnimateLoop(currentTime) {
-  requestAnimationFrame(mainAnimateLoop);
-
-  if (isMobileViewport()) {
-    renderer.domElement.style.display = 'none';
-    renderMobileExperience();
-    return; // Completely bypass desktop 3D graph processing on mobile
-  }
-
-  renderer.domElement.style.display = 'block';
-  animate(currentTime);
-}
-
-requestAnimationFrame(mainAnimateLoop);
+requestAnimationFrame(animate);

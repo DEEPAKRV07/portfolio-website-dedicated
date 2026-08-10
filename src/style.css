@@ -1196,66 +1196,68 @@ body.detail-mode .intro {
 
   /* Mobile Sections */
   .m-content-container {
-    padding: 20px;
+    width: min(100% - 32px, 720px);
+    margin: 0 auto;
+    padding: 24px 0;
   }
 
   .m-section {
-    padding-top: 32px;
-    margin-bottom: 40px;
-    border-bottom: 1px solid rgba(0, 255, 136, 0.12);
-    padding-bottom: 32px;
+    padding-top: 36px;
+    margin-bottom: 44px;
+    border-bottom: 1px solid rgba(0, 255, 136, 0.14);
+    padding-bottom: 36px;
   }
 
   .m-sec-kicker {
-    font-size: 10px;
-    letter-spacing: 0.2em;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
     color: #00ff88;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .m-sec-title {
     font-family: var(--font-display);
-    font-size: 22px;
+    font-size: clamp(22px, 6vw, 30px);
     letter-spacing: 0.1em;
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     color: #ffffff;
   }
 
   .m-sec-subtitle {
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.12em;
     color: #aaaaaa;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
   }
 
   /* Mobile Editorial Cards */
   .m-card {
-    background: rgba(13, 20, 16, 0.7);
-    border: 1px solid rgba(0, 255, 136, 0.22);
-    border-radius: 12px;
-    padding: 18px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    background: rgba(13, 20, 16, 0.75);
+    border: 1px solid rgba(0, 255, 136, 0.25);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
   }
 
   .m-card h3 {
-    margin: 0 0 10px;
-    font-size: 13px;
+    margin: 0 0 12px;
+    font-size: 14px;
     letter-spacing: 0.14em;
     color: #00ff88;
   }
 
   .m-card p {
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: #dddddd;
-    margin: 0 0 8px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: #e5e5e5;
+    margin: 0 0 10px;
   }
 
   .m-dim-text {
-    color: #aaaaaa !important;
-    font-size: 12.5px !important;
+    color: #bbbbbb !important;
+    font-size: 13.5px !important;
   }
 
   .m-list {
