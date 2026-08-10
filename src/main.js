@@ -1027,9 +1027,9 @@ if (gitLogoImg.complete && gitLogoImg.naturalWidth !== 0) {
 const unitCylinderGeometry = new THREE.CylinderGeometry(0.065, 0.065, 1, 8, 1);
 unitCylinderGeometry.translate(0, 0.5, 0);
 
-const particleSolidGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+const particleSolidGeometry = new THREE.SphereGeometry(0.08, 16, 16);
 const particleSolidMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00ff88,
+  color: COLORS.bright,
   transparent: false,
   opacity: 1.0,
   depthWrite: true,
@@ -1709,11 +1709,11 @@ let activeSubnet = null;
 
 function calculateProjectsLayout(categories) {
   const slotMap = {
-    'kaatchi':      new THREE.Vector3(0.0,  6.8,  0.5),  // Top Center
-    'forcrux':       new THREE.Vector3(-7.5, 3.8,  1.2),  // Upper Left
-    'google-maps':   new THREE.Vector3(7.5,  3.8, -1.2),  // Upper Right
-    'sightmate':     new THREE.Vector3(-6.2, -4.5, -1.2), // Lower Left
-    'football':      new THREE.Vector3(6.2, -4.5,  1.2),  // Lower Right
+    'kaatchi':      new THREE.Vector3(0.0,  6.2,  0.0),  // Top Center
+    'forcrux':       new THREE.Vector3(-7.8, 3.5,  0.8),  // Upper Left
+    'google-maps':   new THREE.Vector3(7.8,  3.8, -0.8),  // Upper Right
+    'sightmate':     new THREE.Vector3(-6.8, -4.2, -0.8), // Lower Left
+    'football':      new THREE.Vector3(6.8, -4.2,  0.8),  // Lower Right
   };
 
   for (const cat of categories) {
