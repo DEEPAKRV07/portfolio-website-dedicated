@@ -2090,9 +2090,30 @@ const ROUTES = {
   contact: { path: '/portfolio-website-dedicated/contact', title: 'DEEPAK R V — Contact' },
 };
 
+const mobileChapterIndicatorEl = document.getElementById('mobileChapterIndicator');
+
+const MOBILE_CHAPTER_MAP = {
+  home: 'CHAPTER 01 / OVERVIEW',
+  about: 'CHAPTER 02 / PROFILE & IDENTITY',
+  skills: 'CHAPTER 03 / CAPABILITIES',
+  projects: 'CHAPTER 04 / CASE STUDIES',
+  experience: 'CHAPTER 05 / CAREER MILESTONES',
+  contact: 'CHAPTER 06 / CONNECTION HUB',
+};
+
+function updateMobileChapter(routeKey) {
+  if (!mobileChapterIndicatorEl) return;
+  const chapterText = MOBILE_CHAPTER_MAP[routeKey] || MOBILE_CHAPTER_MAP.home;
+  const span = mobileChapterIndicatorEl.querySelector('span');
+  if (span) span.textContent = chapterText;
+  mobileChapterIndicatorEl.style.display = isMobileViewport() ? 'inline-flex' : 'none';
+}
+
 function updateBrowserRoute(routeKey, isPush = true) {
   const route = ROUTES[routeKey] || ROUTES.home;
   document.title = route.title;
+
+  updateMobileChapter(routeKey);
 
   const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/portfolio-website-dedicated';
   const targetPath = route.path.toLowerCase().replace(/\/$/, '') || '/portfolio-website-dedicated';

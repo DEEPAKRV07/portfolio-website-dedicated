@@ -937,6 +937,27 @@ body.detail-mode .intro {
     letter-spacing: 0.14em;
   }
 
+  /* Mobile Chapter Scrollytelling Indicator */
+  .mobile-chapter-indicator {
+    position: fixed;
+    top: calc(62px + env(safe-area-inset-top, 0px));
+    left: 16px;
+    z-index: 90;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(8, 12, 10, 0.85);
+    border: 1px solid rgba(0, 255, 136, 0.35);
+    border-radius: 12px;
+    font-family: var(--font-deltha, monospace);
+    font-size: 9px;
+    color: var(--color-bright, #00ff88);
+    letter-spacing: 0.12em;
+    backdrop-filter: blur(10px);
+    pointer-events: none;
+  }
+
   .system-panel {
     top: calc(14px + env(safe-area-inset-top, 0px));
     right: 16px;
