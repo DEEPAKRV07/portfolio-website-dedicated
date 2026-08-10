@@ -1455,18 +1455,25 @@ body.detail-mode .intro {
     overflow-wrap: anywhere;
   }
 
-  /* Projects List */
+  /* Projects Case Studies Sizing & Vertical Scanning System */
   .m-project-card {
-    background: rgba(13, 20, 16, 0.85);
+    background: rgba(10, 16, 13, 0.88);
     border: 1px solid rgba(0, 255, 136, 0.3);
     border-radius: 16px;
-    padding: clamp(22px, 5vw, 32px);
-    margin-bottom: 26px;
+    padding: clamp(20px, 4.8vw, 30px);
+    margin-bottom: 28px;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
     overflow-x: hidden;
-    box-shadow: 0 6px 32px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+    transition: transform 200ms ease, border-color 200ms ease;
+  }
+
+  .m-project-card:hover,
+  .m-project-card:focus-within {
+    border-color: rgba(0, 255, 136, 0.55);
+    box-shadow: 0 10px 36px rgba(0, 255, 136, 0.15);
   }
 
   .m-proj-num {
@@ -1475,12 +1482,14 @@ body.detail-mode .intro {
     color: #00ff88;
     margin-bottom: 6px;
     font-weight: 700;
+    text-transform: uppercase;
   }
 
   .m-proj-title {
     font-family: var(--font-display);
-    font-size: clamp(20px, 5vw, 25px);
-    letter-spacing: 0.06em;
+    font-size: clamp(20px, 5.2vw, 26px);
+    line-height: 1.25;
+    letter-spacing: 0.05em;
     color: #ffffff;
     margin: 0 0 6px;
     word-break: break-word;
@@ -1488,10 +1497,10 @@ body.detail-mode .intro {
   }
 
   .m-proj-subtitle {
-    font-size: clamp(12.5px, 3.2vw, 14px);
+    font-size: clamp(12.5px, 3.4vw, 14px);
     color: #00ff88;
     margin-bottom: 18px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     font-weight: 600;
   }
 
@@ -1499,26 +1508,51 @@ body.detail-mode .intro {
     font-size: 11.5px;
     letter-spacing: 0.18em;
     color: #00ff88;
-    margin: 18px 0 6px;
+    margin: 20px 0 8px;
     font-weight: 700;
     text-transform: uppercase;
+    border-left: 2px solid #00ff88;
+    padding-left: 8px;
+  }
+
+  .m-proj-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .m-proj-btn {
-    display: inline-block;
-    margin-top: 14px;
-    min-height: 48px;
-    line-height: 48px;
-    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 50px;
+    margin-top: 18px;
+    padding: 0 24px;
     background: #00ff88;
     color: #040806;
+    font-family: var(--font-display);
+    font-size: 13px;
     font-weight: 700;
-    font-size: 12px;
     letter-spacing: 0.14em;
     text-decoration: none;
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: center;
-    box-shadow: 0 0 16px rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.35);
+    transition: all 200ms ease;
+    box-sizing: border-box;
+  }
+
+  .m-proj-btn:active,
+  .m-proj-btn:hover {
+    background: #00cc66;
+    color: #000000;
+    box-shadow: 0 0 26px rgba(0, 255, 136, 0.65);
+    transform: translateY(-1px);
   }
 
   /* Contact Grid */

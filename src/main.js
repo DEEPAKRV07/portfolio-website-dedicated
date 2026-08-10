@@ -2939,8 +2939,8 @@ function renderMobileExperience() {
             ${sec.bullets ? `<ul class="m-list">${sec.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
           `).join('')}
 
-          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">
-            ${(p.tags || []).map(t => `<span class="m-skill-badge" style="font-size:10px;">${t}</span>`).join('')}
+          <div class="m-proj-tags-container">
+            ${(p.tags || []).map(t => `<span class="m-skill-badge">${t}</span>`).join('')}
           </div>
           ${actionBtn}
         </article>
