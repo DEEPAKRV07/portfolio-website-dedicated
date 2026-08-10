@@ -494,26 +494,33 @@ body.detail-mode .core-home-hint {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 16px;
+  padding-right: 18px;
+  padding-bottom: 36px;
   margin-bottom: 16px;
   outline: none;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .panel-body::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .panel-body::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 255, 136, 0.06);
+  border-radius: 4px;
 }
 
 .panel-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 136, 0.4);
-  border-radius: 3px;
+  background: rgba(0, 255, 136, 0.45);
+  border: 1px solid rgba(0, 255, 136, 0.6);
+  border-radius: 4px;
 }
 
 .panel-body::-webkit-scrollbar-thumb:hover {
   background: var(--green-bright);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.8);
 }
 
 /* Structured Section Styling */

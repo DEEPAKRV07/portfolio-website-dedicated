@@ -2712,27 +2712,27 @@ window.addEventListener('keydown', event => {
   if (isDetailOpen && panelBodyEl) {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      panelBodyEl.scrollTop += 60;
+      panelBodyEl.scrollBy({ top: 100, behavior: 'smooth' });
       return;
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      panelBodyEl.scrollTop -= 60;
+      panelBodyEl.scrollBy({ top: -100, behavior: 'smooth' });
       return;
     } else if (event.key === 'PageDown') {
       event.preventDefault();
-      panelBodyEl.scrollTop += 320;
+      panelBodyEl.scrollBy({ top: 350, behavior: 'smooth' });
       return;
     } else if (event.key === 'PageUp') {
       event.preventDefault();
-      panelBodyEl.scrollTop -= 320;
+      panelBodyEl.scrollBy({ top: -350, behavior: 'smooth' });
       return;
     } else if (event.key === 'Home') {
       event.preventDefault();
-      panelBodyEl.scrollTop = 0;
+      panelBodyEl.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     } else if (event.key === 'End') {
       event.preventDefault();
-      panelBodyEl.scrollTop = panelBodyEl.scrollHeight;
+      panelBodyEl.scrollTo({ top: panelBodyEl.scrollHeight, behavior: 'smooth' });
       return;
     }
   }
