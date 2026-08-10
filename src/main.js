@@ -629,7 +629,7 @@ scene.add(mainGraph);
    ============================================================ */
 
 function isMobileViewport() {
-  return window.innerWidth < 768 || (window.innerWidth < 900 && window.innerHeight > window.innerWidth);
+  return window.innerWidth < 768;
 }
 
 const mainNodesMobilePositions = {
@@ -2919,17 +2919,24 @@ initRouteFromUrl();
 
 function updateResponsiveLayout() {
   const isMobile = isMobileViewport();
+  const s = isMobile ? 0.65 : 1.0;
 
   // 1. Update Main Home Graph Nodes
   if (coreNode) {
     coreNode.originalPos.copy(isMobile ? coreNode.mobileOriginalPos : coreNode.desktopOriginalPos);
-    if (coreNode.group) coreNode.group.position.copy(coreNode.originalPos);
+    if (coreNode.group) {
+      coreNode.group.position.copy(coreNode.originalPos);
+      coreNode.group.scale.set(s, s, s);
+    }
   }
 
   for (const item of mainNodeObjects) {
     if (item.originalPos && item.mobileOriginalPos && item.desktopOriginalPos) {
       item.originalPos.copy(isMobile ? item.mobileOriginalPos : item.desktopOriginalPos);
-      if (item.group) item.group.position.copy(item.originalPos);
+      if (item.group) {
+        item.group.position.copy(item.originalPos);
+        item.group.scale.set(s, s, s);
+      }
     }
   }
 
@@ -2937,12 +2944,18 @@ function updateResponsiveLayout() {
   for (const [subnetId, world] of subnetWorlds.entries()) {
     if (world.coreNode && world.coreNode.desktopOriginalPos && world.coreNode.mobileOriginalPos) {
       world.coreNode.originalPos.copy(isMobile ? world.coreNode.mobileOriginalPos : world.coreNode.desktopOriginalPos);
-      if (world.coreNode.group) world.coreNode.group.position.copy(world.coreNode.originalPos);
+      if (world.coreNode.group) {
+        world.coreNode.group.position.copy(world.coreNode.originalPos);
+        world.coreNode.group.scale.set(s, s, s);
+      }
     }
     for (const cat of world.categories) {
       if (cat.originalPos && cat.mobileOriginalPos && cat.desktopOriginalPos) {
         cat.originalPos.copy(isMobile ? cat.mobileOriginalPos : cat.desktopOriginalPos);
-        if (cat.group) cat.group.position.copy(cat.originalPos);
+        if (cat.group) {
+          cat.group.position.copy(cat.originalPos);
+          cat.group.scale.set(s, s, s);
+        }
       }
     }
   }
