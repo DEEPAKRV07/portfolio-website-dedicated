@@ -1059,8 +1059,10 @@ function createEdge(source, target, parent, opacity = 0.5, color = COLORS.dim) {
   filamentMesh.frustumCulled = false;
   parent.add(filamentMesh);
 
-  // 3. SINGLE SMALL SOLID OPAQUE BRIGHT GREEN ELECTRIC PARTICLE (No translucent halo layer!)
-  const particleMesh = new THREE.Mesh(particleSolidGeometry, particleSolidMaterial);
+  // 3. SINGLE SMALL SOLID OPAQUE BRIGHT GREEN ELECTRIC PARTICLE (Cloned material per edge!)
+  const particleMat = particleSolidMaterial.clone();
+  particleMat.userData.baseOpacity = 1.0;
+  const particleMesh = new THREE.Mesh(particleSolidGeometry, particleMat);
   parent.add(particleMesh);
 
   return {

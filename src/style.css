@@ -1047,16 +1047,42 @@ body.detail-mode .intro {
   .desktop-experience {
     display: block !important;
   }
+
+  canvas {
+    pointer-events: auto !important;
+  }
 }
 
 /* Mobile Experience (Width < 768px) */
 @media (max-width: 767px) {
-  html,
-  body {
+  html {
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    position: relative !important;
     height: auto !important;
+    max-height: none !important;
+  }
+
+  body {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    user-select: auto !important;
+    -webkit-user-select: auto !important;
+    touch-action: pan-y !important;
+    overscroll-behavior-y: auto !important;
+  }
+
+  canvas {
+    display: none !important;
+    pointer-events: none !important;
   }
 
   .desktop-experience {
@@ -1065,12 +1091,18 @@ body.detail-mode .intro {
 
   .mobile-experience {
     display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
     min-height: 100vh;
     background: #040806;
     color: #f0f0f0;
     font-family: var(--font-body);
     padding: 0 0 calc(40px + env(safe-area-inset-bottom, 0px));
-    overflow-x: hidden;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    pointer-events: auto !important;
+    touch-action: pan-y !important;
   }
 
   /* Mobile Header */
