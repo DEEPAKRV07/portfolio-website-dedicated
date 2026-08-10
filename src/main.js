@@ -541,8 +541,8 @@ function setLabelMode(mode) {
 const labelPosTemp = new THREE.Vector3();
 
 function updateLabels() {
-  // If full-screen detail presentation is open, hide all graph labels to prevent visual collisions!
-  if (document.body.classList.contains('detail-panel-open') || detailPanelEl?.classList.contains('active')) {
+  // On mobile viewports or when detail panel is active, hide all graph 3D labels to prevent visual leakage!
+  if (isMobileViewport() || document.body.classList.contains('detail-panel-open') || detailPanelEl?.classList.contains('active')) {
     for (const label of labels) {
       label.element.style.opacity = '0';
       label.element.style.display = 'none';
@@ -2978,11 +2978,53 @@ function renderMobileExperience() {
     }).join('');
   }
 
-  // 4. Mobile Touch Navigation Click & Scroll Handlers
+  // 4. Mobile Hamburger Drawer Toggle & Touch Navigation Handlers
+  const mHamburgerBtn = document.getElementById('mHamburgerBtn');
+  const mNavDrawer = document.getElementById('mNavDrawer');
+  const mNavBackdrop = document.getElementById('mNavBackdrop');
+  const mDrawerCloseBtn = document.getElementById('mDrawerCloseBtn');
+
+  function closeMobileDrawer() {
+    if (mHamburgerBtn) {
+      mHamburgerBtn.classList.remove('open');
+      mHamburgerBtn.setAttribute('aria-expanded', 'false');
+    }
+    if (mNavDrawer) mNavDrawer.classList.remove('open');
+    if (mNavBackdrop) mNavBackdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function openMobileDrawer() {
+    if (mHamburgerBtn) {
+      mHamburgerBtn.classList.add('open');
+      mHamburgerBtn.setAttribute('aria-expanded', 'true');
+    }
+    if (mNavDrawer) mNavDrawer.classList.add('open');
+    if (mNavBackdrop) mNavBackdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  if (mHamburgerBtn) {
+    mHamburgerBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isOpen = mNavDrawer && mNavDrawer.classList.contains('open');
+      if (isOpen) {
+        closeMobileDrawer();
+      } else {
+        openMobileDrawer();
+      }
+    });
+  }
+
+  if (mDrawerCloseBtn) mDrawerCloseBtn.addEventListener('click', closeMobileDrawer);
+  if (mNavBackdrop) mNavBackdrop.addEventListener('click', closeMobileDrawer);
+
   const navBtns = document.querySelectorAll('.m-nav-btn');
   navBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
+      closeMobileDrawer();
+
       const route = btn.dataset.mRoute;
       navBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -2994,7 +3036,7 @@ function renderMobileExperience() {
         const secId = `mSection${route.charAt(0).toUpperCase() + route.slice(1)}`;
         const targetSec = document.getElementById(secId);
         if (targetSec) {
-          const headerOffset = 110;
+          const headerOffset = 72;
           const elementPosition = targetSec.getBoundingClientRect().top;
           const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 

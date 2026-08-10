@@ -265,28 +265,42 @@
 
     <!-- SEPARATE MOBILE DOM PRESENTATION LAYER (Width < 768px) -->
     <section id="mobileApp" class="mobile-experience" aria-label="Mobile portfolio presentation">
+      <!-- FIXED TOP NAVBAR -->
       <header class="m-header">
         <div class="m-identity">
           <h1 class="m-name">DEEPAK R V</h1>
           <div class="m-role">AI / ML ENGINEER &amp; SOFTWARE DEVELOPER</div>
         </div>
-        <div class="m-status"><span class="m-status-dot"></span>ONLINE</div>
+        <button class="m-hamburger-btn" id="mHamburgerBtn" aria-label="Toggle Navigation Menu" aria-expanded="false" aria-controls="mNavDrawer">
+          <span class="m-bar"></span>
+          <span class="m-bar"></span>
+          <span class="m-bar"></span>
+        </button>
       </header>
 
+      <!-- OVERLAY HAMBURGER DRAWER -->
+      <div class="m-nav-backdrop" id="mNavBackdrop"></div>
+      <nav class="m-nav-drawer" id="mNavDrawer" aria-label="Mobile navigation menu">
+        <div class="m-drawer-header">
+          <span>SYSTEM NAVIGATION</span>
+          <button class="m-drawer-close" id="mDrawerCloseBtn" aria-label="Close menu">✕</button>
+        </div>
+        <div class="m-drawer-links">
+          <button class="m-nav-btn active" data-m-route="home">HOME ↗</button>
+          <button class="m-nav-btn" data-m-route="about">ABOUT ↗</button>
+          <button class="m-nav-btn" data-m-route="skills">SKILLS ↗</button>
+          <button class="m-nav-btn" data-m-route="projects">PROJECTS ↗</button>
+          <button class="m-nav-btn" data-m-route="experience">EXPERIENCE ↗</button>
+          <button class="m-nav-btn" data-m-route="contact">CONTACT ↗</button>
+        </div>
+      </nav>
+
+      <!-- HERO SECTION -->
       <section class="m-hero">
         <div class="m-hero-kicker">INSIDE MY NEURAL NETWORK</div>
         <h2 class="m-hero-title">INTELLIGENCE,<br />CONNECTED.</h2>
         <p class="m-hero-desc">Applied AI, Computer Vision, and Data Systems Engineering presented as a cinematic narrative.</p>
       </section>
-
-      <nav class="m-nav" aria-label="Mobile navigation">
-        <button class="m-nav-btn active" data-m-route="home">HOME</button>
-        <button class="m-nav-btn" data-m-route="about">ABOUT</button>
-        <button class="m-nav-btn" data-m-route="skills">SKILLS</button>
-        <button class="m-nav-btn" data-m-route="projects">PROJECTS</button>
-        <button class="m-nav-btn" data-m-route="experience">EXPERIENCE</button>
-        <button class="m-nav-btn" data-m-route="contact">CONTACT</button>
-      </nav>
 
       <div class="m-content-container">
         <!-- 01 / ABOUT -->
