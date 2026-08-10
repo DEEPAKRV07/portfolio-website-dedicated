@@ -904,53 +904,111 @@ body.detail-mode .intro {
 
 @media (max-width: 1024px) {
   .node-detail-panel {
-    width: min(88vw, 800px);
+    width: min(92vw, 800px);
     height: min(85vh, 750px);
-    padding: 26px 28px;
+    padding: 24px 26px;
+  }
+
+  .intro {
+    font-size: 11px;
+    max-width: 280px;
   }
 }
 
 @media (max-width: 768px) {
+  .hud {
+    padding: 0;
+  }
+
   .identity {
-    top: 20px;
-    left: 20px;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    left: 16px;
+    right: 16px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .identity h1 {
+    font-size: 22px;
+    letter-spacing: 0.16em;
+  }
+
+  .identity span {
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
   }
 
   .system-panel {
-    top: 18px;
-    right: 18px;
-    width: 200px;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    right: 16px;
+    width: auto;
+    max-width: 140px;
+    padding: 8px 12px;
+    font-size: 9px;
   }
 
   .intro {
-    left: 20px;
-    bottom: 20px;
+    left: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100vw - 32px);
+    font-size: 10px;
+    padding: 10px 14px;
   }
 
   .interaction-legend {
-    right: 18px;
-    bottom: 18px;
+    display: none; /* Replaced by touch interaction on mobile */
   }
 
   .network-lab-panel {
-    right: 18px;
-    bottom: 300px;
-    width: 170px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    padding: 6px 10px;
   }
 
   .core-home-hint {
-    left: 20px;
+    left: 16px;
+    bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 12px;
+    font-size: 9px;
   }
 
+  /* Full-width Mobile Bottom Drawer Detail Panel */
   .node-detail-panel {
-    width: calc(100vw - 32px);
-    height: calc(100vh - 80px);
-    padding: 22px 20px;
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 85vh;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.85);
+  }
+
+  .panel-header h2 {
+    font-size: 20px;
+  }
+
+  .panel-header p {
+    font-size: 11px;
   }
 
   .skill-context-panel {
-    bottom: 20px;
-    right: 20px;
-    width: calc(100vw - 40px);
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: 16px;
+    width: calc(100vw - 32px);
+    padding: 14px 16px;
+  }
+
+  /* Responsive 3D Labels */
+  .node-label {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
   }
 }

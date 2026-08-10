@@ -624,6 +624,23 @@ const mainGraph = new THREE.Group();
 mainGraph.name = 'MAIN_NEURAL_NETWORK';
 scene.add(mainGraph);
 
+/* ============================================================
+   RESPONSIVE MODE & MOBILE SPATIAL COMPOSITION ENGINE
+   ============================================================ */
+
+function isMobileViewport() {
+  return window.innerWidth < 768 || (window.innerWidth < 900 && window.innerHeight > window.innerWidth);
+}
+
+const mainNodesMobilePositions = {
+  'core':       [0.0,  1.8, 0.0],
+  'about':      [0.0,  6.2, 0.5],
+  'skills':     [-3.6, -1.8, 0.0],
+  'projects':   [0.0, -1.8, 0.0],
+  'experience': [3.6, -1.8, 0.0],
+  'contact':    [0.0, -5.8, 0.5],
+};
+
 const mainNodes = [
   { id: 'about', label: 'ABOUT', type: 'primary', position: [0.0, 7.8, 1.8] },
   { id: 'skills', label: 'SKILLS', type: 'primary', position: [-9.2, 3.8, -1.2] },
@@ -652,7 +669,12 @@ const coreNode = createNeuralNodeGroup({
   opacity: 0.95,
 });
 coreNode.nucleusMesh.userData = { type: 'core', id: 'core' };
-coreNode.originalPos = coreNode.group.position.clone();
+
+coreNode.desktopOriginalPos = new THREE.Vector3(0, 0, 0);
+coreNode.mobileOriginalPos = new THREE.Vector3(0, 1.8, 0);
+coreNode.originalPos = isMobileViewport() ? coreNode.mobileOriginalPos.clone() : coreNode.desktopOriginalPos.clone();
+coreNode.group.position.copy(coreNode.originalPos);
+
 core.add(coreNode.group);
 
 /* Core Outer Wireframe Sphere */
@@ -716,7 +738,12 @@ for (const data of mainNodes) {
     opacity: 0.95,
   });
 
-  node.group.position.set(...data.position);
+  const desktopPos = new THREE.Vector3(...data.position);
+  const mobilePosArr = mainNodesMobilePositions[data.id] || data.position;
+  const mobilePos = new THREE.Vector3(...mobilePosArr);
+
+  const initialPos = isMobileViewport() ? mobilePos.clone() : desktopPos.clone();
+  node.group.position.copy(initialPos);
   node.nucleusMesh.userData = { ...data };
 
   mainGraph.add(node.group);
@@ -734,7 +761,9 @@ for (const data of mainNodes) {
     hitboxMesh: node.hitboxMesh,
     group: node.group,
     label,
-    originalPos: node.group.position.clone(),
+    desktopOriginalPos: desktopPos,
+    mobileOriginalPos: mobilePos,
+    originalPos: initialPos.clone(),
   };
   mainNodeObjects.push(nodeObj);
   mainNodeMap.set(data.id, nodeObj);
@@ -2046,9 +2075,9 @@ function enterSubnet(subnetId, isPush = true) {
 
   setMode(world.definition.title);
   setLayerPath(`NEURAL NETWORK / ${world.definition.title}`);
-  updateCounters(world.categories.length + 1, world.edges.length);
-
-  startTransition(new THREE.Vector3(0, 1.2, 18.5), new THREE.Vector3(0, 0, 0), 850);
+  const subnetZ = isMobileViewport() ? 24.5 : 18.5;
+  const subnetY = isMobileViewport() ? 0.8 : 1.2;
+  startTransition(new THREE.Vector3(0, subnetY, subnetZ), new THREE.Vector3(0, 0, 0), 850);
   updateBrowserRoute(subnetId, isPush);
 }
 
@@ -2066,7 +2095,9 @@ function returnToCore(isPush = true) {
   setLayerPath('NEURAL NETWORK / OVERVIEW');
   updateCounters(mainNodeObjects.length + 1, mainEdges.length);
 
-  startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 900);
+  const homeZ = isMobileViewport() ? 34.0 : 30.0;
+  const homeY = isMobileViewport() ? 0.8 : 1.2;
+  startTransition(new THREE.Vector3(0, homeY, homeZ), new THREE.Vector3(0, 0, 0), 900);
   updateBrowserRoute('home', isPush);
 }
 
@@ -2799,10 +2830,25 @@ function initRouteFromUrl() {
 
 initRouteFromUrl();
 
+function updateResponsiveLayout() {
+  const isMobile = isMobileViewport();
+
+  if (coreNode) {
+    coreNode.originalPos.copy(isMobile ? coreNode.mobileOriginalPos : coreNode.desktopOriginalPos);
+  }
+
+  for (const item of mainNodeObjects) {
+    if (item.originalPos && item.mobileOriginalPos && item.desktopOriginalPos) {
+      item.originalPos.copy(isMobile ? item.mobileOriginalPos : item.desktopOriginalPos);
+    }
+  }
+}
+
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  updateResponsiveLayout();
 });
 
 requestAnimationFrame(animate);
