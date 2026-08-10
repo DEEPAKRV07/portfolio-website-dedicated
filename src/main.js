@@ -1722,6 +1722,67 @@ function calculateProjectsLayout(categories) {
   return categories;
 }
 
+function calculateMobileSubnetPositions(subnetId, categoryObj, index, totalCategories) {
+  // Dedicated Mobile Spatial Slots for Subnetwork Categories
+  const mobileSlots = {
+    'projects': {
+      'kaatchi':      new THREE.Vector3(-3.2,  2.2, 0.0),
+      'forcrux':       new THREE.Vector3( 3.2,  2.2, 0.0),
+      'sightmate':     new THREE.Vector3(-3.2, -1.8, 0.0),
+      'football':      new THREE.Vector3( 3.2, -1.8, 0.0),
+      'google-maps':   new THREE.Vector3( 0.0, -5.5, 0.0),
+    },
+    'skills': {
+      'cv-category':      new THREE.Vector3(-3.4,  2.8, 0.0),
+      'dl-category':      new THREE.Vector3( 3.4,  2.8, 0.0),
+      'systems-category': new THREE.Vector3(-3.4, -2.5, 0.0),
+      'lang-category':    new THREE.Vector3( 3.4, -2.5, 0.0),
+    },
+    'experience': {
+      'forcrux-exp':  new THREE.Vector3(-3.2,  2.0, 0.0),
+      'kaatchi-exp':  new THREE.Vector3( 3.2,  2.0, 0.0),
+      'msme-exp':     new THREE.Vector3(-3.2, -2.5, 0.0),
+      'quality-exp':  new THREE.Vector3( 3.2, -2.5, 0.0),
+    },
+    'contact': {
+      'email-contact':    new THREE.Vector3( 0.0,  1.5, 0.0),
+      'linkedin-contact': new THREE.Vector3(-3.2, -2.2, 0.0),
+      'github-contact':   new THREE.Vector3( 3.2, -2.2, 0.0),
+    },
+  };
+
+  if (mobileSlots[subnetId] && mobileSlots[subnetId][categoryObj.id]) {
+    return mobileSlots[subnetId][categoryObj.id];
+  }
+
+  const col = index % 2;
+  const row = Math.floor(index / 2);
+  return new THREE.Vector3((col - 0.5) * 6.4, 2.0 - row * 3.8, 0.0);
+}
+
+function resolveMobileCollisions(activeNodes) {
+  if (!isMobileViewport() || !Array.isArray(activeNodes)) return;
+  const minDistance = 3.2;
+
+  for (let i = 0; i < activeNodes.length; i++) {
+    for (let j = i + 1; j < activeNodes.length; j++) {
+      const nodeA = activeNodes[i];
+      const nodeB = activeNodes[j];
+      if (!nodeA.originalPos || !nodeB.originalPos) continue;
+
+      const dist = nodeA.originalPos.distanceTo(nodeB.originalPos);
+      if (dist < minDistance && dist > 0.001) {
+        const overlap = (minDistance - dist) * 0.5;
+        const pushDir = new THREE.Vector3().subVectors(nodeB.originalPos, nodeA.originalPos).normalize();
+        nodeA.originalPos.addScaledVector(pushDir, -overlap);
+        nodeB.originalPos.addScaledVector(pushDir, overlap);
+        if (nodeA.group) nodeA.group.position.copy(nodeA.originalPos);
+        if (nodeB.group) nodeB.group.position.copy(nodeB.originalPos);
+      }
+    }
+  }
+}
+
 function createSubnetWorld(subnetId) {
   const definition = subnetDefinitions[subnetId];
   if (subnetId === 'projects') {
@@ -1744,6 +1805,12 @@ function createSubnetWorld(subnetId) {
     opacity: 0.92,
   });
   coreNode.nucleusMesh.userData = { type: 'subnet-core', subnetId };
+
+  coreNode.desktopOriginalPos = new THREE.Vector3(0, 0, 0);
+  coreNode.mobileOriginalPos = new THREE.Vector3(0, 5.2, 0);
+  coreNode.originalPos = isMobileViewport() ? coreNode.mobileOriginalPos.clone() : coreNode.desktopOriginalPos.clone();
+  coreNode.group.position.copy(coreNode.originalPos);
+
   subnetCore.add(coreNode.group);
 
   const subnetLabel = createLabel(definition.title, 'project-core', 'subnet');
@@ -1769,7 +1836,8 @@ function createSubnetWorld(subnetId) {
   const categories = [];
   const edges = [];
 
-  for (const category of definition.categories) {
+  for (let catIndex = 0; catIndex < definition.categories.length; catIndex++) {
+    const category = definition.categories[catIndex];
     const node = createNeuralNodeGroup({
       nucleusRadius: 0.48,
       torusRadius: 0.62,
@@ -1778,7 +1846,11 @@ function createSubnetWorld(subnetId) {
       opacity: 0.95,
     });
 
-    node.group.position.set(...category.position);
+    const desktopPos = new THREE.Vector3(...category.position);
+    const mobilePos = calculateMobileSubnetPositions(subnetId, category, catIndex, definition.categories.length);
+    const initialPos = isMobileViewport() ? mobilePos.clone() : desktopPos.clone();
+    node.group.position.copy(initialPos);
+
     node.nucleusMesh.userData = {
       type: 'category-node',
       id: category.id,
@@ -1807,8 +1879,10 @@ function createSubnetWorld(subnetId) {
       glowMesh: node.glowMesh,
       hitboxMesh: node.hitboxMesh,
       group: node.group, 
-      label, 
-      originalPos: node.group.position.clone() 
+      label,
+      desktopOriginalPos: desktopPos,
+      mobileOriginalPos: mobilePos,
+      originalPos: initialPos.clone() 
     };
     categoryNodes.set(category.id, categoryObj);
     categories.push(categoryObj);
@@ -1817,7 +1891,8 @@ function createSubnetWorld(subnetId) {
 
     // If this category contains individual skill nodes (for Skills subnet)
     if (Array.isArray(category.skills)) {
-      for (const skill of category.skills) {
+      for (let skillIndex = 0; skillIndex < category.skills.length; skillIndex++) {
+        const skill = category.skills[skillIndex];
         const skillNode = createNeuralNodeGroup({
           nucleusRadius: 0.26,
           torusRadius: 0.36,
@@ -1826,7 +1901,17 @@ function createSubnetWorld(subnetId) {
           opacity: 0.95,
         });
 
-        skillNode.group.position.set(...skill.position);
+        const skillDesktopPos = new THREE.Vector3(...skill.position);
+        const angleStep = 0.5;
+        const startAngle = -Math.PI / 2 - ((category.skills.length - 1) * angleStep) / 2;
+        const angle = startAngle + skillIndex * angleStep;
+        const skillMobilePos = new THREE.Vector3(
+          mobilePos.x + Math.cos(angle) * 1.8,
+          mobilePos.y + Math.sin(angle) * 1.8,
+          mobilePos.z
+        );
+        const skillInitialPos = isMobileViewport() ? skillMobilePos.clone() : skillDesktopPos.clone();
+        skillNode.group.position.copy(skillInitialPos);
 
         const skillLabel = createLabel(skill.label, 'skill', 'subnet');
         skillLabel.object = skillNode.nucleusMesh;
@@ -1845,7 +1930,9 @@ function createSubnetWorld(subnetId) {
           hitboxMesh: skillNode.hitboxMesh,
           group: skillNode.group,
           label: skillLabel,
-          originalPos: skillNode.group.position.clone(),
+          desktopOriginalPos: skillDesktopPos,
+          mobileOriginalPos: skillMobilePos,
+          originalPos: skillInitialPos.clone(),
         };
 
         skillNode.nucleusMesh.userData = skillObj;
@@ -2833,14 +2920,38 @@ initRouteFromUrl();
 function updateResponsiveLayout() {
   const isMobile = isMobileViewport();
 
+  // 1. Update Main Home Graph Nodes
   if (coreNode) {
     coreNode.originalPos.copy(isMobile ? coreNode.mobileOriginalPos : coreNode.desktopOriginalPos);
+    if (coreNode.group) coreNode.group.position.copy(coreNode.originalPos);
   }
 
   for (const item of mainNodeObjects) {
     if (item.originalPos && item.mobileOriginalPos && item.desktopOriginalPos) {
       item.originalPos.copy(isMobile ? item.mobileOriginalPos : item.desktopOriginalPos);
+      if (item.group) item.group.position.copy(item.originalPos);
     }
+  }
+
+  // 2. Update Subnetwork Nodes across all subnets (Skills, Projects, Experience, Contact)
+  for (const [subnetId, world] of subnetWorlds.entries()) {
+    if (world.coreNode && world.coreNode.desktopOriginalPos && world.coreNode.mobileOriginalPos) {
+      world.coreNode.originalPos.copy(isMobile ? world.coreNode.mobileOriginalPos : world.coreNode.desktopOriginalPos);
+      if (world.coreNode.group) world.coreNode.group.position.copy(world.coreNode.originalPos);
+    }
+    for (const cat of world.categories) {
+      if (cat.originalPos && cat.mobileOriginalPos && cat.desktopOriginalPos) {
+        cat.originalPos.copy(isMobile ? cat.mobileOriginalPos : cat.desktopOriginalPos);
+        if (cat.group) cat.group.position.copy(cat.originalPos);
+      }
+    }
+  }
+
+  // 3. Automated Layout Validation & Collision Prevention Pass
+  if (currentLayer === 'MAIN') {
+    resolveMobileCollisions([coreNode, ...mainNodeObjects]);
+  } else if (currentLayer === 'SUBNET' && activeSubnet) {
+    resolveMobileCollisions([activeSubnet.coreNode, ...activeSubnet.categories]);
   }
 }
 
