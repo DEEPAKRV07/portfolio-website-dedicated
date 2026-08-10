@@ -130,7 +130,7 @@
       </div>
     </div>
 
-    <main id="portfolio" aria-label="Interactive neural network portfolio">
+    <main id="portfolio" class="desktop-experience" aria-label="Interactive neural network portfolio">
       <div class="atmosphere"></div>
 
       <div class="hud">
@@ -262,6 +262,140 @@
         </article>
       </div>
     </main>
+
+    <!-- SEPARATE MOBILE DOM PRESENTATION LAYER (Width < 768px) -->
+    <section id="mobileApp" class="mobile-experience" aria-label="Mobile portfolio presentation">
+      <header class="m-header">
+        <div class="m-identity">
+          <h1 class="m-name">DEEPAK R V</h1>
+          <div class="m-role">AI / ML ENGINEER &amp; SOFTWARE DEVELOPER</div>
+        </div>
+        <div class="m-status"><span class="m-status-dot"></span>ONLINE</div>
+      </header>
+
+      <section class="m-hero">
+        <div class="m-hero-kicker">INSIDE MY NEURAL NETWORK</div>
+        <h2 class="m-hero-title">INTELLIGENCE,<br />CONNECTED.</h2>
+        <p class="m-hero-desc">Applied AI, Computer Vision, and Data Systems Engineering presented as a cinematic narrative.</p>
+      </section>
+
+      <nav class="m-nav" aria-label="Mobile navigation">
+        <button class="m-nav-btn active" data-m-route="home">HOME</button>
+        <button class="m-nav-btn" data-m-route="about">ABOUT</button>
+        <button class="m-nav-btn" data-m-route="skills">SKILLS</button>
+        <button class="m-nav-btn" data-m-route="projects">PROJECTS</button>
+        <button class="m-nav-btn" data-m-route="experience">EXPERIENCE</button>
+        <button class="m-nav-btn" data-m-route="contact">CONTACT</button>
+      </nav>
+
+      <div class="m-content-container">
+        <!-- 01 / ABOUT -->
+        <section id="mSectionAbout" class="m-section">
+          <div class="m-sec-kicker">01 / PROFILE &amp; CAPABILITIES</div>
+          <h2 class="m-sec-title">DEEPAK R V</h2>
+          <div class="m-sec-subtitle">AI / ML ENGINEER &amp; SOFTWARE DEVELOPER</div>
+
+          <div class="m-card">
+            <h3>PROFESSIONAL SUMMARY</h3>
+            <p>B.E. Computer Science &amp; Engineering (AIML Specialization) graduate specializing in real-time Computer Vision, Deep Learning, spatial decision reasoning, automated lead data engineering, and full-stack web platforms. Proven experience designing object detection and tracking pipelines (YOLOv8, ByteTrack), spatial navigation systems (SightMate), production data harvesting platforms (Google Maps Lead Intelligence), and design-system-driven web applications (FORCRUX, Kaatchi Media).</p>
+          </div>
+
+          <div class="m-card">
+            <h3>EDUCATION &amp; QUALIFICATIONS</h3>
+            <p><strong>Bachelor of Engineering (B.E.)</strong> in Computer Science and Engineering (AI/ML Specialization)</p>
+            <p class="m-dim-text">S.A. Engineering College, Chennai (2022–2026) | <strong>CGPA: 8.1 / 10</strong></p>
+          </div>
+
+          <div class="m-card">
+            <h3>CORE TECHNICAL FOCUS</h3>
+            <ul class="m-list">
+              <li><strong>Computer Vision &amp; Tracking</strong> — YOLOv8, ByteTrack, OpenCV, Fast-SCNN, Optical Flow, K-Means</li>
+              <li><strong>Deep Learning &amp; Edge AI</strong> — TensorFlow Lite, PyTorch, Google ML Kit OCR, Model Quantization</li>
+              <li><strong>Data Engineering &amp; Automation</strong> — Python, Playwright, SQLite Master DB, ThreadPoolExecutor</li>
+              <li><strong>Full-Stack &amp; Web Engineering</strong> — Next.js, React, TypeScript, GSAP Motion Design, Payload CMS</li>
+            </ul>
+          </div>
+
+          <div class="m-card">
+            <h3>CAREER MILESTONES</h3>
+            <ul class="m-list">
+              <li>Lead Frontend Engineer &amp; Design Systems — FORCRUX Studio Platform</li>
+              <li>Software Developer Intern / Frontend Developer — Kaatchi Media (kaatchimedia.com)</li>
+              <li>Embedded Systems Intern — MSME Technology Development Centre (MSME TDC)</li>
+              <li>Digital Media Contributor — Quality Threads</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 02 / SKILLS -->
+        <section id="mSectionSkills" class="m-section">
+          <div class="m-sec-kicker">02 / KNOWLEDGE GRAPH</div>
+          <h2 class="m-sec-title">SKILLS &amp; TECHNOLOGIES</h2>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">01 / COMPUTER VISION</div>
+            <div class="m-skill-grid" id="mCvSkills"></div>
+          </div>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">02 / DEEP LEARNING &amp; AI</div>
+            <div class="m-skill-grid" id="mDlSkills"></div>
+          </div>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">03 / SYSTEMS &amp; DEPLOYMENT</div>
+            <div class="m-skill-grid" id="mSystemsSkills"></div>
+          </div>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">04 / LANGUAGES &amp; TOOLS</div>
+            <div class="m-skill-grid" id="mLangSkills"></div>
+          </div>
+        </section>
+
+        <!-- 03 / PROJECTS -->
+        <section id="mSectionProjects" class="m-section">
+          <div class="m-sec-kicker">03 / CASE STUDIES</div>
+          <h2 class="m-sec-title">ENGINEERING PROJECTS</h2>
+          <div class="m-projects-list" id="mProjectsList"></div>
+        </section>
+
+        <!-- 04 / EXPERIENCE -->
+        <section id="mSectionExperience" class="m-section">
+          <div class="m-sec-kicker">04 / TIMELINE</div>
+          <h2 class="m-sec-title">CAREER EXPERIENCE</h2>
+          <div class="m-exp-list" id="mExpList"></div>
+        </section>
+
+        <!-- 05 / CONTACT -->
+        <section id="mSectionContact" class="m-section">
+          <div class="m-sec-kicker">05 / NETWORK TRANSMISSION</div>
+          <h2 class="m-sec-title">CONTACT &amp; CONNECT</h2>
+          <div class="m-contact-grid">
+            <a class="m-contact-card" href="mailto:deepakvetrivelan@gmail.com">
+              <div class="m-contact-label">PRIMARY EMAIL</div>
+              <div class="m-contact-val">deepakvetrivelan@gmail.com</div>
+            </a>
+            <a class="m-contact-card" href="https://www.linkedin.com/in/deepakrv07/" target="_blank" rel="noopener noreferrer">
+              <div class="m-contact-label">LINKEDIN PROFILE</div>
+              <div class="m-contact-val">linkedin.com/in/deepakrv07/</div>
+            </a>
+            <a class="m-contact-card" href="https://github.com/DEEPAKRV07/" target="_blank" rel="noopener noreferrer">
+              <div class="m-contact-label">GITHUB REPOSITORIES</div>
+              <div class="m-contact-val">github.com/DEEPAKRV07/</div>
+            </a>
+            <a class="m-contact-card m-accent-card" id="mResumeLink" href="/portfolio-website-dedicated/my_resume.pdf" target="_blank" rel="noopener noreferrer">
+              <div class="m-contact-label">OFFICIAL CURRICULUM VITAE</div>
+              <div class="m-contact-val">VIEW RESUME PDF ↗</div>
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <footer class="m-footer">
+        <div>DEEPAK R V © 2026 — NEURAL NETWORK PORTFOLIO</div>
+      </footer>
+    </section>
 
     <script type="module" src="/src/main.js"></script>
   </body>

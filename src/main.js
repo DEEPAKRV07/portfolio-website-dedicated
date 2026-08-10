@@ -2879,6 +2879,127 @@ function animate(currentTime) {
 }
 
 /* ============================================================
+   SEPARATE MOBILE DOM PRESENTATION ENGINE (< 768px)
+   ============================================================ */
+
+let mobileExperienceInitialized = false;
+
+function renderMobileExperience() {
+  if (mobileExperienceInitialized) return;
+  const mApp = document.getElementById('mobileApp');
+  if (!mApp) return;
+  mobileExperienceInitialized = true;
+
+  // 1. Populate Skills
+  const mCv = document.getElementById('mCvSkills');
+  const mDl = document.getElementById('mDlSkills');
+  const mSys = document.getElementById('mSystemsSkills');
+  const mLang = document.getElementById('mLangSkills');
+
+  const cvSkills = ['YOLOv8', 'ByteTrack', 'OpenCV', 'Fast-SCNN'];
+  const dlSkills = ['PyTorch', 'TensorFlow Lite', 'Google ML Kit', 'K-Means'];
+  const sysSkills = ['Playwright & Chromium', 'SQLite Master DB', 'ThreadPoolExecutor', 'Pandas & Data Pipelines'];
+  const langSkills = ['Python', 'Flutter / Dart', 'Next.js / TypeScript', 'Git & GitHub'];
+
+  if (mCv && mCv.children.length === 0) {
+    mCv.innerHTML = cvSkills.map(s => `<span class="m-skill-badge">${s}</span>`).join('');
+    mDl.innerHTML = dlSkills.map(s => `<span class="m-skill-badge">${s}</span>`).join('');
+    mSys.innerHTML = sysSkills.map(s => `<span class="m-skill-badge">${s}</span>`).join('');
+    mLang.innerHTML = langSkills.map(s => `<span class="m-skill-badge">${s}</span>`).join('');
+  }
+
+  // 2. Populate Projects
+  const mProjList = document.getElementById('mProjectsList');
+  if (mProjList && mProjList.children.length === 0) {
+    const projDefs = subnetDefinitions.projects.categories;
+    mProjList.innerHTML = projDefs.map((p, idx) => {
+      const num = String(idx + 1).padStart(2, '0');
+      const actionBtn = p.actions && p.actions.length ?
+        `<a class="m-proj-btn" href="${p.actions[0].url}" target="_blank" rel="noopener noreferrer">${p.actions[0].label} ↗</a>` : '';
+
+      return `
+        <article class="m-project-card">
+          <div class="m-proj-num">${num} / ${p.kicker || 'CASE STUDY'}</div>
+          <h3 class="m-proj-title">${p.title || p.label}</h3>
+          <div class="m-proj-subtitle">${p.subtitle || ''}</div>
+          
+          ${p.sections.map(sec => `
+            <div class="m-proj-sec-title">${sec.heading}</div>
+            ${sec.content ? `<p class="m-dim-text">${sec.content}</p>` : ''}
+            ${sec.bullets ? `<ul class="m-list">${sec.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
+          `).join('')}
+
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">
+            ${(p.tags || []).map(t => `<span class="m-skill-badge" style="font-size:10px;">${t}</span>`).join('')}
+          </div>
+          ${actionBtn}
+        </article>
+      `;
+    }).join('');
+  }
+
+  // 3. Populate Experience
+  const mExpList = document.getElementById('mExpList');
+  if (mExpList && mExpList.children.length === 0) {
+    const expDefs = subnetDefinitions.experience.categories;
+    mExpList.innerHTML = expDefs.map((e, idx) => {
+      const num = String(idx + 1).padStart(2, '0');
+      const actionBtn = e.actions && e.actions.length ?
+        `<a class="m-proj-btn" href="${e.actions[0].url}" target="_blank" rel="noopener noreferrer">${e.actions[0].label} ↗</a>` : '';
+
+      return `
+        <article class="m-project-card">
+          <div class="m-proj-num">${num} / ${e.kicker || 'EXPERIENCE'}</div>
+          <h3 class="m-proj-title">${e.title}</h3>
+          <div class="m-proj-subtitle">${e.subtitle || ''}</div>
+
+          ${e.sections.map(sec => `
+            <div class="m-proj-sec-title">${sec.heading}</div>
+            ${sec.content ? `<p class="m-dim-text">${sec.content}</p>` : ''}
+            ${sec.bullets ? `<ul class="m-list">${sec.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
+          `).join('')}
+
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">
+            ${(e.tags || []).map(t => `<span class="m-skill-badge" style="font-size:10px;">${t}</span>`).join('')}
+          </div>
+          ${actionBtn}
+        </article>
+      `;
+    }).join('');
+  }
+
+  // 4. Mobile Touch Navigation Click & Scroll Handlers
+  const navBtns = document.querySelectorAll('.m-nav-btn');
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const route = btn.dataset.mRoute;
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (route === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        updateBrowserRoute('home', true);
+      } else {
+        const secId = `mSection${route.charAt(0).toUpperCase() + route.slice(1)}`;
+        const targetSec = document.getElementById(secId);
+        if (targetSec) {
+          const headerOffset = 110;
+          const elementPosition = targetSec.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+        updateBrowserRoute(route, true);
+      }
+    });
+  });
+}
+
+/* ============================================================
    INITIALIZATION, ROUTING & RESIZE HANDLERS
    ============================================================ */
 
@@ -2940,60 +3061,37 @@ initRouteFromUrl();
 
 function updateResponsiveLayout() {
   const isMobile = isMobileViewport();
-  const s = isMobile ? 0.65 : 1.0;
-
-  // 1. Update Main Home Graph Nodes
-  if (coreNode) {
-    coreNode.originalPos.copy(isMobile ? coreNode.mobileOriginalPos : coreNode.desktopOriginalPos);
-    if (coreNode.group) {
-      coreNode.group.position.copy(coreNode.originalPos);
-      coreNode.group.scale.set(s, s, s);
-    }
-  }
-
-  for (const item of mainNodeObjects) {
-    if (item.originalPos && item.mobileOriginalPos && item.desktopOriginalPos) {
-      item.originalPos.copy(isMobile ? item.mobileOriginalPos : item.desktopOriginalPos);
-      if (item.group) {
-        item.group.position.copy(item.originalPos);
-        item.group.scale.set(s, s, s);
-      }
-    }
-  }
-
-  // 2. Update Subnetwork Nodes across all subnets (Skills, Projects, Experience, Contact)
-  for (const [subnetId, world] of subnetWorlds.entries()) {
-    if (world.coreNode && world.coreNode.desktopOriginalPos && world.coreNode.mobileOriginalPos) {
-      world.coreNode.originalPos.copy(isMobile ? world.coreNode.mobileOriginalPos : world.coreNode.desktopOriginalPos);
-      if (world.coreNode.group) {
-        world.coreNode.group.position.copy(world.coreNode.originalPos);
-        world.coreNode.group.scale.set(s, s, s);
-      }
-    }
-    for (const cat of world.categories) {
-      if (cat.originalPos && cat.mobileOriginalPos && cat.desktopOriginalPos) {
-        cat.originalPos.copy(isMobile ? cat.mobileOriginalPos : cat.desktopOriginalPos);
-        if (cat.group) {
-          cat.group.position.copy(cat.originalPos);
-          cat.group.scale.set(s, s, s);
-        }
-      }
-    }
-  }
-
-  // 3. Automated Layout Validation & Collision Prevention Pass
-  if (currentLayer === 'MAIN') {
-    resolveMobileCollisions([coreNode, ...mainNodeObjects]);
-  } else if (currentLayer === 'SUBNET' && activeSubnet) {
-    resolveMobileCollisions([activeSubnet.coreNode, ...activeSubnet.categories]);
+  if (isMobile) {
+    renderer.domElement.style.display = 'none';
+    renderMobileExperience();
+  } else {
+    renderer.domElement.style.display = 'block';
   }
 }
 
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  if (!isMobileViewport()) {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
   updateResponsiveLayout();
 });
 
-requestAnimationFrame(animate);
+// Run initial layout check
+updateResponsiveLayout();
+
+function mainAnimateLoop(currentTime) {
+  requestAnimationFrame(mainAnimateLoop);
+
+  if (isMobileViewport()) {
+    renderer.domElement.style.display = 'none';
+    renderMobileExperience();
+    return; // Completely bypass desktop 3D graph processing on mobile
+  }
+
+  renderer.domElement.style.display = 'block';
+  animate(currentTime);
+}
+
+requestAnimationFrame(mainAnimateLoop);
