@@ -1865,7 +1865,7 @@ for (const subnetId of Object.keys(subnetDefinitions)) {
 
 /* ============================================================
    CINEMATIC 3D CAMERA TRANSITION SYSTEM
-   (Curved Flight Trajectory, Physical Anticipation, Target Tracking & Settle)
+   (Instant Smooth Bezier Flight, Zero Delay, Continuous Look-At Tracking)
    ============================================================ */
 
 let transitionState = null;
@@ -1875,17 +1875,13 @@ const _tempCamVec2 = new THREE.Vector3();
 const _tempCamVec3 = new THREE.Vector3();
 const _tempBezierPos = new THREE.Vector3();
 
-function startTransition(targetPosition, targetLookAt, duration = 900) {
+function startTransition(targetPosition, targetLookAt, duration = 800) {
   const startPos = camera.position.clone();
   const startTarget = controls.target.clone();
   const endPos = targetPosition.clone();
   const endTarget = targetLookAt.clone();
 
-  // 1. Physical anticipation recoil vector (pull back 0.45 units along view direction)
-  const viewDir = _tempCamVec1.subVectors(startPos, startTarget).normalize();
-  const anticipationPos = startPos.clone().add(viewDir.multiplyScalar(0.45));
-
-  // 2. 3D Quadratic Bezier flight control point for curved arc
+  // 3D Bezier flight control point for a subtle 3D arc without initial delay or recoil
   const flightVec = _tempCamVec2.subVectors(endPos, startPos);
   const midPoint = _tempCamVec3.addVectors(startPos, endPos).multiplyScalar(0.5);
 
@@ -1893,12 +1889,11 @@ function startTransition(targetPosition, targetLookAt, duration = 900) {
   const arcVec = new THREE.Vector3().crossVectors(upVec, flightVec).normalize();
   if (arcVec.lengthSq() < 0.001) arcVec.set(1, 0, 0);
 
-  const arcMagnitude = Math.min(flightVec.length() * 0.16, 4.5);
+  const arcMagnitude = Math.min(flightVec.length() * 0.12, 3.2);
   const controlPoint = midPoint.clone().add(arcVec.multiplyScalar(arcMagnitude));
 
   transitionState = {
     startPos,
-    anticipationPos,
     controlPoint,
     endPos,
     startTarget,
@@ -1914,67 +1909,25 @@ function updateCameraTransition() {
   const now = performance.now();
   const rawProgress = Math.min((now - transitionState.startTime) / transitionState.duration, 1.0);
 
-  // Reduced motion preference: smooth linear lerp
-  if (prefersReducedMotion) {
-    const eased = rawProgress < 0.5
-      ? 2 * rawProgress * rawProgress
-      : 1 - Math.pow(-2 * rawProgress + 2, 2) / 2;
-    camera.position.lerpVectors(transitionState.startPos, transitionState.endPos, eased);
-    controls.target.lerpVectors(transitionState.startTarget, transitionState.endTarget, eased);
-    controls.update();
+  // Smooth Ease-Out-Cubic Easing: Instant start (0ms delay), smooth travel, gentle landing
+  const t = 1 - Math.pow(1 - rawProgress, 3);
+  const oneMinusT = 1 - t;
 
-    if (rawProgress >= 1.0) transitionState = null;
-    return;
-  }
+  const currentPos = _tempBezierPos;
+  currentPos.x = oneMinusT * oneMinusT * transitionState.startPos.x +
+                 2 * oneMinusT * t * transitionState.controlPoint.x +
+                 t * t * transitionState.endPos.x;
 
-  // Phase 1: Physical Anticipation (0.0 to 0.14 duration ~ 120ms)
-  let p = rawProgress;
-  let currentPos = _tempBezierPos;
+  currentPos.y = oneMinusT * oneMinusT * transitionState.startPos.y +
+                 2 * oneMinusT * t * transitionState.controlPoint.y +
+                 t * t * transitionState.endPos.y;
 
-  if (p < 0.14) {
-    const subT = p / 0.14;
-    const easedSubT = subT * subT * (3 - 2 * subT);
-    currentPos.lerpVectors(transitionState.startPos, transitionState.anticipationPos, easedSubT);
-  } else {
-    // Phase 2: Curved Bezier Flight (0.14 to 1.00) with Smooth Acceleration & Settle
-    const flightT = (p - 0.14) / 0.86;
-
-    let easedT;
-    if (flightT < 0.85) {
-      const normT = flightT / 0.85;
-      easedT = normT < 0.5
-        ? 4 * normT * normT * normT
-        : 1 - Math.pow(-2 * normT + 2, 3) / 2;
-      easedT *= 0.85;
-    } else {
-      const normT = (flightT - 0.85) / 0.15;
-      const settleOvershoot = Math.sin(normT * Math.PI) * 0.015;
-      easedT = 0.85 + normT * 0.15 + settleOvershoot;
-    }
-
-    const t = Math.min(Math.max(easedT, 0), 1.0);
-    const oneMinusT = 1 - t;
-
-    currentPos.x = oneMinusT * oneMinusT * transitionState.anticipationPos.x +
-                   2 * oneMinusT * t * transitionState.controlPoint.x +
-                   t * t * transitionState.endPos.x;
-
-    currentPos.y = oneMinusT * oneMinusT * transitionState.anticipationPos.y +
-                   2 * oneMinusT * t * transitionState.controlPoint.y +
-                   t * t * transitionState.endPos.y;
-
-    currentPos.z = oneMinusT * oneMinusT * transitionState.anticipationPos.z +
-                   2 * oneMinusT * t * transitionState.controlPoint.z +
-                   t * t * transitionState.endPos.z;
-  }
-
-  // Synchronized Look-At Target Lerp
-  const lookAtT = p < 0.5
-    ? 4 * p * p * p
-    : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  currentPos.z = oneMinusT * oneMinusT * transitionState.startPos.z +
+                 2 * oneMinusT * t * transitionState.controlPoint.z +
+                 t * t * transitionState.endPos.z;
 
   camera.position.copy(currentPos);
-  controls.target.lerpVectors(transitionState.startTarget, transitionState.endTarget, lookAtT);
+  controls.target.lerpVectors(transitionState.startTarget, transitionState.endTarget, t);
   controls.update();
 
   if (rawProgress >= 1.0) {
@@ -2360,15 +2313,6 @@ renderer.domElement.addEventListener('click', event => {
   updatePointer(event);
   const hit = getPointerObject();
   if (!hit) return;
-
-  /* Part 9 — Short Node Press Tactile Feedback (120ms Micro-Pulse) */
-  if (hit.object && hit.object.parent && hit.object.parent.scale) {
-    const pressGroup = hit.object.parent;
-    pressGroup.scale.set(1.05, 1.05, 1.05);
-    setTimeout(() => {
-      if (pressGroup && pressGroup.scale) pressGroup.scale.set(1.0, 1.0, 1.0);
-    }, 120);
-  }
 
   if (hit.type === 'core') {
     returnToCore();
