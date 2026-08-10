@@ -2412,33 +2412,45 @@ function animateAmbientDepthAndBreathing(currentTime) {
     });
   }
 
+  const camDir = new THREE.Vector3();
+  const liftOffset = new THREE.Vector3();
+
   for (let i = 0; i < activeNodes.length; i++) {
     const node = activeNodes[i];
     if (!node.originalPos || !node.group) continue;
 
-    /* 1. Ambient Micro-Motion (Sinusoidal Breathing relative to canonical originalPos) */
+    const isHovered = currentHoveredMesh && (
+      node.mesh === currentHoveredMesh ||
+      node.hitboxMesh === currentHoveredMesh ||
+      node.nucleusMesh === currentHoveredMesh ||
+      (node.mesh && node.mesh.userData && currentHoveredMesh.userData && node.mesh.userData.id === currentHoveredMesh.userData.id)
+    );
+
+    /* 1. Controlled Hover Lift towards Camera (0.20 units lift, originalPos remains untouched) */
+    const targetLift = isHovered ? 0.20 : 0.0;
+    node.hoverLiftAmount = THREE.MathUtils.lerp(node.hoverLiftAmount || 0, targetLift, 0.18);
+
+    camDir.subVectors(camera.position, node.originalPos).normalize();
+    liftOffset.copy(camDir).multiplyScalar(node.hoverLiftAmount);
+
+    /* 2. Ambient Micro-Motion (Sinusoidal Breathing relative to canonical originalPos) */
     if (!isReduced) {
       const phase = i * 0.85;
       const ambientY = Math.sin(t * 0.75 + phase) * 0.08;
       const ambientX = Math.cos(t * 0.55 + phase) * 0.04;
-      node.group.position.x = node.originalPos.x + ambientX;
-      node.group.position.y = node.originalPos.y + ambientY;
+      node.group.position.x = node.originalPos.x + ambientX + liftOffset.x;
+      node.group.position.y = node.originalPos.y + ambientY + liftOffset.y;
+      node.group.position.z = node.originalPos.z + liftOffset.z;
     } else {
-      node.group.position.copy(node.originalPos);
+      node.group.position.copy(node.originalPos).add(liftOffset);
     }
 
-    /* 2. Distance-Based Atmospheric Depth Falloff */
+    /* 3. Distance-Based Atmospheric Depth Falloff */
     const distToCam = camera.position.distanceTo(node.group.position);
     const depthFactor = THREE.MathUtils.clamp(1.0 - (distToCam - 20) / 75, 0.75, 1.0);
 
     const shellMesh = node.shellMesh;
     const nucleusMesh = node.nucleusMesh || node.mesh;
-
-    const isHovered = currentHoveredMesh && (
-      node.mesh === currentHoveredMesh ||
-      node.hitboxMesh === currentHoveredMesh ||
-      node.nucleusMesh === currentHoveredMesh
-    );
 
     if (!isHovered) {
       if (shellMesh && shellMesh.material) {
@@ -2481,14 +2493,22 @@ function animateHoverEffects() {
     const shellMesh = node.shellMesh;
     const nucleusMesh = node.nucleusMesh || node.mesh;
 
+    /* Smooth Hover Scale Pop (1.08x scale swell) */
+    const targetScale = isHovered ? 1.08 : 1.00;
+    if (node.group && node.group.scale) {
+      const curScale = node.group.scale.x;
+      const nextScale = THREE.MathUtils.lerp(curScale, targetScale, 0.18);
+      node.group.scale.set(nextScale, nextScale, nextScale);
+    }
+
     if (glowMesh && glowMesh.material) {
-      const targetGlowOpacity = isHovered ? 0.28 : 0.0;
+      const targetGlowOpacity = isHovered ? 0.38 : 0.0;
       glowMesh.material.opacity = THREE.MathUtils.lerp(glowMesh.material.opacity, targetGlowOpacity, 0.18);
     }
 
     if (shellMesh && shellMesh.material) {
       const baseShellOpacity = shellMesh.material.userData.currentBaseOpacity || shellMesh.material.userData.baseOpacity || 0.32;
-      const targetShellOpacity = isHovered ? 0.75 : baseShellOpacity;
+      const targetShellOpacity = isHovered ? 0.85 : baseShellOpacity;
       shellMesh.material.opacity = THREE.MathUtils.lerp(shellMesh.material.opacity, targetShellOpacity, 0.18);
     }
 
@@ -2501,7 +2521,7 @@ function animateHoverEffects() {
     if (node.label && node.label.element) {
       if (isHovered) {
         node.label.element.style.color = '#ffffff';
-        node.label.element.style.textShadow = '0 0 16px rgba(0, 255, 136, 0.65)';
+        node.label.element.style.textShadow = '0 0 18px rgba(0, 255, 136, 0.85)';
       } else {
         node.label.element.style.color = '';
         node.label.element.style.textShadow = '';
