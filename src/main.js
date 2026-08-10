@@ -1168,7 +1168,7 @@ connectMain('experience', 'about', 0.32);
 const combinedAboutData = {
   kicker: 'PROFILE & CAPABILITIES',
   title: 'DEEPAK R V',
-  subtitle: 'AI / ML ENGINEER & COMPUTER VISION SPECIALIST',
+  subtitle: 'AI / ML ENGINEER & SOFTWARE DEVELOPER',
   sections: [
     {
       heading: 'PROFESSIONAL SUMMARY',
