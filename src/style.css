@@ -398,13 +398,14 @@ body.detail-mode .core-home-hint {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.94);
-  width: min(74vw, 1180px);
-  height: min(82vh, 840px);
+  width: min(76vw, 1180px);
+  height: min(84vh, 860px);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   z-index: 100;
   pointer-events: auto;
-  padding: 34px 40px;
+  padding: 32px 38px;
   border: 1px solid rgba(0, 255, 136, 0.38);
   background: rgba(5, 5, 5, 0.96);
   backdrop-filter: blur(28px);
@@ -454,6 +455,7 @@ body.detail-mode .core-home-hint {
 }
 
 .panel-header {
+  flex-shrink: 0;
   border-bottom: 1px solid rgba(0, 255, 136, 0.16);
   padding-bottom: 16px;
   margin-bottom: 16px;
@@ -472,7 +474,7 @@ body.detail-mode .core-home-hint {
 .panel-title {
   margin: 0 0 6px;
   font-family: var(--font-display);
-  font-size: clamp(28px, 3.0vw, 42px);
+  font-size: clamp(26px, 2.8vw, 38px);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-primary);
@@ -490,6 +492,7 @@ body.detail-mode .core-home-hint {
 /* Internal Document Scroll Container */
 .panel-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 16px;
   margin-bottom: 16px;
@@ -546,11 +549,12 @@ body.detail-mode .core-home-hint {
 }
 
 .panel-footer {
+  flex-shrink: 0;
   border-top: 1px solid rgba(0, 255, 136, 0.18);
-  padding-top: 18px;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .panel-tags {

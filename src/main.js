@@ -316,6 +316,7 @@ function showDetailPresentation(data) {
 
   // Render Structured Technical Sections
   panelBodyEl.innerHTML = '';
+  panelBodyEl.scrollTop = 0;
 
   if (Array.isArray(data.sections)) {
     for (const sec of data.sections) {
@@ -925,17 +926,6 @@ const logoDataList = [
     speedX: 0.45, speedY: 0.30, speedZ: 0.28,
     ampX: 2.6, ampY: 1.6, ampZ: 3.0,
     url: 'https://www.linkedin.com/in/deepakrv07/',
-  },
-  {
-    id: 'logo-hire',
-    type: 'hire',
-    title: 'Contact',
-    basePos: new THREE.Vector3(14.8, -5.2, -4.5),
-    baseRot: new THREE.Vector3(0, -0.12, 0),
-    phase: 5.6,
-    speedX: 0.32, speedY: 0.42, speedZ: 0.32,
-    ampX: 2.4, ampY: 1.3, ampZ: 2.6,
-    url: 'mailto:deepakvetrivelan@gmail.com',
   },
 ];
 
