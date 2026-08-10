@@ -1172,7 +1172,7 @@ const combinedAboutData = {
   sections: [
     {
       heading: 'PROFESSIONAL SUMMARY',
-      content: 'B.Tech Artificial Intelligence & Data Science (AI&DS) graduate specializing in real-time Computer Vision, Deep Learning, spatial decision reasoning, automated lead data engineering, and full-stack web platforms. Proven experience designing object detection and tracking pipelines (YOLOv8, ByteTrack), spatial navigation systems (SightMate), production data harvesting platforms (Google Maps Lead Intelligence), and design-system-driven web applications (FORCRUX, Kaatchi Media).',
+      content: 'B.E. Computer Science & Engineering (AIML Specialization) graduate specializing in real-time Computer Vision, Deep Learning, spatial decision reasoning, automated lead data engineering, and full-stack web platforms. Proven experience designing object detection and tracking pipelines (YOLOv8, ByteTrack), spatial navigation systems (SightMate), production data harvesting platforms (Google Maps Lead Intelligence), and design-system-driven web applications (FORCRUX, Kaatchi Media).',
     },
     {
       heading: 'CORE TECHNICAL FOCUS',
@@ -1194,7 +1194,7 @@ const combinedAboutData = {
     },
     {
       heading: 'EDUCATION & QUALIFICATIONS',
-      content: 'Bachelor of Technology (B.Tech) in Artificial Intelligence & Data Science (AI&DS).',
+      content: 'Bachelor of Engineering (B.E.) in Computer Science & Engineering (AIML Specialization).',
     },
     {
       heading: 'CONTACT & SOCIAL CHANNELS',
@@ -1205,7 +1205,7 @@ const combinedAboutData = {
       ],
     },
   ],
-  tags: ['AI/ML Engineer', 'Computer Vision', 'B.Tech AI&DS', 'YOLOv8', 'Playwright', 'Next.js', 'PyTorch', 'SQLite'],
+  tags: ['AI/ML Engineer', 'Computer Vision', 'B.E. CSE (AIML)', 'YOLOv8', 'Playwright', 'Next.js', 'PyTorch', 'SQLite'],
   actions: [
     { label: 'VIEW RESUME PDF', type: 'primary', url: `${BASE_URL}my_resume.pdf` },
   ],
