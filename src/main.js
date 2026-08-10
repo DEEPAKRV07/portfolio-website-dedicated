@@ -1188,7 +1188,7 @@ const combinedAboutData = {
       bullets: [
         'Lead Frontend Engineer & Design Systems — FORCRUX Studio Platform',
         'Software Developer Intern / Frontend Developer — Kaatchi Media (kaatchimedia.com)',
-        'AI Systems Engineering Intern — MSME Training & Development Program',
+        'Embedded Systems Intern — MSME Technology Development Centre (MSME TDC)',
         'Data & Analytics Contributor — Quality Threads',
       ],
     },
@@ -1226,9 +1226,9 @@ const subnetDefinitions = {
         label: 'COMPUTER VISION',
         position: [-6.8, 3.8, 1.8],
         skills: [
-          { id: 'yolov8', label: 'YOLOv8', position: [-9.8, 5.5, 2.5], name: 'YOLOv8', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System', 'MSME Internship'], tags: ['Object Detection', 'Real-Time Vision'] },
+          { id: 'yolov8', label: 'YOLOv8', position: [-9.8, 5.5, 2.5], name: 'YOLOv8', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System'], tags: ['Object Detection', 'Real-Time Vision'] },
           { id: 'bytetrack', label: 'ByteTrack', position: [-9.2, 2.2, 0.8], name: 'ByteTrack', category: 'Computer Vision', usedIn: ['Football Analysis System'], tags: ['Multi-Object Tracking', 'Re-ID'] },
-          { id: 'opencv', label: 'OpenCV', position: [-5.2, 6.2, 3.2], name: 'OpenCV', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System', 'MSME Internship'], tags: ['Image Geometry', 'Frame Processing'] },
+          { id: 'opencv', label: 'OpenCV', position: [-5.2, 6.2, 3.2], name: 'OpenCV', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System', 'MSME Center'], tags: ['Image Geometry', 'Frame Processing'] },
           { id: 'fast-scnn', label: 'Fast-SCNN', position: [-10.5, 3.6, -1.0], name: 'Fast-SCNN', category: 'Computer Vision', usedIn: ['SightMate'], tags: ['Semantic Segmentation', 'Real-Time'] },
         ],
       },
@@ -1581,26 +1581,27 @@ const subnetDefinitions = {
       },
       {
         id: 'msme-exp',
-        label: 'MSME INTERNSHIP',
+        label: 'MSME CENTER',
         position: [3.8, 3.0, 2.2],
         kicker: 'CAREER MILESTONE',
-        title: 'AI Systems Engineering Intern',
-        subtitle: 'MSME Training & Development Program',
+        title: 'Embedded Systems Intern',
+        subtitle: 'MSME Technology Development Centre (MSME TDC)',
         sections: [
           {
             heading: 'ROLE & RESPONSIBILITIES',
-            content: 'Curated custom object detection datasets, trained YOLO computer vision models, benchmarked inference pipelines across embedded hardware, and optimized real-time stream processing.',
+            content: 'Embedded Systems Intern at MSME Technology Development Centre (MSME TDC). Prototyped, configured, and benchmarked embedded hardware circuits, microcontrollers, sensor interfaces, and IoT telemetry architectures using Arduino and Raspberry Pi platform systems.',
           },
           {
             heading: 'ENGINEERING CONTRIBUTIONS',
             bullets: [
-              'YOLOv8 dataset curation, bounding-box annotation, and model training',
-              'OpenCV real-time stream processing and frame latency optimization',
-              'Model inference benchmarking across embedded edge hardware platforms',
+              'Embedded system hardware prototyping & sensor interfacing using Arduino & Raspberry Pi',
+              'IoT telemetry data acquisition, wireless sensor integration & microcontroller circuit design',
+              'Real-time sensor signal processing, hardware I/O debugging & firmware scripting',
+              'Hardware-level latency measurement, circuit testing & power optimization',
             ],
           },
         ],
-        tags: ['YOLOv8', 'OpenCV', 'Python', 'Edge AI', 'Model Training'],
+        tags: ['Embedded Systems', 'Arduino', 'Raspberry Pi', 'Sensors', 'IoT', 'Microcontrollers'],
         actions: [],
       },
       {
