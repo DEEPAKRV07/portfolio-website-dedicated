@@ -1672,8 +1672,32 @@ const subnetDefinitions = {
 const subnetWorlds = new Map();
 let activeSubnet = null;
 
+/* ============================================================
+   TOPOLOGY-AWARE DETERMINISTIC PROJECT LAYOUT ALGORITHM
+   ============================================================ */
+
+function calculateProjectsLayout(categories) {
+  const slotMap = {
+    'kaatchi':      new THREE.Vector3(0.0,  6.8,  0.5),  // Top Center
+    'forcrux':       new THREE.Vector3(-7.5, 3.8,  1.2),  // Upper Left
+    'google-maps':   new THREE.Vector3(7.5,  3.8, -1.2),  // Upper Right
+    'sightmate':     new THREE.Vector3(-6.2, -4.5, -1.2), // Lower Left
+    'football':      new THREE.Vector3(6.2, -4.5,  1.2),  // Lower Right
+  };
+
+  for (const cat of categories) {
+    if (slotMap[cat.id]) {
+      cat.position = [slotMap[cat.id].x, slotMap[cat.id].y, slotMap[cat.id].z];
+    }
+  }
+  return categories;
+}
+
 function createSubnetWorld(subnetId) {
   const definition = subnetDefinitions[subnetId];
+  if (subnetId === 'projects') {
+    calculateProjectsLayout(definition.categories);
+  }
   const group = new THREE.Group();
   group.name = `SUBNET_${subnetId}`;
   group.visible = false;
