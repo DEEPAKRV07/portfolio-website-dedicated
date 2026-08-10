@@ -1276,7 +1276,7 @@ const subnetDefinitions = {
       {
         id: 'forcrux',
         label: 'FORCRUX',
-        position: [-6.2, 3.8, 2.2],
+        position: [-7.5, 3.8, 1.2],
         kicker: 'PRIVATE PROJECT / CASE STUDY',
         title: 'FORCRUX',
         subtitle: 'Premium Digital Engineering & Technology Studio Platform',
@@ -1320,7 +1320,7 @@ const subnetDefinitions = {
       {
         id: 'google-maps',
         label: 'GOOGLE MAPS PLATFORM',
-        position: [6.2, 3.8, -2.2],
+        position: [7.5, 3.8, -1.2],
         kicker: 'DATA ENGINEERING & AUTOMATION',
         title: 'Google Maps Lead Intelligence Platform',
         subtitle: 'Production-Grade Automated Discovery & Contact Enrichment Pipeline',
@@ -1375,7 +1375,7 @@ const subnetDefinitions = {
       {
         id: 'sightmate',
         label: 'SIGHTMATE',
-        position: [-6.2, -3.8, -2.2],
+        position: [-6.2, -4.5, -1.2],
         kicker: 'AI ASSISTIVE VISION PLATFORM',
         title: 'SightMate — AI Navigation Assistant',
         subtitle: 'Mobile Vision, Spatial Reasoning & Spoken Accessibility System',
@@ -1421,7 +1421,7 @@ const subnetDefinitions = {
       {
         id: 'football',
         label: 'FOOTBALL ANALYSIS',
-        position: [6.2, -3.8, 2.2],
+        position: [6.2, -4.5, 1.2],
         kicker: 'COMPUTER VISION & SPORTS ANALYTICS',
         title: 'Football Match Video Analysis System',
         subtitle: 'End-to-End Deep Learning & Spatial Video Analytics Pipeline',
@@ -1478,7 +1478,7 @@ const subnetDefinitions = {
       {
         id: 'kaatchi',
         label: 'KAATCHI MEDIA',
-        position: [0.0, 6.2, 0.0],
+        position: [0.0, 6.8, 0.5],
         kicker: 'MEDIA PORTFOLIO & WEB ENGINEERING',
         title: 'Kaatchi Media',
         subtitle: 'Official Media & Photography Portfolio Platform',
@@ -1806,9 +1806,16 @@ function createSubnetWorld(subnetId) {
     }
   }
 
-  for (let i = 0; i < categories.length; i++) {
-    const source = categories[i];
-    const target = categories[(i + 1) % categories.length];
+  // Sort category nodes spatially by polar angle around origin to create clean non-crossing perimeter ring edges
+  const sortedCategories = [...categories].sort((a, b) => {
+    const angleA = Math.atan2(a.group.position.y, a.group.position.x);
+    const angleB = Math.atan2(b.group.position.y, b.group.position.x);
+    return angleA - angleB;
+  });
+
+  for (let i = 0; i < sortedCategories.length; i++) {
+    const source = sortedCategories[i];
+    const target = sortedCategories[(i + 1) % sortedCategories.length];
     edges.push(createEdge(source.mesh, target.mesh, group, 0.18));
   }
 
