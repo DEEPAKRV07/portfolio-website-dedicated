@@ -887,11 +887,11 @@ const logoDataList = [
     id: 'logo-resume',
     type: 'resume',
     title: 'Resume',
-    basePos: new THREE.Vector3(0.0, 13.8, -6.5), // Positioned high above ABOUT for clear separation
-    baseRot: new THREE.Vector3(0, 0, 0),
-    phase: 0.0,
-    speedX: 0.35, speedY: 0.45, speedZ: 0.30,
-    ampX: 2.2, ampY: 1.2, ampZ: 2.8,
+    basePos: new THREE.Vector3(14.8, -5.2, -4.5),
+    baseRot: new THREE.Vector3(0, -0.12, 0),
+    phase: 5.6,
+    speedX: 0.32, speedY: 0.42, speedZ: 0.32,
+    ampX: 2.4, ampY: 1.3, ampZ: 2.6,
     url: `${BASE_URL}my_resume.pdf`,
   },
   {
