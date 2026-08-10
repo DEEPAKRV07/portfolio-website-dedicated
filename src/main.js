@@ -1194,7 +1194,7 @@ const combinedAboutData = {
     },
     {
       heading: 'EDUCATION & QUALIFICATIONS',
-      content: 'Bachelor of Engineering (B.E.) in Computer Science & Engineering (AIML Specialization).',
+      content: 'Bachelor of Engineering (B.E.) in Computer Science and Engineering (AI/ML Specialization) — S.A. Engineering College, Chennai (2022–2026) | CGPA: 8.1 / 10.',
     },
     {
       heading: 'CONTACT & SOCIAL CHANNELS',
@@ -1585,11 +1585,11 @@ const subnetDefinitions = {
         position: [3.8, 3.0, 2.2],
         kicker: 'CAREER MILESTONE',
         title: 'Embedded Systems Intern',
-        subtitle: 'MSME Technology Development Centre (MSME TDC)',
+        subtitle: 'MSME Technology Development Centre (Aug 2024 – Sep 2024)',
         sections: [
           {
             heading: 'ROLE & RESPONSIBILITIES',
-            content: 'Embedded Systems Intern at MSME Technology Development Centre (MSME TDC). Prototyped, configured, and benchmarked embedded hardware circuits, microcontrollers, sensor interfaces, and IoT telemetry architectures using Arduino and Raspberry Pi platform systems.',
+            content: 'Embedded Systems Intern at MSME Technology Development Centre (MSME TDC), Guindy, Chennai (Aug 2024 – Sep 2024). Prototyped, configured, and benchmarked embedded hardware circuits, microcontrollers, sensor interfaces, and IoT telemetry architectures using Arduino and Raspberry Pi platform systems.',
           },
           {
             heading: 'ENGINEERING CONTRIBUTIONS',
