@@ -462,9 +462,9 @@ body.detail-mode .core-home-hint {
 .panel-kicker {
   color: var(--green-bright);
   font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 0.20em;
-  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  font-weight: 700;
   margin-bottom: 8px;
   text-transform: uppercase;
 }
@@ -472,18 +472,19 @@ body.detail-mode .core-home-hint {
 .panel-title {
   margin: 0 0 6px;
   font-family: var(--font-display);
-  font-size: clamp(26px, 2.6vw, 36px);
+  font-size: clamp(28px, 3.0vw, 42px);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 255, 136, 0.35);
+  text-shadow: 0 0 24px rgba(0, 255, 136, 0.45);
 }
 
 .panel-subtitle {
-  color: var(--green-medium);
+  color: var(--green-bright);
   font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
 }
 
 /* Internal Document Scroll Container */
@@ -496,16 +497,16 @@ body.detail-mode .core-home-hint {
 }
 
 .panel-body::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .panel-body::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .panel-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 136, 0.3);
-  border-radius: 2px;
+  background: rgba(0, 255, 136, 0.4);
+  border-radius: 3px;
 }
 
 .panel-body::-webkit-scrollbar-thumb:hover {
@@ -514,77 +515,78 @@ body.detail-mode .core-home-hint {
 
 /* Structured Section Styling */
 .research-section {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .research-section h3 {
   font-family: var(--font-display);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--green-bright);
-  letter-spacing: 0.18em;
-  margin: 0 0 8px;
-  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin: 0 0 10px;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
 .research-section p {
   font-family: var(--font-body);
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: #e5e5e5;
   margin: 0;
 }
 
 .research-section ul {
-  margin: 8px 0 0 18px;
+  margin: 10px 0 0 20px;
   padding: 0;
-  color: var(--text-secondary);
+  color: #e5e5e5;
   font-family: var(--font-body);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .panel-footer {
-  border-top: 1px solid rgba(0, 255, 136, 0.14);
-  padding-top: 16px;
+  border-top: 1px solid rgba(0, 255, 136, 0.18);
+  padding-top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .panel-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .panel-tag {
-  padding: 4px 10px;
-  border: 1px solid rgba(0, 255, 136, 0.22);
-  background: rgba(0, 255, 136, 0.05);
+  padding: 5px 12px;
+  border: 1px solid rgba(0, 255, 136, 0.30);
+  background: rgba(0, 255, 136, 0.08);
   color: var(--green-bright);
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.08em;
 }
 
 .panel-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .panel-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 10px;
+  padding: 12px 24px;
   border: 1px solid var(--green-bright);
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.14em;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   cursor: pointer;
   transition: all 200ms ease;
