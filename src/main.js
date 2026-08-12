@@ -3055,20 +3055,60 @@ function renderMobileExperience() {
    INITIALIZATION, ROUTING & RESIZE HANDLERS
    ============================================================ */
 
+function syncMobileRouteScroll(route) {
+  if (!isMobileViewport()) return;
+  const navBtns = document.querySelectorAll('.m-nav-btn');
+  navBtns.forEach(b => {
+    if (b.dataset.mRoute === route) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
+
+  if (route === 'home') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    const secId = `mSection${route.charAt(0).toUpperCase() + route.slice(1)}`;
+    const targetSec = document.getElementById(secId);
+    if (targetSec) {
+      const headerOffset = 72;
+      const elementPosition = targetSec.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  }
+}
+
 window.addEventListener('popstate', () => {
   const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
+  let route = 'home';
+  if (path.endsWith('/about')) route = 'about';
+  else if (path.endsWith('/skills')) route = 'skills';
+  else if (path.endsWith('/projects')) route = 'projects';
+  else if (path.endsWith('/experience')) route = 'experience';
+  else if (path.endsWith('/contact')) route = 'contact';
 
-  if (path.endsWith('/about')) {
+  if (isMobileViewport()) {
+    renderMobileExperience();
+    syncMobileRouteScroll(route);
+    return;
+  }
+
+  if (route === 'about') {
     returnToCore(false);
     showDetailPresentation(combinedAboutData);
     updateBrowserRoute('about', false);
-  } else if (path.endsWith('/skills')) {
+  } else if (route === 'skills') {
     enterSubnet('skills', false);
-  } else if (path.endsWith('/projects')) {
+  } else if (route === 'projects') {
     enterSubnet('projects', false);
-  } else if (path.endsWith('/experience')) {
+  } else if (route === 'experience') {
     enterSubnet('experience', false);
-  } else if (path.endsWith('/contact')) {
+  } else if (route === 'contact') {
     enterSubnet('contact', false);
   } else {
     hideDetailPresentation();
@@ -3088,17 +3128,30 @@ function initRouteFromUrl() {
   }
 
   const normalizedPath = path.toLowerCase().replace(/\/$/, '');
+  let route = 'home';
+  if (normalizedPath.endsWith('/about')) route = 'about';
+  else if (normalizedPath.endsWith('/skills')) route = 'skills';
+  else if (normalizedPath.endsWith('/projects')) route = 'projects';
+  else if (normalizedPath.endsWith('/experience')) route = 'experience';
+  else if (normalizedPath.endsWith('/contact')) route = 'contact';
 
-  if (normalizedPath.endsWith('/about')) {
+  if (isMobileViewport()) {
+    renderMobileExperience();
+    syncMobileRouteScroll(route);
+    updateBrowserRoute(route, false);
+    return;
+  }
+
+  if (route === 'about') {
     showDetailPresentation(combinedAboutData);
     updateBrowserRoute('about', false);
-  } else if (normalizedPath.endsWith('/skills')) {
+  } else if (route === 'skills') {
     enterSubnet('skills', false);
-  } else if (normalizedPath.endsWith('/projects')) {
+  } else if (route === 'projects') {
     enterSubnet('projects', false);
-  } else if (normalizedPath.endsWith('/experience')) {
+  } else if (route === 'experience') {
     enterSubnet('experience', false);
-  } else if (normalizedPath.endsWith('/contact')) {
+  } else if (route === 'contact') {
     enterSubnet('contact', false);
   } else {
     setLayerVisibility('MAIN');
