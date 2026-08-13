@@ -73,7 +73,7 @@ const LABEL_OFFSETS = {
   hero_label:        new THREE.Vector3( 0.00,  0.35, 0.25),  // above hero_core, moderate clearance
   about_label:       new THREE.Vector3(-0.10,  0.25, 0.25),  // above-left, 0.25 above sphere top
   skills_label:      new THREE.Vector3(-0.05,  0.25, 0.25),  // above-left, 0.25 above sphere top
-  projects_label:    new THREE.Vector3( 0.00, -1.60, 0.25),  // BELOW sphere bottom (sphere bottom at -4.2 local, label at -3.94)
+  projects_label:    new THREE.Vector3( 0.00,  0.25, 0.25),  // BELOW sphere bottom (sphere bottom at -4.2 local, label at -3.94)
   experience_label:  new THREE.Vector3( 0.05,  0.25, 0.25),  // above-right, 0.25 above sphere top
   contact_label:     new THREE.Vector3( 0.10,  0.25, 0.25),  // above-right, 0.25 above sphere top
 };
