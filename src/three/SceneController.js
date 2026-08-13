@@ -9,7 +9,7 @@ import * as THREE from 'three';
 ────────────────────────────────────────────────────────────── */
 export class V1DOMLabelManager {
   constructor() {
-    this.labels = []; // Array of label objects { id, text, object, world, offset, element, type }
+    this.labels = []; // Array of label objects { id, text, object, world, offset, element, type, baseFontSize }
     this.container = document.getElementById('graph-labels-container');
     if (!this.container) {
       this.container = document.createElement('div');
@@ -49,20 +49,22 @@ export class V1DOMLabelManager {
     el.style.pointerEvents = 'none';
     el.style.whiteSpace = 'nowrap';
     el.style.userSelect = 'none';
-    el.style.willChange = 'transform, opacity';
+    el.style.willChange = 'transform, opacity, font-size';
 
+    let baseFontSize = 14;
     if (type === 'root-core') {
-      el.style.fontSize = '18px';
+      baseFontSize = 20;
       el.style.color = '#ffffff';
       el.style.textShadow = '0 0 20px rgba(0, 255, 136, 0.60), 0 2px 6px rgba(0, 0, 0, 0.95)';
     } else if (type === 'skill-subnode') {
-      el.style.fontSize = '12px';
+      baseFontSize = 11;
       el.style.fontWeight = '600';
       el.style.opacity = '0.90';
     } else {
-      el.style.fontSize = '14px';
+      baseFontSize = 14;
     }
 
+    el.style.fontSize = `${baseFontSize}px`;
     this.container.appendChild(el);
 
     this.labels.push({
@@ -71,11 +73,9 @@ export class V1DOMLabelManager {
       object,
       world,
       type,
+      baseFontSize,
       offset: offset.clone(),
       element: el,
-      screenX: 0,
-      screenY: 0,
-      shiftY: 0,
     });
   }
 
@@ -83,12 +83,11 @@ export class V1DOMLabelManager {
     if (!camera) return;
 
     const _tmpPos = new THREE.Vector3();
+    const _camPos = camera.position;
     const halfW = window.innerWidth * 0.5;
     const halfH = window.innerHeight * 0.5;
+    const refDist = 18.0; // Reference distance for 1.0x perspective scale
 
-    const activeItems = [];
-
-    // Pass 1: Project 3D node world coordinates to NDC screen space
     for (let i = 0; i < this.labels.length; i++) {
       const label = this.labels[i];
       if (label.world !== activeWorld || !label.object) {
@@ -96,50 +95,38 @@ export class V1DOMLabelManager {
         continue;
       }
 
+      // 1. Get exact 3D node world position + fixed 3D world-space clearance offset
       label.object.updateMatrixWorld(true);
       label.object.getWorldPosition(_tmpPos);
+
+      // Measure 3D camera distance to node
+      const dist = _camPos.distanceTo(_tmpPos);
+
+      // Apply fixed world-space clearance offset above/near node sphere
       _tmpPos.add(label.offset);
 
+      // 2. Project 3D world position through camera
       _tmpPos.project(camera);
 
+      // Check camera frustum
       if (_tmpPos.z > 1.0 || _tmpPos.z < -1.0) {
         label.element.style.display = 'none';
         continue;
       }
 
-      label.screenX = (_tmpPos.x * halfW) + halfW;
-      label.screenY = (-(_tmpPos.y * halfH)) + halfH;
-      label.shiftY = 0;
-      activeItems.push(label);
-    }
+      const screenX = (_tmpPos.x * halfW) + halfW;
+      const screenY = (-(_tmpPos.y * halfH)) + halfH;
 
-    // Pass 2: Lightweight 2D collision solver for overlapping projected labels
-    for (let i = 0; i < activeItems.length; i++) {
-      const a = activeItems[i];
-      for (let j = i + 1; j < activeItems.length; j++) {
-        const b = activeItems[j];
-        const dx = Math.abs(a.screenX - b.screenX);
-        const dy = Math.abs((a.screenY + a.shiftY) - (b.screenY + b.shiftY));
+      // 3. True 3D perspective scaling factor S based on camera distance
+      let perspectiveScale = refDist / Math.max(dist, 1.0);
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.50), 1.60);
 
-        if (dx < 110 && dy < 24) {
-          // Resolve overlap by shifting lower priority / secondary subnode vertically
-          if (a.type === 'skill-subnode' && b.type !== 'skill-subnode') {
-            a.shiftY += 18;
-          } else if (b.type === 'skill-subnode' && a.type !== 'skill-subnode') {
-            b.shiftY += 18;
-          } else {
-            b.shiftY += 18;
-          }
-        }
-      }
-    }
+      const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
 
-    // Pass 3: Apply final 2D transforms to DOM label elements
-    for (let i = 0; i < activeItems.length; i++) {
-      const label = activeItems[i];
-      const finalY = label.screenY + label.shiftY;
+      // 4. Render label physically attached to node world position
       label.element.style.display = 'block';
-      label.element.style.transform = `translate3d(${label.screenX}px, ${finalY}px, 0px) translate(-50%, -50%)`;
+      label.element.style.fontSize = `${computedFontSize}px`;
+      label.element.style.transform = `translate3d(${screenX}px, ${screenY}px, 0px) translate(-50%, -50%)`;
     }
   }
 
@@ -303,7 +290,6 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
-    let skillSubIdx = 0;
     this.skillsNodeGroups.forEach((groupObj, key) => {
       const title = skillTitles[key] || key.toUpperCase();
       const isRoot = key === 'skills_root';
@@ -316,10 +302,8 @@ export class SceneController {
       } else if (isCategory) {
         offset = new THREE.Vector3(0, 0.85, 0);
       } else {
-        // Multi-row vertical staggering for 16 skill subnodes to prevent single horizontal line overlap
-        skillSubIdx++;
-        const isTopTier = (skillSubIdx % 2 === 0);
-        offset = isTopTier ? new THREE.Vector3(0, 0.48, 0.10) : new THREE.Vector3(0, -0.55, 0.10);
+        // Fixed 3D world clearance offset attached to skill node position
+        offset = new THREE.Vector3(0, 0.42, 0.10);
       }
 
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
