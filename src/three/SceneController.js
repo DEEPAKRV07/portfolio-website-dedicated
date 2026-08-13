@@ -756,7 +756,35 @@ export class SceneController {
     return new THREE.Box3().setFromObject(this.skillsGroup);
   }
 
-  _printSkillsProvenance(root) {
+    /* Generic light-pulse signal particles for Projects and Skills GLB edge paths */
+  _initSignalParticlesForWorld(parentGroup, edgeMeshMap, worldKey) {
+    if (!parentGroup || !edgeMeshMap || edgeMeshMap.size === 0) return;
+
+    const signalGroup = new THREE.Group();
+    signalGroup.name = `${worldKey.toUpperCase()}_SIGNAL_PARTICLES`;
+
+    const particleGeo = new THREE.SphereGeometry(0.055, 8, 8);
+    const particleMat = new THREE.MeshBasicMaterial({
+      color: 0x00ff88,
+      transparent: true,
+      opacity: 0.85,
+    });
+
+    let edgeIdx = 0;
+    edgeMeshMap.forEach((edgeMesh, edgeName) => {
+      edgeIdx++;
+      for (let p = 0; p < 2; p++) {
+        const mesh = new THREE.Mesh(particleGeo, particleMat.clone());
+        mesh.frustumCulled = false;
+        mesh.renderOrder = 4;
+        signalGroup.add(mesh);
+      }
+    });
+
+    parentGroup.add(signalGroup);
+  }
+
+_printSkillsProvenance(root) {
     console.group('%c[SKILLS GLB PROVENANCE]', 'color: #00ff88; font-weight: bold;');
     console.log('PROCEDURAL_NODES=0');
     console.log('Source GLB: public/models/skills.glb');
