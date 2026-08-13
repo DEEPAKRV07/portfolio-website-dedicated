@@ -1698,8 +1698,9 @@ function setLayerVisibility(layerName) {
     sceneController.setVisible(false);
     ambientLogosGroup.visible = false;
 
-    for (const world of subnetWorlds.values()) {
-      const isCurrent = world === activeSubnet;
+    // For GLB worlds (projects, skills), hide all old procedural subnetWorlds!
+    for (const [sId, world] of subnetWorlds.entries()) {
+      const isCurrent = (world === activeSubnet) && (sId !== 'projects' && sId !== 'skills');
       setWorldVisibility(world.group, isCurrent);
       setWorldOpacity(world.group, isCurrent ? 1.0 : 0.0);
     }
@@ -1710,6 +1711,66 @@ function setLayerVisibility(layerName) {
 }
 
 function enterSubnet(subnetId, isPush = true) {
+  if (subnetId === 'projects') {
+    sceneController.setActiveWorld('projects');
+    activeSubnet = null;
+    hideDetailPresentation();
+    hideSkillContextPanel();
+    setLayerVisibility('SUBNET');
+
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+
+    setMode('ENGINEERING PROJECTS');
+    setLayerPath('NEURAL NETWORK / PROJECTS WORLD');
+
+    const projBounds = sceneController.computeProjectsBounds();
+    let projZ = 16.5, projY = 0.5, projTarget = new THREE.Vector3(0, -0.2, 0);
+    if (projBounds && !projBounds.isEmpty()) {
+      const center = projBounds.getCenter(new THREE.Vector3());
+      const size   = projBounds.getSize(new THREE.Vector3());
+      const radius = Math.max(size.x, size.y, size.z) * 0.5;
+      const fovRad = THREE.MathUtils.degToRad(camera.fov);
+      const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.15;
+      projZ = isMobileViewport() ? dist * 1.25 : dist;
+      projY = center.y + 0.6;
+      projTarget = new THREE.Vector3(center.x, center.y - 0.3, center.z);
+    }
+    startTransition(new THREE.Vector3(0, projY, projZ), projTarget, 950);
+    updateBrowserRoute('projects', isPush);
+    return;
+  }
+
+  if (subnetId === 'skills') {
+    sceneController.setActiveWorld('skills');
+    activeSubnet = null;
+    hideDetailPresentation();
+    hideSkillContextPanel();
+    setLayerVisibility('SUBNET');
+
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+
+    setMode('SKILLS & TECHNOLOGIES');
+    setLayerPath('NEURAL NETWORK / SKILLS WORLD');
+
+    const skillsBounds = sceneController.computeSkillsBounds();
+    let skZ = 16.5, skY = 0.5, skTarget = new THREE.Vector3(0, -0.2, 0);
+    if (skillsBounds && !skillsBounds.isEmpty()) {
+      const center = skillsBounds.getCenter(new THREE.Vector3());
+      const size   = skillsBounds.getSize(new THREE.Vector3());
+      const radius = Math.max(size.x, size.y, size.z) * 0.5;
+      const fovRad = THREE.MathUtils.degToRad(camera.fov);
+      const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.15;
+      skZ = isMobileViewport() ? dist * 1.25 : dist;
+      skY = center.y + 0.6;
+      skTarget = new THREE.Vector3(center.x, center.y - 0.3, center.z);
+    }
+    startTransition(new THREE.Vector3(0, skY, skZ), skTarget, 950);
+    updateBrowserRoute('skills', isPush);
+    return;
+  }
+
   const world = subnetWorlds.get(subnetId);
   if (!world) return;
 
