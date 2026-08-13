@@ -374,19 +374,26 @@ export class SceneController {
       obj.visible = true;
       obj.frustumCulled = false;
 
-      // 1. Hide ONLY text-only meshes ending with '_label'
+      // Guarantee full scale (1, 1, 1) and zero position offsets for Blender core/shell/node objects
+      if (nm.endsWith('_core') || nm.endsWith('_shell')) {
+        obj.position.set(0, 0, 0);
+        obj.scale.set(1, 1, 1);
+      }
+
+      // Register group container nodes starting with 'Node_' and enforce scale (1, 1, 1)
+      if (nm.startsWith('Node_')) {
+        obj.scale.set(1, 1, 1);
+        const key = nm.replace('Node_', '');
+        nodeGroupsMap.set(key, obj);
+      }
+
+      // Hide ONLY text-only meshes ending with '_label'
       if (nm.endsWith('_label')) {
         obj.visible = false;
         return;
       }
 
-      // 2. Register group container nodes starting with 'Node_'
-      if (nm.startsWith('Node_')) {
-        const key = nm.replace('Node_', '');
-        nodeGroupsMap.set(key, obj);
-      }
-
-      // 3. Configure 3D node sphere cores and wireframe shells
+      // Configure 3D node sphere cores, wireframe shells, and edge lines
       if (obj.isMesh) {
         const destId = this._destId(nm) || nm;
         obj.userData.destId = destId;
