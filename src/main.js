@@ -38,6 +38,7 @@ assetManager.loadAll((ratio, statusText) => {
   if (loaderStatusEl) loaderStatusEl.textContent = statusText;
 }).then(() => {
   sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
+  sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
   setLayerVisibility(currentLayer);
 
   // Auto-frame camera from actual GLB network bounds
@@ -1723,6 +1724,7 @@ function enterSubnet(subnetId, isPush = true) {
 }
 
 function returnToCore(isPush = true) {
+  sceneController.setActiveWorld('home');
   activeSubnet = null;
   hideDetailPresentation();
   hideSkillContextPanel();
@@ -2002,6 +2004,18 @@ renderer.domElement.addEventListener('click', event => {
 
   if (hit.type === 'glb-home-node') {
     const destId = hit.destId;
+    if (hit.object.userData.world === 'projects' || sceneController.activeWorld === 'projects') {
+      // Clicked a project node inside projects.glb world
+      const projectCategory = SUBNET_DEFINITIONS.projects?.categories?.find(c => c.id === destId || c.id.includes(destId));
+      if (projectCategory) {
+        showDetailPresentation(projectCategory);
+      } else {
+        const fallbackObj = SUBNET_DEFINITIONS.projects?.categories?.[0];
+        if (fallbackObj) showDetailPresentation(fallbackObj);
+      }
+      return;
+    }
+
     if (destId === 'about') {
       showDetailPresentation(combinedAboutData);
       updateBrowserRoute('about', true);

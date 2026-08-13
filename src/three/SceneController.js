@@ -93,6 +93,19 @@ export class SceneController {
     this._ready           = false;
     this._billboardActive = false;
     this._animDone        = false;
+
+    // Projects GLB World state (Phase 2 Integration)
+    this.projectsGroup = new THREE.Group();
+    this.projectsGroup.name = 'PROJECTS_GLB_CONTAINER';
+    this.projectsGroup.visible = false;
+
+    this.projectsInteractiveMeshes = [];
+    this.projectsNodeMap     = new Map();
+    this.projectsNodeGroups  = new Map();
+    this.projectsLabelMeshes = new Map();
+    this.projectsEdgeMeshes  = new Map();
+    this.projectsAsset       = null;
+    this.activeWorld         = 'home'; // 'home' | 'projects'
   }
 
   /* ──────────────────────────────────────────────────────────────
@@ -436,6 +449,9 @@ export class SceneController {
      getRaycastTargets — *_core meshes for raycasting
   ────────────────────────────────────────────────────────────── */
   getRaycastTargets() {
+    if (this.activeWorld === 'projects' && this.projectsGroup.visible) {
+      return this.projectsInteractiveMeshes;
+    }
     return this.homeGroup.visible ? this.interactiveMeshes : [];
   }
 
@@ -488,7 +504,119 @@ export class SceneController {
        3. Destination node breathing
        4. Edge opacity pulse
   ────────────────────────────────────────────────────────────── */
-  updateIdleMotion(currentTime, delta, camera) {
+  
+  /* ──────────────────────────────────────────────────────────────
+     initProjectsScene — initializes projects.glb 3D world
+  ────────────────────────────────────────────────────────────── */
+  initProjectsScene(scene, projectsAsset, camera) {
+    if (!projectsAsset?.scene) {
+      console.warn('[SceneController] projects.glb missing — cannot init projects world.');
+      return;
+    }
+
+    this.projectsAsset = projectsAsset;
+    this.projectsGroup.clear();
+    this.projectsInteractiveMeshes = [];
+    this.projectsNodeMap.clear();
+    this.projectsNodeGroups.clear();
+    this.projectsLabelMeshes.clear();
+    this.projectsEdgeMeshes.clear();
+
+    // Attach projects GLB scene
+    this.projectsGroup.add(projectsAsset.scene);
+    scene.add(this.projectsGroup);
+
+    // Position projects world slightly raised for framing
+    this.projectsGroup.position.y = 0.5;
+
+    // Fix offsets, scales, materials & index objects for interaction
+    this._fixChildOffsets(projectsAsset.scene);
+    this._fixChildScales(projectsAsset.scene);
+    this._applyMaterials(projectsAsset.scene);
+    this._indexProjectsScene(projectsAsset.scene);
+
+    // Install wrapper billboards for projects labels
+    this._setupBillboardWrappers(this.projectsLabelMeshes, 'projects');
+
+    this.projectsGroup.updateMatrixWorld(true);
+    console.log('[SceneController] Projects World Initialized. Nodes:', this.projectsInteractiveMeshes.length,
+      '| Labels:', this.projectsLabelMeshes.size, '| Edges:', this.projectsEdgeMeshes.size);
+  }
+
+  /* Index projects.glb nodes for interaction */
+  _indexProjectsScene(root) {
+    root.traverse((obj) => {
+      const nm = obj.name || '';
+      if (!nm) return;
+
+      if (nm.startsWith('Node_')) {
+        const key = nm.replace('Node_', '');
+        this.projectsNodeGroups.set(key, obj);
+      }
+
+      if (nm.endsWith('_label')) {
+        this.projectsLabelMeshes.set(nm, obj);
+      }
+
+      if (nm.includes('->')) {
+        this.projectsEdgeMeshes.set(nm, obj);
+      }
+
+      // Interactive project nodes
+      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || ['sightmate', 'football', 'forcrux', 'google-maps', 'kaatchi', 'projects_root'].includes(nm))) {
+        obj.visible = true;
+        obj.frustumCulled = false;
+        if (!obj.material) return;
+        obj.material = obj.material.clone();
+
+        const destId = this._destId(nm) || nm;
+        obj.userData.destId = destId;
+        obj.userData.world = 'projects';
+
+        if (!this.projectsNodeMap.has(destId)) {
+          this.projectsNodeMap.set(destId, []);
+        }
+        this.projectsNodeMap.get(destId).push(obj);
+
+        if (nm.endsWith('_core') || ['sightmate', 'football', 'forcrux', 'google-maps', 'kaatchi'].includes(nm)) {
+          this.projectsInteractiveMeshes.push(obj);
+          obj.userData.origEmissive = obj.material.emissive ? obj.material.emissive.getHex() : 0x00cc66;
+          obj.userData.origEmissiveIntensity = obj.material.emissiveIntensity ?? 0.5;
+        }
+      }
+    });
+  }
+
+  /* Toggle active 3D world: 'home' | 'projects' */
+  setActiveWorld(worldId) {
+    this.activeWorld = worldId;
+    if (worldId === 'home') {
+      this.homeGroup.visible = true;
+      this.projectsGroup.visible = false;
+    } else if (worldId === 'projects') {
+      this.homeGroup.visible = false;
+      this.projectsGroup.visible = true;
+
+      // Play projects.glb animations if present
+      if (this.projectsAsset?.mixer && this.projectsAsset?.animations?.length) {
+        this.projectsAsset.animations.forEach((clip) => {
+          const action = this.projectsAsset.mixer.clipAction(clip);
+          action.reset();
+          action.setLoop(THREE.LoopOnce, 1);
+          action.clampWhenFinished = true;
+          action.play();
+        });
+      }
+    }
+  }
+
+  computeProjectsBounds() {
+    if (!this.projectsAsset?.scene) return null;
+    this.projectsGroup.updateMatrixWorld(true);
+    return new THREE.Box3().setFromObject(this.projectsGroup);
+  }
+
+updateIdleMotion(currentTime, delta, camera) {
     if (!this._ready || !this.homeGroup.visible) return;
 
     const t = currentTime * 0.001;
@@ -501,6 +629,14 @@ export class SceneController {
       // Label mesh quaternion is NOT modified here — animation owns it.
       if (this.billboardWrappers) {
         for (const [, wrapper] of this.billboardWrappers) {
+          wrapper.getWorldPosition(_tmpV);
+          const dx = camera.position.x - _tmpV.x;
+          const dz = camera.position.z - _tmpV.z;
+          wrapper.rotation.y = Math.atan2(dx, dz);
+        }
+      }
+      if (this.projectsBillboardWrappers && this.activeWorld === 'projects') {
+        for (const [, wrapper] of this.projectsBillboardWrappers) {
           wrapper.getWorldPosition(_tmpV);
           const dx = camera.position.x - _tmpV.x;
           const dz = camera.position.z - _tmpV.z;
@@ -588,10 +724,16 @@ export class SceneController {
        At yAngle=180 (orbit behind): local +Y -> world -Z = toward camera  OK
        Text right always = camera right (no mirroring). Verified by dot product.
   ---------------------------------------------------------------- */
-  _setupBillboardWrappers() {
-    this.billboardWrappers = new Map();
+  _setupBillboardWrappers(targetLabelMap = null, worldKey = 'home') {
+    const labelMap = targetLabelMap || this.labelMeshes;
+    const wrapperMap = new Map();
+    if (worldKey === 'projects') {
+      this.projectsBillboardWrappers = wrapperMap;
+    } else {
+      this.billboardWrappers = wrapperMap;
+    }
 
-    for (const [nm, labelMesh] of this.labelMeshes) {
+    for (const [nm, labelMesh] of labelMap) {
       const wrapper = new THREE.Object3D();
       wrapper.name = nm + '_billboard_wrapper';
 
@@ -629,7 +771,7 @@ export class SceneController {
       console.log('  mirror-check dot(textRight, cameraRight) =', dot.toFixed(3),
         dot > 0 ? 'CORRECT (>0)' : 'MIRRORED (<0)');
 
-      this.billboardWrappers.set(nm, wrapper);
+      wrapperMap.set(nm, wrapper);
     }
 
     console.log('[SceneController] Billboard wrappers installed:', this.billboardWrappers.size);
