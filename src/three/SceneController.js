@@ -541,6 +541,7 @@ export class SceneController {
     this.projectsGroup.updateMatrixWorld(true);
     console.log('[SceneController] Projects World Initialized. Nodes:', this.projectsInteractiveMeshes.length,
       '| Labels:', this.projectsLabelMeshes.size, '| Edges:', this.projectsEdgeMeshes.size);
+    this._printProjectsProvenance(projectsAsset.scene);
   }
 
   /* Index projects.glb nodes for interaction */
