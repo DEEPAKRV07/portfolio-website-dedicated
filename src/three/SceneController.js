@@ -563,8 +563,10 @@ export class SceneController {
     this._printSkillsProvenance(skillsAsset.scene);
   }
 
-  /* Index skills.glb nodes for interaction */
+  /* Index skills.glb nodes for interaction with presentation hierarchy */
   _indexSkillsScene(root) {
+    const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
+
     root.traverse((obj) => {
       const nm = obj.name || '';
       if (!nm) return;
@@ -572,17 +574,26 @@ export class SceneController {
       if (nm.startsWith('Node_')) {
         const key = nm.replace('Node_', '');
         this.skillsNodeGroups.set(key, obj);
+
+        if (categories.includes(key)) {
+          obj.scale.set(1.12, 1.12, 1.12); // Primary category nodes prominent
+        } else if (key !== 'skills_root') {
+          obj.scale.set(0.68, 0.68, 0.68); // Skill subnodes secondary
+        }
       }
 
       if (nm.endsWith('_label')) {
         this.skillsLabelMeshes.set(nm, obj);
+        if (!categories.some(c => nm.includes(c)) && !nm.includes('skills_root')) {
+          obj.scale.set(0.68, 0.68, 0.68); // Subdued label scale for skill subnodes
+        }
       }
 
       if (nm.includes('->')) {
         this.skillsEdgeMeshes.set(nm, obj);
       }
 
-      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || nm.endsWith('-category') || nm.includes('_core'))) {
+      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || categories.some(c => nm.includes(c)) || nm.includes('_core') || nm.includes('label') === false)) {
         obj.visible = true;
         obj.frustumCulled = false;
         if (!obj.material) return;
@@ -598,10 +609,21 @@ export class SceneController {
         this.skillsNodeMap.get(destId).push(obj);
 
         this.skillsInteractiveMeshes.push(obj);
-        obj.userData.origEmissive = obj.material.emissive ? obj.material.emissive.getHex() : 0x00cc66;
-        obj.userData.origEmissiveIntensity = obj.material.emissiveIntensity ?? 0.5;
+
+        const isCategory = categories.some(c => nm.includes(c));
+        const origEm = isCategory ? 0x00cc66 : 0x009955;
+        const origInt = isCategory ? 0.65 : 0.40;
+
+        if (obj.material.emissive) {
+          obj.material.emissive.setHex(origEm);
+          obj.material.emissiveIntensity = origInt;
+        }
+        obj.userData.origEmissive = origEm;
+        obj.userData.origEmissiveIntensity = origInt;
       }
     });
+
+    this._initSignalParticlesForWorld(this.skillsGroup, this.skillsEdgeMeshes, 'skills');
   }
 
   computeSkillsBounds() {
