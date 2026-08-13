@@ -45,25 +45,9 @@ assetManager.loadAll((ratio, statusText, assetId) => {
     sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
     sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
     sceneController.initSkillsScene(scene, assetManager.getAsset('skills'), camera);
-    setLayerVisibility(currentLayer);
 
-    const glbBounds = sceneController.computeNetworkBounds();
-    let homeZ, homeY, homeTarget;
-    if (glbBounds && !glbBounds.isEmpty()) {
-      const center = glbBounds.getCenter(new THREE.Vector3());
-      const size   = glbBounds.getSize(new THREE.Vector3());
-      const radius = Math.max(size.x, size.y, size.z) * 0.5;
-      const fovRad = THREE.MathUtils.degToRad(camera.fov);
-      const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.20;
-      homeZ = isMobileViewport() ? dist * 1.25 : dist;
-      homeY = center.y + 0.8;
-      homeTarget = new THREE.Vector3(center.x, center.y - 0.5, center.z);
-    } else {
-      homeZ = isMobileViewport() ? 18.5 : 14.0;
-      homeY = 0.8;
-      homeTarget = new THREE.Vector3(0, -0.3, 0);
-    }
-    startTransition(new THREE.Vector3(0, homeY, homeZ), homeTarget, 1200);
+    // Resolve initial route after scenes are ready
+    // initRouteFromUrl now invoked inside assetManager.loadAll().then()
   } catch (err) {
     console.error('[3D Scene Init Error]', err);
   } finally {
@@ -1677,9 +1661,7 @@ function setLayerVisibility(layerName) {
     setWorldOpacity(mainGraph, 0.0);
     setWorldOpacity(core, 0.0);
 
-    sceneController.setVisible(true);
-
-    /* 5 AMBIENT 3D FLOATING LOGOS EXIST ONLY ON HOME! */
+    sceneController.setActiveWorld('home');
     ambientLogosGroup.visible = true;
 
     for (const world of subnetWorlds.values()) {
@@ -1690,19 +1672,21 @@ function setLayerVisibility(layerName) {
     setLabelMode('main');
     showCoreBeacon(false);
   } else if (layerName === 'SUBNET') {
-    /* STRICT ACTIVE-LAYER ISOLATION: Hide Home network completely in subnets! */
     setWorldVisibility(mainGraph, false);
     setWorldOpacity(mainGraph, 0.0);
     setWorldOpacity(core, 0.0);
 
-    sceneController.setVisible(false);
     ambientLogosGroup.visible = false;
 
-    // For GLB worlds (projects, skills), hide all old procedural subnetWorlds!
-    for (const [sId, world] of subnetWorlds.entries()) {
-      const isCurrent = (world === activeSubnet) && (sId !== 'projects' && sId !== 'skills');
-      setWorldVisibility(world.group, isCurrent);
-      setWorldOpacity(world.group, isCurrent ? 1.0 : 0.0);
+    // Ensure active GLB world visibility (projects vs skills)
+    if (sceneController.activeWorld === 'home') {
+      sceneController.setActiveWorld('projects');
+    }
+
+    // Hide all old procedural subnetWorlds
+    for (const world of subnetWorlds.values()) {
+      setWorldVisibility(world.group, false);
+      setWorldOpacity(world.group, 0.0);
     }
 
     setLabelMode('subnet');
@@ -1804,11 +1788,24 @@ function returnToCore(isPush = true) {
 
   setMode('OVERVIEW');
   setLayerPath('NEURAL NETWORK / OVERVIEW');
-  updateCounters(mainNodeObjects.length + 1, mainEdges.length);
 
-  const homeZ = isMobileViewport() ? 18.5 : 13.5;
-  const homeY = isMobileViewport() ? 0.6 : 0.4;
-  startTransition(new THREE.Vector3(0, homeY, homeZ), new THREE.Vector3(0, -0.2, 0), 900);
+  const glbBounds = sceneController.computeNetworkBounds();
+  let homeZ, homeY, homeTarget;
+  if (glbBounds && !glbBounds.isEmpty()) {
+    const center = glbBounds.getCenter(new THREE.Vector3());
+    const size   = glbBounds.getSize(new THREE.Vector3());
+    const radius = Math.max(size.x, size.y, size.z) * 0.5;
+    const fovRad = THREE.MathUtils.degToRad(camera.fov);
+    const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.20;
+    homeZ = isMobileViewport() ? dist * 1.25 : dist;
+    homeY = center.y + 0.8;
+    homeTarget = new THREE.Vector3(center.x, center.y - 0.5, center.z);
+  } else {
+    homeZ = isMobileViewport() ? 18.5 : 14.0;
+    homeY = 0.8;
+    homeTarget = new THREE.Vector3(0, -0.3, 0);
+  }
+  startTransition(new THREE.Vector3(0, homeY, homeZ), homeTarget, 950);
   updateBrowserRoute('home', isPush);
 }
 
