@@ -1605,3 +1605,173 @@ body.detail-mode .intro {
     letter-spacing: 0.12em;
   }
 }
+/* ============================================================
+   TOP FLOATING ACTION / CONTACT NAVBAR (4 3D Floating Action Buttons)
+   ============================================================ */
+
+.top-action-bar {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  pointer-events: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(5, 5, 5, 0.78);
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  border-radius: 30px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 255, 136, 0.12);
+  transition: all 300ms ease;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 15px;
+  border-radius: 20px;
+  background: rgba(0, 255, 136, 0.05);
+  border: 1px solid rgba(0, 255, 136, 0.18);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  transition: all 200ms ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.action-btn .btn-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--green-bright);
+  transition: transform 200ms ease;
+}
+
+.action-btn:hover {
+  background: rgba(0, 255, 136, 0.22);
+  border-color: var(--green-bright);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(0, 255, 136, 0.45);
+  transform: translateY(-1px);
+}
+
+.action-btn:hover .btn-icon {
+  transform: scale(1.15);
+}
+
+.action-btn.accent-btn {
+  background: rgba(0, 255, 136, 0.14);
+  border-color: rgba(0, 255, 136, 0.42);
+  color: var(--green-bright);
+}
+
+.action-btn.accent-btn:hover {
+  background: var(--green-bright);
+  color: #050505;
+}
+
+.action-btn.accent-btn:hover .btn-icon {
+  color: #050505;
+}
+
+/* ============================================================
+   CONSOLIDATED NETWORK CONTROL / LEGEND PANEL (Lower Right HUD)
+   ============================================================ */
+
+.network-control-panel {
+  position: absolute;
+  right: 34px;
+  bottom: 30px;
+  width: 235px;
+  padding: 14px;
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  background: rgba(5, 5, 5, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  transition: opacity 300ms ease;
+}
+
+.control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(0, 255, 136, 0.14);
+}
+
+.control-title {
+  color: var(--green-bright);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+
+.control-status {
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.section-label {
+  color: var(--text-secondary);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  margin-bottom: 6px;
+}
+
+.quick-nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+}
+
+.nav-chip {
+  padding: 6px 3px;
+  background: rgba(0, 255, 136, 0.05);
+  border: 1px solid rgba(0, 255, 136, 0.18);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 180ms ease;
+}
+
+.nav-chip:hover,
+.nav-chip.active,
+.nav-chip.node-hovered {
+  background: rgba(0, 255, 136, 0.25);
+  border-color: var(--green-bright);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+}
+
+.control-legend-section {
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 255, 136, 0.10);
+}
+
+.lab-actions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 255, 136, 0.10);
+}
