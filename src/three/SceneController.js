@@ -992,6 +992,17 @@ updateIdleMotion(currentTime, delta, camera) {
     console.log('[Phase1] Billboard=DISABLED. GLB anim-end pose is ground truth.');
     console.groupEnd();
   }
-}
 
+  _printProjectsProvenance(root) {
+    console.group('%c[PROJECTS GLB PROVENANCE]', 'color: #00ff88; font-weight: bold;');
+    console.log('PROCEDURAL_NODES=0');
+    console.log('Source GLB: public/models/projects.glb');
+    console.log('Indexed Nodes:', Array.from(this.projectsNodeMap.keys()).join(', '));
+    console.log('Indexed Labels:', Array.from(this.projectsLabelMeshes.keys()).join(', '));
+    console.log('Indexed Edges:', Array.from(this.projectsEdgeMeshes.keys()).join(', '));
+    console.log('Authored Animation Clips:', this.projectsAsset?.animations?.length ?? 0);
+    console.groupEnd();
+  }
+
+}
 export const sceneController = new SceneController();

@@ -32,41 +32,47 @@ const loaderEl = document.getElementById('neuralLoader');
 const loaderStatusEl = document.getElementById('loaderStatus');
 const loaderBarFillEl = document.getElementById('loaderBarFill');
 
-assetManager.loadAll((ratio, statusText) => {
+assetManager.loadAll((ratio, statusText, assetId) => {
   const percent = Math.min(Math.round(ratio * 100), 100);
   if (loaderBarFillEl) loaderBarFillEl.style.width = `${percent}%`;
   if (loaderStatusEl) loaderStatusEl.textContent = statusText;
-}).then(() => {
-  sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
-  sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
-  sceneController.initSkillsScene(scene, assetManager.getAsset('skills'), camera);
-  setLayerVisibility(currentLayer);
-
-  // Auto-frame camera from actual GLB network bounds
-  const glbBounds = sceneController.computeNetworkBounds();
-  let homeZ, homeY, homeTarget;
-  if (glbBounds && !glbBounds.isEmpty()) {
-    const center = glbBounds.getCenter(new THREE.Vector3());
-    const size   = glbBounds.getSize(new THREE.Vector3());
-    const radius = Math.max(size.x, size.y, size.z) * 0.5;
-    // Distance = radius / tan(halfFOV), add 20% breathing room
-    const fovRad = THREE.MathUtils.degToRad(camera.fov);
-    const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.20;
-    homeZ = isMobileViewport() ? dist * 1.25 : dist;
-    homeY = center.y + 0.8;
-    homeTarget = new THREE.Vector3(center.x, center.y - 0.5, center.z);
-  } else {
-    homeZ = isMobileViewport() ? 18.5 : 14.0;
-    homeY = 0.8;
-    homeTarget = new THREE.Vector3(0, -0.3, 0);
+  if (assetId) {
+    console.log(`[ASSET COMPLETE] ${assetId} (${percent}%)`);
   }
-  startTransition(new THREE.Vector3(0, homeY, homeZ), homeTarget, 1200);
+}).then(() => {
+  console.log('[ALL ASSETS COMPLETE] Initializing 3D scenes...');
+  try {
+    sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
+    sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
+    sceneController.initSkillsScene(scene, assetManager.getAsset('skills'), camera);
+    setLayerVisibility(currentLayer);
 
-  if (loaderBarFillEl) loaderBarFillEl.style.width = '100%';
-  if (loaderStatusEl) loaderStatusEl.textContent = 'SYSTEM ONLINE — 3D GRAPH READY';
-  setTimeout(() => {
-    if (loaderEl) loaderEl.classList.add('hidden');
-  }, 350);
+    const glbBounds = sceneController.computeNetworkBounds();
+    let homeZ, homeY, homeTarget;
+    if (glbBounds && !glbBounds.isEmpty()) {
+      const center = glbBounds.getCenter(new THREE.Vector3());
+      const size   = glbBounds.getSize(new THREE.Vector3());
+      const radius = Math.max(size.x, size.y, size.z) * 0.5;
+      const fovRad = THREE.MathUtils.degToRad(camera.fov);
+      const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.20;
+      homeZ = isMobileViewport() ? dist * 1.25 : dist;
+      homeY = center.y + 0.8;
+      homeTarget = new THREE.Vector3(center.x, center.y - 0.5, center.z);
+    } else {
+      homeZ = isMobileViewport() ? 18.5 : 14.0;
+      homeY = 0.8;
+      homeTarget = new THREE.Vector3(0, -0.3, 0);
+    }
+    startTransition(new THREE.Vector3(0, homeY, homeZ), homeTarget, 1200);
+  } catch (err) {
+    console.error('[3D Scene Init Error]', err);
+  } finally {
+    if (loaderBarFillEl) loaderBarFillEl.style.width = '100%';
+    if (loaderStatusEl) loaderStatusEl.textContent = 'SYSTEM ONLINE — 3D GRAPH READY';
+    setTimeout(() => {
+      if (loaderEl) loaderEl.classList.add('hidden');
+    }, 350);
+  }
 });
 
 /* ============================================================
