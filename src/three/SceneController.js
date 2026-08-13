@@ -1,8 +1,5 @@
 import * as THREE from 'three';
 
-const _tmpV = new THREE.Vector3();
-const _tmpV2 = new THREE.Vector3();
-
 /* ──────────────────────────────────────────────────────────────
    V1 DOM Projected Label Manager (Exact V1 Architecture)
    
@@ -31,7 +28,7 @@ export class V1DOMLabelManager {
   createLabel(id, text, object, world = 'home', type = 'category', offset = new THREE.Vector3(0, 0.85, 0)) {
     if (!object) return;
 
-    // Check if label already exists
+    // Remove existing label with same ID & world
     const existingIdx = this.labels.findIndex(l => l.id === id && l.world === world);
     if (existingIdx !== -1) {
       const old = this.labels[existingIdx];
@@ -69,7 +66,7 @@ export class V1DOMLabelManager {
 
     this.container.appendChild(el);
 
-    const item = {
+    this.labels.push({
       id,
       text,
       object,
@@ -77,8 +74,7 @@ export class V1DOMLabelManager {
       type,
       offset: offset.clone(),
       element: el,
-    };
-    this.labels.push(item);
+    });
   }
 
   update(camera, activeWorld) {
@@ -125,37 +121,27 @@ export class SceneController {
     // 1. Home GLB World state (LOCKED REFERENCE)
     this.homeGroup = new THREE.Group();
     this.homeGroup.name = 'HOME_GLB_CONTAINER';
-
     this.interactiveMeshes = [];
     this.nodeMap           = new Map();
     this.nodeGroups        = new Map();
-    this.labelMeshes       = new Map();
-    this.edgeMeshes        = new Map();
 
     // 2. Projects GLB World state
     this.projectsGroup = new THREE.Group();
     this.projectsGroup.name = 'PROJECTS_GLB_CONTAINER';
-    this.projectsGroup.visible = false;
     this.projectsInteractiveMeshes = [];
     this.projectsNodeMap     = new Map();
     this.projectsNodeGroups  = new Map();
-    this.projectsLabelMeshes = new Map();
-    this.projectsEdgeMeshes  = new Map();
 
     // 3. Skills GLB World state
     this.skillsGroup = new THREE.Group();
     this.skillsGroup.name = 'SKILLS_GLB_CONTAINER';
-    this.skillsGroup.visible = false;
     this.skillsInteractiveMeshes = [];
     this.skillsNodeMap     = new Map();
     this.skillsNodeGroups  = new Map();
-    this.skillsLabelMeshes = new Map();
-    this.skillsEdgeMeshes  = new Map();
 
     // 4. Experience GLB World state
     this.experienceGroup = new THREE.Group();
     this.experienceGroup.name = 'EXPERIENCE_GLB_CONTAINER';
-    this.experienceGroup.visible = false;
     this.experienceInteractiveMeshes = [];
     this.experienceNodeMap     = new Map();
     this.experienceNodeGroups  = new Map();
@@ -163,7 +149,6 @@ export class SceneController {
     // 5. Education GLB World state
     this.educationGroup = new THREE.Group();
     this.educationGroup.name = 'EDUCATION_GLB_CONTAINER';
-    this.educationGroup.visible = false;
     this.educationInteractiveMeshes = [];
     this.educationNodeMap     = new Map();
     this.educationNodeGroups  = new Map();
@@ -171,17 +156,15 @@ export class SceneController {
     // 6. Contact GLB World state
     this.contactGroup = new THREE.Group();
     this.contactGroup.name = 'CONTACT_GLB_CONTAINER';
-    this.contactGroup.visible = false;
     this.contactInteractiveMeshes = [];
     this.contactNodeMap     = new Map();
     this.contactNodeGroups  = new Map();
 
-    this.activeWorld = 'home'; // 'home' | 'projects' | 'skills' | 'experience' | 'education' | 'contact'
+    this.activeWorld = 'home';
     this.v1LabelManager = new V1DOMLabelManager();
-    this._ready = false;
   }
 
-  /* ── HOME GLB INITIALIZATION (LOCKED) ── */
+  /* ── 1. HOME GLB INITIALIZATION (LOCKED REFERENCE) ── */
   initHomeScene(scene, homeAsset, camera, controls) {
     if (!homeAsset?.scene) return;
     this.homeAsset = homeAsset;
@@ -189,22 +172,13 @@ export class SceneController {
     this.interactiveMeshes = [];
     this.nodeMap.clear();
     this.nodeGroups.clear();
-    this.labelMeshes.clear();
-    this.edgeMeshes.clear();
 
     this.homeGroup.add(homeAsset.scene);
     scene.add(this.homeGroup);
-    this.homeGroup.visible = true;
 
-    this._fixChildOffsets(homeAsset.scene);
-    this._fixChildScales(homeAsset.scene);
-    this._applyMaterials(homeAsset.scene);
-    this._indexObjects(homeAsset.scene);
-
+    this._setupWorldGeometry(homeAsset.scene, 'home', this.nodeGroups, this.nodeMap, this.interactiveMeshes);
     this.homeGroup.updateMatrixWorld(true);
-    this._ready = true;
 
-    // Register Home V1 DOM projected labels
     const homeLabels = {
       'hero': 'DEEPAK R V',
       'about': 'ABOUT',
@@ -221,11 +195,9 @@ export class SceneController {
         this.v1LabelManager.createLabel(key, text, groupObj, 'home', key === 'hero' ? 'root-core' : 'category', offset);
       }
     });
-
-    this._printProvenance(homeAsset.scene);
   }
 
-  /* ── PROJECTS GLB INITIALIZATION ── */
+  /* ── 2. PROJECTS GLB INITIALIZATION ── */
   initProjectsScene(scene, projectsAsset, camera) {
     if (!projectsAsset?.scene) return;
     this.projectsAsset = projectsAsset;
@@ -236,15 +208,10 @@ export class SceneController {
 
     this.projectsGroup.add(projectsAsset.scene);
     scene.add(this.projectsGroup);
-    this.projectsGroup.position.y = 0.5;
 
-    this._indexProjectsScene(projectsAsset.scene);
+    this._setupWorldGeometry(projectsAsset.scene, 'projects', this.projectsNodeGroups, this.projectsNodeMap, this.projectsInteractiveMeshes);
     this.projectsGroup.updateMatrixWorld(true);
-    this._printProjectsProvenance(projectsAsset.scene);
-  }
 
-  _indexProjectsScene(root) {
-    const mainProjects = ['sightmate', 'football', 'forcrux', 'google-maps', 'kaatchi'];
     const projectTitles = {
       'projects_root': 'ENGINEERING PROJECTS',
       'sightmate': 'SIGHTMATE',
@@ -253,45 +220,6 @@ export class SceneController {
       'google-maps': 'GOOGLE MAPS PLATFORM',
       'kaatchi': 'KAATCHI MEDIA',
     };
-
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (!nm) return;
-
-      if (nm.startsWith('Node_')) {
-        const key = nm.replace('Node_', '');
-        this.projectsNodeGroups.set(key, obj);
-      }
-
-      if (nm.endsWith('_label')) {
-        obj.visible = false; // Non-destructively hide GLB text mesh for DOM label replacement
-      }
-
-      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || mainProjects.includes(nm) || nm === 'projects_root')) {
-        obj.visible = true;
-        obj.frustumCulled = false;
-        if (!obj.material) return;
-        obj.material = obj.material.clone();
-
-        const destId = this._destId(nm) || nm;
-        obj.userData.destId = destId;
-        obj.userData.world = 'projects';
-
-        if (!this.projectsNodeMap.has(destId)) this.projectsNodeMap.set(destId, []);
-        this.projectsNodeMap.get(destId).push(obj);
-        this.projectsInteractiveMeshes.push(obj);
-
-        const isPrimary = mainProjects.includes(destId);
-        const origEm = isPrimary ? 0x00cc66 : 0x009955;
-        const origInt = isPrimary ? 0.65 : 0.45;
-        if (obj.material.emissive) {
-          obj.material.emissive.setHex(origEm);
-          obj.material.emissiveIntensity = origInt;
-        }
-        obj.userData.origEmissive = origEm;
-        obj.userData.origEmissiveIntensity = origInt;
-      }
-    });
 
     this.projectsNodeGroups.forEach((groupObj, key) => {
       const title = projectTitles[key];
@@ -302,7 +230,7 @@ export class SceneController {
     });
   }
 
-  /* ── SKILLS GLB INITIALIZATION ── */
+  /* ── 3. SKILLS GLB INITIALIZATION ── */
   initSkillsScene(scene, skillsAsset, camera) {
     if (!skillsAsset?.scene) return;
     this.skillsAsset = skillsAsset;
@@ -313,14 +241,10 @@ export class SceneController {
 
     this.skillsGroup.add(skillsAsset.scene);
     scene.add(this.skillsGroup);
-    this.skillsGroup.position.y = 0.5;
 
-    this._indexSkillsScene(skillsAsset.scene);
+    this._setupWorldGeometry(skillsAsset.scene, 'skills', this.skillsNodeGroups, this.skillsNodeMap, this.skillsInteractiveMeshes);
     this.skillsGroup.updateMatrixWorld(true);
-    this._printSkillsProvenance(skillsAsset.scene);
-  }
 
-  _indexSkillsScene(root) {
     const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
     const skillTitles = {
       'skills_root': 'SKILLS & TECHNOLOGIES',
@@ -346,58 +270,17 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (!nm) return;
-
-      if (nm.startsWith('Node_')) {
-        const key = nm.replace('Node_', '');
-        this.skillsNodeGroups.set(key, obj);
-      }
-
-      if (nm.endsWith('_label')) {
-        obj.visible = false;
-      }
-
-      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || categories.some(c => nm.includes(c)) || nm.includes('_core'))) {
-        obj.visible = true;
-        obj.frustumCulled = false;
-        if (!obj.material) return;
-        obj.material = obj.material.clone();
-
-        const destId = this._destId(nm) || nm;
-        obj.userData.destId = destId;
-        obj.userData.world = 'skills';
-
-        if (!this.skillsNodeMap.has(destId)) this.skillsNodeMap.set(destId, []);
-        this.skillsNodeMap.get(destId).push(obj);
-        this.skillsInteractiveMeshes.push(obj);
-
-        const isCategory = categories.some(c => nm.includes(c));
-        const origEm = isCategory ? 0x00cc66 : 0x009955;
-        const origInt = isCategory ? 0.65 : 0.40;
-        if (obj.material.emissive) {
-          obj.material.emissive.setHex(origEm);
-          obj.material.emissiveIntensity = origInt;
-        }
-        obj.userData.origEmissive = origEm;
-        obj.userData.origEmissiveIntensity = origInt;
-      }
-    });
-
     this.skillsNodeGroups.forEach((groupObj, key) => {
-      const title = skillTitles[key];
-      if (title) {
-        const isRoot = key === 'skills_root';
-        const isCategory = categories.includes(key);
-        const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
-        const offset = isRoot ? new THREE.Vector3(0, 1.10, 0) : (isCategory ? new THREE.Vector3(0, 0.85, 0) : new THREE.Vector3(0, 0.48, 0));
-        this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
-      }
+      const title = skillTitles[key] || key.toUpperCase();
+      const isRoot = key === 'skills_root';
+      const isCategory = categories.includes(key);
+      const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
+      const offset = isRoot ? new THREE.Vector3(0, 1.10, 0) : (isCategory ? new THREE.Vector3(0, 0.85, 0) : new THREE.Vector3(0, 0.48, 0));
+      this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
     });
   }
 
-  /* ── EXPERIENCE GLB INITIALIZATION ── */
+  /* ── 4. EXPERIENCE GLB INITIALIZATION ── */
   initExperienceScene(scene, experienceAsset, camera) {
     if (!experienceAsset?.scene) return;
     this.experienceAsset = experienceAsset;
@@ -408,13 +291,10 @@ export class SceneController {
 
     this.experienceGroup.add(experienceAsset.scene);
     scene.add(this.experienceGroup);
-    this.experienceGroup.position.y = 0.5;
 
-    this._indexExperienceScene(experienceAsset.scene);
+    this._setupWorldGeometry(experienceAsset.scene, 'experience', this.experienceNodeGroups, this.experienceNodeMap, this.experienceInteractiveMeshes);
     this.experienceGroup.updateMatrixWorld(true);
-  }
 
-  _indexExperienceScene(root) {
     const expTitles = {
       'experience_root': 'WORK EXPERIENCE',
       'forcrux-exp': 'FORCRUX / AI DEVELOPER',
@@ -423,42 +303,14 @@ export class SceneController {
       'quality-exp': 'QUALITY ENGINEERING',
     };
 
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (!nm) return;
-
-      if (nm.startsWith('Node_')) {
-        const key = nm.replace('Node_', '');
-        this.experienceNodeGroups.set(key, obj);
-      }
-      if (nm.endsWith('_label')) obj.visible = false;
-
-      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || nm.includes('-exp'))) {
-        obj.visible = true;
-        obj.frustumCulled = false;
-        if (!obj.material) return;
-        obj.material = obj.material.clone();
-
-        const destId = this._destId(nm) || nm;
-        obj.userData.destId = destId;
-        obj.userData.world = 'experience';
-
-        if (!this.experienceNodeMap.has(destId)) this.experienceNodeMap.set(destId, []);
-        this.experienceNodeMap.get(destId).push(obj);
-        this.experienceInteractiveMeshes.push(obj);
-      }
-    });
-
     this.experienceNodeGroups.forEach((groupObj, key) => {
-      const title = expTitles[key];
-      if (title) {
-        const isRoot = key === 'experience_root';
-        this.v1LabelManager.createLabel(key, title, groupObj, 'experience', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
-      }
+      const title = expTitles[key] || key.toUpperCase();
+      const isRoot = key === 'experience_root';
+      this.v1LabelManager.createLabel(key, title, groupObj, 'experience', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
     });
   }
 
-  /* ── EDUCATION GLB INITIALIZATION ── */
+  /* ── 5. EDUCATION GLB INITIALIZATION ── */
   initEducationScene(scene, educationAsset, camera) {
     if (!educationAsset?.scene) return;
     this.educationAsset = educationAsset;
@@ -469,54 +321,23 @@ export class SceneController {
 
     this.educationGroup.add(educationAsset.scene);
     scene.add(this.educationGroup);
-    this.educationGroup.position.y = 0.5;
 
-    this._indexEducationScene(educationAsset.scene);
+    this._setupWorldGeometry(educationAsset.scene, 'education', this.educationNodeGroups, this.educationNodeMap, this.educationInteractiveMeshes);
     this.educationGroup.updateMatrixWorld(true);
-  }
 
-  _indexEducationScene(root) {
     const eduTitles = {
       'education_root': 'EDUCATION',
       'sa_engineering_college': 'S.A. ENGINEERING COLLEGE / B.E. CSE',
     };
 
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (!nm) return;
-
-      if (nm.startsWith('Node_')) {
-        const key = nm.replace('Node_', '');
-        this.educationNodeGroups.set(key, obj);
-      }
-      if (nm.endsWith('_label')) obj.visible = false;
-
-      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || nm.includes('college'))) {
-        obj.visible = true;
-        obj.frustumCulled = false;
-        if (!obj.material) return;
-        obj.material = obj.material.clone();
-
-        const destId = this._destId(nm) || nm;
-        obj.userData.destId = destId;
-        obj.userData.world = 'education';
-
-        if (!this.educationNodeMap.has(destId)) this.educationNodeMap.set(destId, []);
-        this.educationNodeMap.get(destId).push(obj);
-        this.educationInteractiveMeshes.push(obj);
-      }
-    });
-
     this.educationNodeGroups.forEach((groupObj, key) => {
-      const title = eduTitles[key];
-      if (title) {
-        const isRoot = key === 'education_root';
-        this.v1LabelManager.createLabel(key, title, groupObj, 'education', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
-      }
+      const title = eduTitles[key] || key.toUpperCase();
+      const isRoot = key === 'education_root';
+      this.v1LabelManager.createLabel(key, title, groupObj, 'education', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
     });
   }
 
-  /* ── CONTACT GLB INITIALIZATION ── */
+  /* ── 6. CONTACT GLB INITIALIZATION ── */
   initContactScene(scene, contactAsset, camera) {
     if (!contactAsset?.scene) return;
     this.contactAsset = contactAsset;
@@ -527,13 +348,10 @@ export class SceneController {
 
     this.contactGroup.add(contactAsset.scene);
     scene.add(this.contactGroup);
-    this.contactGroup.position.y = 0.5;
 
-    this._indexContactScene(contactAsset.scene);
+    this._setupWorldGeometry(contactAsset.scene, 'contact', this.contactNodeGroups, this.contactNodeMap, this.contactInteractiveMeshes);
     this.contactGroup.updateMatrixWorld(true);
-  }
 
-  _indexContactScene(root) {
     const contactTitles = {
       'contact_root': 'GET IN TOUCH',
       'contact_email': 'EMAIL',
@@ -542,37 +360,60 @@ export class SceneController {
       'contact_resume': 'RESUME PDF',
     };
 
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (!nm) return;
+    this.contactNodeGroups.forEach((groupObj, key) => {
+      const title = contactTitles[key] || key.toUpperCase();
+      const isRoot = key === 'contact_root';
+      this.v1LabelManager.createLabel(key, title, groupObj, 'contact', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
+    });
+  }
 
+  /* ── PRECISE GEOMETRY & MATERIAL SETUP FOR ALL GLB WORLDS ── */
+  _setupWorldGeometry(rootScene, worldKey, nodeGroupsMap, nodeMap, interactiveMeshesArr) {
+    rootScene.traverse((obj) => {
+      const nm = obj.name || '';
+      obj.visible = true;
+      obj.frustumCulled = false;
+
+      // 1. Hide ONLY text-only meshes ending with '_label'
+      if (nm.endsWith('_label')) {
+        obj.visible = false;
+        return;
+      }
+
+      // 2. Register group container nodes starting with 'Node_'
       if (nm.startsWith('Node_')) {
         const key = nm.replace('Node_', '');
-        this.contactNodeGroups.set(key, obj);
+        nodeGroupsMap.set(key, obj);
       }
-      if (nm.endsWith('_label')) obj.visible = false;
 
-      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || nm.includes('contact_'))) {
-        obj.visible = true;
-        obj.frustumCulled = false;
-        if (!obj.material) return;
-        obj.material = obj.material.clone();
-
+      // 3. Configure 3D node sphere cores and wireframe shells
+      if (obj.isMesh) {
         const destId = this._destId(nm) || nm;
         obj.userData.destId = destId;
-        obj.userData.world = 'contact';
+        obj.userData.world = worldKey;
 
-        if (!this.contactNodeMap.has(destId)) this.contactNodeMap.set(destId, []);
-        this.contactNodeMap.get(destId).push(obj);
-        this.contactInteractiveMeshes.push(obj);
-      }
-    });
+        if (nm.endsWith('_core')) {
+          obj.material = new THREE.MeshStandardMaterial({
+            color: 0x00ff88, emissive: 0x009955, emissiveIntensity: 0.55,
+            roughness: 0.22, metalness: 0.06, side: THREE.FrontSide
+          });
+          obj.userData.origEmissive = 0x009955;
+          obj.userData.origEmissiveIntensity = 0.55;
 
-    this.contactNodeGroups.forEach((groupObj, key) => {
-      const title = contactTitles[key];
-      if (title) {
-        const isRoot = key === 'contact_root';
-        this.v1LabelManager.createLabel(key, title, groupObj, 'contact', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
+          if (!nodeMap.has(destId)) nodeMap.set(destId, []);
+          nodeMap.get(destId).push(obj);
+          interactiveMeshesArr.push(obj);
+        } else if (nm.endsWith('_shell')) {
+          obj.material = new THREE.MeshStandardMaterial({
+            color: 0x00ff88, emissive: 0x003322, emissiveIntensity: 0.25,
+            roughness: 0.35, wireframe: true, transparent: true, opacity: 0.40, side: THREE.DoubleSide
+          });
+        } else if (nm.includes('->')) {
+          obj.material = new THREE.MeshStandardMaterial({
+            color: 0x00ff88, emissive: 0x009955, emissiveIntensity: 0.45,
+            transparent: true, opacity: 0.70
+          });
+        }
       }
     });
   }
@@ -605,6 +446,9 @@ export class SceneController {
     let targetMap = this.nodeMap;
     if (this.activeWorld === 'projects') targetMap = this.projectsNodeMap;
     else if (this.activeWorld === 'skills') targetMap = this.skillsNodeMap;
+    else if (this.activeWorld === 'experience') targetMap = this.experienceNodeMap;
+    else if (this.activeWorld === 'education') targetMap = this.educationNodeMap;
+    else if (this.activeWorld === 'contact') targetMap = this.contactNodeMap;
 
     for (const [destId, meshList] of targetMap) {
       const isHov = destId === activeId;
@@ -615,7 +459,7 @@ export class SceneController {
           mesh.material.emissiveIntensity = 0.90;
         } else {
           mesh.material.emissive.setHex(mesh.userData.origEmissive ?? 0x009955);
-          mesh.material.emissiveIntensity = mesh.userData.origEmissiveIntensity ?? 0.50;
+          mesh.material.emissiveIntensity = mesh.userData.origEmissiveIntensity ?? 0.55;
         }
       }
     }
@@ -663,62 +507,6 @@ export class SceneController {
     return new THREE.Box3().setFromObject(this.contactGroup);
   }
 
-  _fixChildOffsets(root) {
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (nm.endsWith('_core') || nm.endsWith('_shell')) {
-        obj.position.set(0, 0, 0);
-      }
-    });
-  }
-
-  _fixChildScales(root) {
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (nm.endsWith('_core') || nm.endsWith('_shell')) {
-        obj.scale.set(1, 1, 1);
-      }
-    });
-  }
-
-  _applyMaterials(root) {
-    root.traverse((obj) => {
-      if (!obj.isMesh) return;
-      const nm = obj.name || '';
-      if (nm.endsWith('_core')) {
-        obj.material = new THREE.MeshStandardMaterial({
-          color: 0x00ff88, emissive: 0x009955, emissiveIntensity: 0.50,
-          roughness: 0.22, metalness: 0.06, side: THREE.FrontSide
-        });
-      } else if (nm.endsWith('_shell')) {
-        obj.material = new THREE.MeshStandardMaterial({
-          color: 0x00ff88, emissive: 0x003322, emissiveIntensity: 0.25,
-          roughness: 0.35, wireframe: true, transparent: true, opacity: 0.38, side: THREE.DoubleSide
-        });
-      }
-    });
-  }
-
-  _indexObjects(root) {
-    root.traverse((obj) => {
-      const nm = obj.name || '';
-      if (nm.startsWith('Node_')) {
-        const key = nm.replace('Node_', '');
-        this.nodeGroups.set(key, obj);
-      }
-      if (obj.isMesh && nm.endsWith('_core')) {
-        const destId = this._destId(nm);
-        if (destId) {
-          obj.userData.destId = destId;
-          obj.userData.world = 'home';
-          if (!this.nodeMap.has(destId)) this.nodeMap.set(destId, []);
-          this.nodeMap.get(destId).push(obj);
-          this.interactiveMeshes.push(obj);
-        }
-      }
-    });
-  }
-
   _destId(name) {
     if (name.includes('hero'))       return 'core';
     if (name.includes('about'))      return 'about';
@@ -728,24 +516,6 @@ export class SceneController {
     if (name.includes('education'))  return 'education';
     if (name.includes('contact'))    return 'contact';
     return null;
-  }
-
-  _printProvenance(root) {
-    console.group('%c[HOME GLB PROVENANCE] PROCEDURAL_NODES=0', 'color:#00ff88;font-weight:bold');
-    console.log('Source GLB: public/models/home.glb');
-    console.groupEnd();
-  }
-
-  _printProjectsProvenance(root) {
-    console.group('%c[PROJECTS GLB PROVENANCE] PROCEDURAL_NODES=0', 'color:#00ff88;font-weight:bold');
-    console.log('Source GLB: public/models/projects.glb');
-    console.groupEnd();
-  }
-
-  _printSkillsProvenance(root) {
-    console.group('%c[SKILLS GLB PROVENANCE] PROCEDURAL_NODES=0', 'color:#00ff88;font-weight:bold');
-    console.log('Source GLB: public/models/skills.glb');
-    console.groupEnd();
   }
 }
 
