@@ -1760,112 +1760,6 @@ function exitLayer() {
 }
 
 /* ============================================================
-   CANONICAL GLOBAL 3D BURST & RECONSTRUCT ENGINE
-   ============================================================ */
-
-let isBurstActive = false;
-const burstVelocities = new Map();
-
-const burstBtn = document.getElementById('burstBtn');
-const reconstructBtn = document.getElementById('reconstructBtn');
-
-function getActiveNetworkNodes() {
-  const activeNodes = [];
-
-  if (currentLayer === 'MAIN') {
-    for (const item of mainNodeObjects) {
-      if (item.group) activeNodes.push(item.group);
-    }
-  } else if (currentLayer === 'SUBNET' && activeSubnet) {
-    activeSubnet.group.traverse(child => {
-      if (child.isGroup && child.parent === activeSubnet.group) {
-        activeNodes.push(child);
-      }
-    });
-  }
-
-  return activeNodes;
-}
-
-function triggerBurstNetwork() {
-  if (isBurstActive) return;
-  if (document.body.classList.contains('detail-panel-open')) return;
-
-  isBurstActive = true;
-  burstVelocities.clear();
-
-  const targets = getActiveNetworkNodes();
-  for (const nodeGroup of targets) {
-    // Generate organic 3D random velocity vector (X, Y, Z) across broad environment
-    const velocity = new THREE.Vector3(
-      (Math.random() - 0.5) * 0.42,
-      (Math.random() - 0.5) * 0.42,
-      (Math.random() - 0.5) * 0.42
-    );
-    const rotVelocity = new THREE.Vector3(
-      (Math.random() - 0.5) * 0.08,
-      (Math.random() - 0.5) * 0.08,
-      (Math.random() - 0.5) * 0.08
-    );
-
-    burstVelocities.set(nodeGroup, {
-      velocity,
-      rotVelocity,
-      startPos: nodeGroup.position.clone(),
-      startRot: nodeGroup.rotation.clone(),
-    });
-  }
-
-  setMode('NETWORK BURST');
-}
-
-function triggerReconstructNetwork() {
-  if (!isBurstActive && burstVelocities.size === 0) return;
-  isBurstActive = false;
-}
-
-if (burstBtn) burstBtn.addEventListener('click', triggerBurstNetwork);
-if (reconstructBtn) reconstructBtn.addEventListener('click', triggerReconstructNetwork);
-
-function animateBurstState() {
-  if (isBurstActive) {
-    // Continuous random 3D travel through environment during burst state
-    for (const [obj, data] of burstVelocities.entries()) {
-      obj.position.add(data.velocity);
-      obj.rotation.x += data.rotVelocity.x;
-      obj.rotation.y += data.rotVelocity.y;
-    }
-  } else if (burstVelocities.size > 0) {
-    // Reconstruct state: Smoothly lerp scattered nodes back to original positions
-    let allRestored = true;
-    for (const [obj, data] of burstVelocities.entries()) {
-      obj.position.lerp(data.startPos, 0.12);
-      obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, data.startRot.x, 0.12);
-      obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, data.startRot.y, 0.12);
-      obj.rotation.z = THREE.MathUtils.lerp(obj.rotation.z, data.startRot.z, 0.12);
-
-      if (obj.position.distanceTo(data.startPos) > 0.05) {
-        allRestored = false;
-      }
-    }
-
-    if (allRestored) {
-      for (const [obj, data] of burstVelocities.entries()) {
-        obj.position.copy(data.startPos);
-        obj.rotation.copy(data.startRot);
-      }
-      burstVelocities.clear();
-
-      if (currentLayer === 'MAIN') {
-        setMode('OVERVIEW');
-      } else if (activeSubnet) {
-        setMode(activeSubnet.definition.title);
-      }
-    }
-  }
-}
-
-/* ============================================================
    RAYCASTING & POINTER INTERACTION
    ============================================================ */
 
@@ -2063,11 +1957,6 @@ const tempScale = new THREE.Vector3();
 let currentHoveredMesh = null;
 
 function updateHover() {
-  if (isBurstActive) {
-    currentHoveredMesh = null;
-    renderer.domElement.style.cursor = 'grab';
-    return;
-  }
 
   const hit = getPointerObject();
   currentHoveredMesh = hit ? hit.object : null;
@@ -2112,7 +2001,7 @@ prefersReducedMotionQuery.addEventListener('change', event => {
 });
 
 function animateAmbientDepthAndBreathing(currentTime) {
-  if (isBurstActive || burstVelocities.size > 0) return;
+  // (Burst engine disabled)
 
   const t = currentTime * 0.001;
   const isReduced = prefersReducedMotion;
@@ -2397,7 +2286,6 @@ function animate(currentTime) {
   }
 
   animateAmbientDepthAndBreathing(currentTime);
-  animateBurstState();
   updateCameraTransition();
   controls.update();
 
