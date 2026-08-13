@@ -105,7 +105,20 @@ export class SceneController {
     this.projectsLabelMeshes = new Map();
     this.projectsEdgeMeshes  = new Map();
     this.projectsAsset       = null;
-    this.activeWorld         = 'home'; // 'home' | 'projects'
+
+    // Skills GLB World state (Phase 3 Integration)
+    this.skillsGroup = new THREE.Group();
+    this.skillsGroup.name = 'SKILLS_GLB_CONTAINER';
+    this.skillsGroup.visible = false;
+
+    this.skillsInteractiveMeshes = [];
+    this.skillsNodeMap     = new Map();
+    this.skillsNodeGroups  = new Map();
+    this.skillsLabelMeshes = new Map();
+    this.skillsEdgeMeshes  = new Map();
+    this.skillsAsset       = null;
+
+    this.activeWorld       = 'home'; // 'home' | 'projects' | 'skills'
   }
 
   /* ──────────────────────────────────────────────────────────────
@@ -452,6 +465,9 @@ export class SceneController {
     if (this.activeWorld === 'projects' && this.projectsGroup.visible) {
       return this.projectsInteractiveMeshes;
     }
+    if (this.activeWorld === 'skills' && this.skillsGroup.visible) {
+      return this.skillsInteractiveMeshes;
+    }
     return this.homeGroup.visible ? this.interactiveMeshes : [];
   }
 
@@ -508,7 +524,104 @@ export class SceneController {
   /* ──────────────────────────────────────────────────────────────
      initProjectsScene — initializes projects.glb 3D world
   ────────────────────────────────────────────────────────────── */
-  initProjectsScene(scene, projectsAsset, camera) {
+  
+  /* ──────────────────────────────────────────────────────────────
+     initSkillsScene — initializes skills.glb 3D world
+  ────────────────────────────────────────────────────────────── */
+  initSkillsScene(scene, skillsAsset, camera) {
+    if (!skillsAsset?.scene) {
+      console.warn('[SceneController] skills.glb missing — cannot init skills world.');
+      return;
+    }
+
+    this.skillsAsset = skillsAsset;
+    this.skillsGroup.clear();
+    this.skillsInteractiveMeshes = [];
+    this.skillsNodeMap.clear();
+    this.skillsNodeGroups.clear();
+    this.skillsLabelMeshes.clear();
+    this.skillsEdgeMeshes.clear();
+
+    // Attach skills GLB scene
+    this.skillsGroup.add(skillsAsset.scene);
+    scene.add(this.skillsGroup);
+
+    this.skillsGroup.position.y = 0.5;
+
+    // Fix offsets, scales, materials & index objects for interaction
+    this._fixChildOffsets(skillsAsset.scene);
+    this._fixChildScales(skillsAsset.scene);
+    this._applyMaterials(skillsAsset.scene);
+    this._indexSkillsScene(skillsAsset.scene);
+
+    // Install wrapper billboards for skills labels
+    this._setupBillboardWrappers(this.skillsLabelMeshes, 'skills');
+
+    this.skillsGroup.updateMatrixWorld(true);
+    console.log('[SceneController] Skills World Initialized. Nodes:', this.skillsInteractiveMeshes.length,
+      '| Labels:', this.skillsLabelMeshes.size, '| Edges:', this.skillsEdgeMeshes.size);
+    this._printSkillsProvenance(skillsAsset.scene);
+  }
+
+  /* Index skills.glb nodes for interaction */
+  _indexSkillsScene(root) {
+    root.traverse((obj) => {
+      const nm = obj.name || '';
+      if (!nm) return;
+
+      if (nm.startsWith('Node_')) {
+        const key = nm.replace('Node_', '');
+        this.skillsNodeGroups.set(key, obj);
+      }
+
+      if (nm.endsWith('_label')) {
+        this.skillsLabelMeshes.set(nm, obj);
+      }
+
+      if (nm.includes('->')) {
+        this.skillsEdgeMeshes.set(nm, obj);
+      }
+
+      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || nm.endsWith('-category') || nm.includes('_core'))) {
+        obj.visible = true;
+        obj.frustumCulled = false;
+        if (!obj.material) return;
+        obj.material = obj.material.clone();
+
+        const destId = this._destId(nm) || nm;
+        obj.userData.destId = destId;
+        obj.userData.world = 'skills';
+
+        if (!this.skillsNodeMap.has(destId)) {
+          this.skillsNodeMap.set(destId, []);
+        }
+        this.skillsNodeMap.get(destId).push(obj);
+
+        this.skillsInteractiveMeshes.push(obj);
+        obj.userData.origEmissive = obj.material.emissive ? obj.material.emissive.getHex() : 0x00cc66;
+        obj.userData.origEmissiveIntensity = obj.material.emissiveIntensity ?? 0.5;
+      }
+    });
+  }
+
+  computeSkillsBounds() {
+    if (!this.skillsAsset?.scene) return null;
+    this.skillsGroup.updateMatrixWorld(true);
+    return new THREE.Box3().setFromObject(this.skillsGroup);
+  }
+
+  _printSkillsProvenance(root) {
+    console.group('%c[SKILLS GLB PROVENANCE]', 'color: #00ff88; font-weight: bold;');
+    console.log('PROCEDURAL_NODES=0');
+    console.log('Source GLB: public/models/skills.glb');
+    console.log('Indexed Nodes:', Array.from(this.skillsNodeMap.keys()).join(', '));
+    console.log('Indexed Labels:', Array.from(this.skillsLabelMeshes.keys()).join(', '));
+    console.log('Indexed Edges:', Array.from(this.skillsEdgeMeshes.keys()).join(', '));
+    console.log('Authored Animation Clips:', this.skillsAsset?.animations?.length ?? 0);
+    console.groupEnd();
+  }
+
+initProjectsScene(scene, projectsAsset, camera) {
     if (!projectsAsset?.scene) {
       console.warn('[SceneController] projects.glb missing — cannot init projects world.');
       return;
@@ -594,14 +707,29 @@ export class SceneController {
     if (worldId === 'home') {
       this.homeGroup.visible = true;
       this.projectsGroup.visible = false;
+      if (this.skillsGroup) this.skillsGroup.visible = false;
     } else if (worldId === 'projects') {
       this.homeGroup.visible = false;
       this.projectsGroup.visible = true;
+      if (this.skillsGroup) this.skillsGroup.visible = false;
 
-      // Play projects.glb animations if present
       if (this.projectsAsset?.mixer && this.projectsAsset?.animations?.length) {
         this.projectsAsset.animations.forEach((clip) => {
           const action = this.projectsAsset.mixer.clipAction(clip);
+          action.reset();
+          action.setLoop(THREE.LoopOnce, 1);
+          action.clampWhenFinished = true;
+          action.play();
+        });
+      }
+    } else if (worldId === 'skills') {
+      this.homeGroup.visible = false;
+      this.projectsGroup.visible = false;
+      if (this.skillsGroup) this.skillsGroup.visible = true;
+
+      if (this.skillsAsset?.mixer && this.skillsAsset?.animations?.length) {
+        this.skillsAsset.animations.forEach((clip) => {
+          const action = this.skillsAsset.mixer.clipAction(clip);
           action.reset();
           action.setLoop(THREE.LoopOnce, 1);
           action.clampWhenFinished = true;
@@ -638,6 +766,14 @@ updateIdleMotion(currentTime, delta, camera) {
       }
       if (this.projectsBillboardWrappers && this.activeWorld === 'projects') {
         for (const [, wrapper] of this.projectsBillboardWrappers) {
+          wrapper.getWorldPosition(_tmpV);
+          const dx = camera.position.x - _tmpV.x;
+          const dz = camera.position.z - _tmpV.z;
+          wrapper.rotation.y = Math.atan2(dx, dz);
+        }
+      }
+      if (this.skillsBillboardWrappers && this.activeWorld === 'skills') {
+        for (const [, wrapper] of this.skillsBillboardWrappers) {
           wrapper.getWorldPosition(_tmpV);
           const dx = camera.position.x - _tmpV.x;
           const dz = camera.position.z - _tmpV.z;
@@ -730,6 +866,8 @@ updateIdleMotion(currentTime, delta, camera) {
     const wrapperMap = new Map();
     if (worldKey === 'projects') {
       this.projectsBillboardWrappers = wrapperMap;
+    } else if (worldKey === 'skills') {
+      this.skillsBillboardWrappers = wrapperMap;
     } else {
       this.billboardWrappers = wrapperMap;
     }

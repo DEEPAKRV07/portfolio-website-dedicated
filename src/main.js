@@ -39,6 +39,7 @@ assetManager.loadAll((ratio, statusText) => {
 }).then(() => {
   sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
   sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
+  sceneController.initSkillsScene(scene, assetManager.getAsset('skills'), camera);
   setLayerVisibility(currentLayer);
 
   // Auto-frame camera from actual GLB network bounds
@@ -1898,8 +1899,24 @@ renderer.domElement.addEventListener('click', event => {
 
   if (hit.type === 'glb-home-node') {
     const destId = hit.destId;
+    if (hit.object.userData.world === 'skills' || sceneController.activeWorld === 'skills') {
+      // Clicked a skill node inside skills.glb world
+      let foundSkillData = null;
+      if (SUBNET_DEFINITIONS.skills?.categories) {
+        for (const cat of SUBNET_DEFINITIONS.skills.categories) {
+          if (cat.skills) {
+            const match = cat.skills.find(s => s.id === destId || s.id.includes(destId) || s.name.toLowerCase().includes(destId.toLowerCase()));
+            if (match) { foundSkillData = match; break; }
+          }
+        }
+      }
+      if (foundSkillData) {
+        showSkillContextPanel(foundSkillData);
+      }
+      return;
+    }
+
     if (hit.object.userData.world === 'projects' || sceneController.activeWorld === 'projects') {
-      // Clicked a project node inside projects.glb world
       const projectCategory = SUBNET_DEFINITIONS.projects?.categories?.find(c => c.id === destId || c.id.includes(destId));
       if (projectCategory) {
         showDetailPresentation(projectCategory);
