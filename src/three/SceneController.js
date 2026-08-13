@@ -654,9 +654,32 @@ export class SceneController {
     this._printSkillsProvenance(skillsAsset.scene);
   }
 
-  /* Index skills.glb nodes for interaction with presentation hierarchy */
+  /* Index skills.glb nodes for interaction with non-destructive Runtime Labels */
   _indexSkillsScene(root) {
     const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
+    const skillTitles = {
+      'skills_root': 'SKILLS & TECHNOLOGIES',
+      'cv-category': 'COMPUTER VISION',
+      'dl-category': 'DEEP LEARNING & AI',
+      'systems-category': 'SYSTEMS & DEPLOYMENT',
+      'lang-category': 'LANGUAGES & TOOLS',
+      'yolov8': 'YOLOv8',
+      'bytetrack': 'ByteTrack',
+      'opencv': 'OpenCV',
+      'fast-scnn': 'Fast-SCNN',
+      'pytorch': 'PyTorch',
+      'tensorflow': 'TensorFlow Lite',
+      'ml-kit': 'Google ML Kit',
+      'kmeans': 'K-Means',
+      'playwright': 'Playwright',
+      'sqlite': 'SQLite',
+      'concurrency': 'ThreadPoolExecutor',
+      'pandas': 'Pandas',
+      'python': 'Python',
+      'flutter': 'Flutter / Dart',
+      'nextjs': 'Next.js',
+      'git': 'Git & GitHub',
+    };
 
     root.traverse((obj) => {
       const nm = obj.name || '';
@@ -667,24 +690,23 @@ export class SceneController {
         this.skillsNodeGroups.set(key, obj);
 
         if (categories.includes(key)) {
-          obj.scale.set(1.12, 1.12, 1.12); // Primary category nodes prominent
+          obj.scale.set(1.10, 1.10, 1.10);
         } else if (key !== 'skills_root') {
-          obj.scale.set(0.68, 0.68, 0.68); // Skill subnodes secondary
+          obj.scale.set(0.68, 0.68, 0.68);
         }
       }
 
       if (nm.endsWith('_label')) {
         this.skillsLabelMeshes.set(nm, obj);
-        if (!categories.some(c => nm.includes(c)) && !nm.includes('skills_root')) {
-          obj.scale.set(0.68, 0.68, 0.68); // Subdued label scale for skill subnodes
-        }
+        // Non-destructively hide GLB text mesh for runtime label replacement
+        obj.visible = false;
       }
 
       if (nm.includes('->')) {
         this.skillsEdgeMeshes.set(nm, obj);
       }
 
-      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || categories.some(c => nm.includes(c)) || nm.includes('_core') || nm.includes('label') === false)) {
+      if (obj.isMesh && (nm.endsWith('_core') || nm.endsWith('_shell') || categories.some(c => nm.includes(c)) || nm.includes('_core'))) {
         obj.visible = true;
         obj.frustumCulled = false;
         if (!obj.material) return;
@@ -711,6 +733,17 @@ export class SceneController {
         }
         obj.userData.origEmissive = origEm;
         obj.userData.origEmissiveIntensity = origInt;
+      }
+    });
+
+    // Register runtime labels anchored to skill node groups
+    this.skillsNodeGroups.forEach((groupObj, key) => {
+      const title = skillTitles[key];
+      if (title && this.runtimeLabelManager) {
+        const glbLabel = this.skillsLabelMeshes.get(`${key}_label`);
+        const isSkillSubnode = !categories.includes(key) && key !== 'skills_root';
+        const offset = isSkillSubnode ? new THREE.Vector3(0, 0.45, 0.12) : new THREE.Vector3(0, 0.85, 0.15);
+        this.runtimeLabelManager.registerLabel(key, groupObj, title, glbLabel, 'skills', offset);
       }
     });
 
