@@ -8,14 +8,14 @@
 ────────────────────────────────────────────────────────────── */
 export class RuntimeLabelManager {
   constructor() {
-    this.labels = new Map(); // key -> { container, textMesh, glbTextMesh, offset }
+    this.labels = new Map(); // key -> { container, sprite, nodeObj, glbTextMesh, world }
     this.activeWorld = 'home';
   }
 
   registerLabel(key, nodeObj, displayText, glbTextMesh = null, world = 'home', customOffset = null) {
     if (!nodeObj) return;
 
-    // Hide GLB text mesh non-destructively for instant rollback support
+    // Non-destructively hide GLB text mesh for instant rollback safety
     if (glbTextMesh) {
       glbTextMesh.visible = false;
     }
@@ -23,42 +23,54 @@ export class RuntimeLabelManager {
     const container = new THREE.Object3D();
     container.name = `runtime_label_${key}`;
 
-    // Create high-contrast text canvas texture
+    // Ultra-sharp 1024x256 canvas for high DPI futuristic portfolio typography
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 512;
-    canvas.height = 128;
+    canvas.width = 1024;
+    canvas.height = 256;
 
-    ctx.font = 'Bold 42px "Space Grotesk", "Segoe UI", sans-serif';
+    const isRootHeader = key.includes('root');
+    const isCategoryHeader = key.includes('category') || key === 'hero' || ['sightmate', 'football', 'forcrux', 'google-maps', 'kaatchi'].includes(key);
+
+    const fontSize = isRootHeader ? 'Bold 56px' : (isCategoryHeader ? 'Bold 48px' : 'Bold 38px');
+    ctx.font = `${fontSize} "Deltha", "Space Grotesk", "Segoe UI", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Glow background behind text for readability against dark 3D scene
+    // High contrast white text with sci-fi green glow shadow
     ctx.shadowColor = '#00ff88';
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = isRootHeader ? 22 : (isCategoryHeader ? 16 : 10);
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(displayText.toUpperCase(), 256, 64);
+    ctx.fillText(displayText.toUpperCase(), 512, 128);
 
     const texture = new THREE.CanvasTexture(canvas);
-    texture.minFilter = THREE.LinearFilter;
+    texture.minFilter = THREE.LinearMipMapLinearFilter;
+    texture.generateMipmaps = true;
 
     const spriteMat = new THREE.SpriteMaterial({
       map: texture,
       transparent: true,
-      depthTest: false,
+      depthTest: false, // Ensures labels remain crisp & unclipped above 3D node spheres
       depthWrite: false,
     });
 
     const sprite = new THREE.Sprite(spriteMat);
     const aspect = canvas.width / canvas.height;
-    const isMainHeader = key.includes('root') || key === 'hero' || key.includes('category');
-    const scaleY = isMainHeader ? 1.10 : 0.75;
-    sprite.scale.set(scaleY * aspect, scaleY, 1.0);
 
+    let scaleY = 0.65;
+    if (isRootHeader) scaleY = 1.35;
+    else if (isCategoryHeader) scaleY = 1.05;
+
+    sprite.scale.set(scaleY * aspect, scaleY, 1.0);
     container.add(sprite);
 
-    // Calculate clearance offset above node
-    const offset = customOffset || new THREE.Vector3(0, isMainHeader ? 0.85 : 0.55, 0.15);
+    // Calculated clearance offset based on node size & hierarchy level
+    let offset = customOffset;
+    if (!offset) {
+      if (isRootHeader) offset = new THREE.Vector3(0, 1.10, 0.15);
+      else if (isCategoryHeader) offset = new THREE.Vector3(0, 0.85, 0.15);
+      else offset = new THREE.Vector3(0, 0.45, 0.10);
+    }
     container.position.copy(offset);
 
     nodeObj.add(container);
@@ -74,7 +86,7 @@ export class RuntimeLabelManager {
 
   update(camera, activeWorld) {
     this.activeWorld = activeWorld;
-    for (const [idKey, data] of this.labels.entries()) {
+    for (const [, data] of this.labels.entries()) {
       const isWorldVisible = data.world === activeWorld;
       data.container.visible = isWorldVisible;
     }
@@ -85,6 +97,15 @@ export class RuntimeLabelManager {
       if (data.glbTextMesh) data.glbTextMesh.visible = true;
       data.container.visible = false;
     }
+  }
+
+  getLabelCount(world = null) {
+    if (!world) return this.labels.size;
+    let count = 0;
+    for (const data of this.labels.values()) {
+      if (data.world === world) count++;
+    }
+    return count;
   }
 }
 
@@ -1175,7 +1196,8 @@ updateIdleMotion(currentTime, delta, camera) {
     console.log('PROCEDURAL_NODES=0');
     console.log('Source GLB: public/models/projects.glb');
     console.log('Indexed Nodes:', Array.from(this.projectsNodeMap.keys()).join(', '));
-    console.log('Indexed Labels:', Array.from(this.projectsLabelMeshes.keys()).join(', '));
+    console.log('Indexed Labels (GLB Hidden):', Array.from(this.projectsLabelMeshes.keys()).join(', '));
+    console.log('Runtime Labels Registered:', this.runtimeLabelManager ? this.runtimeLabelManager.getLabelCount('projects') : 0);
     console.log('Indexed Edges:', Array.from(this.projectsEdgeMeshes.keys()).join(', '));
     console.log('Authored Animation Clips:', this.projectsAsset?.animations?.length ?? 0);
     console.groupEnd();
