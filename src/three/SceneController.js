@@ -28,7 +28,6 @@ export class V1DOMLabelManager {
   createLabel(id, text, object, world = 'home', type = 'category', offset = new THREE.Vector3(0, 0.85, 0)) {
     if (!object) return;
 
-    // Remove existing label with same ID & world
     const existingIdx = this.labels.findIndex(l => l.id === id && l.world === world);
     if (existingIdx !== -1) {
       const old = this.labels[existingIdx];
@@ -59,7 +58,7 @@ export class V1DOMLabelManager {
     } else if (type === 'skill-subnode') {
       el.style.fontSize = '12px';
       el.style.fontWeight = '600';
-      el.style.opacity = '0.88';
+      el.style.opacity = '0.90';
     } else {
       el.style.fontSize = '14px';
     }
@@ -74,6 +73,9 @@ export class V1DOMLabelManager {
       type,
       offset: offset.clone(),
       element: el,
+      screenX: 0,
+      screenY: 0,
+      shiftY: 0,
     });
   }
 
@@ -84,6 +86,9 @@ export class V1DOMLabelManager {
     const halfW = window.innerWidth * 0.5;
     const halfH = window.innerHeight * 0.5;
 
+    const activeItems = [];
+
+    // Pass 1: Project 3D node world coordinates to NDC screen space
     for (let i = 0; i < this.labels.length; i++) {
       const label = this.labels[i];
       if (label.world !== activeWorld || !label.object) {
@@ -102,11 +107,39 @@ export class V1DOMLabelManager {
         continue;
       }
 
-      const screenX = (_tmpPos.x * halfW) + halfW;
-      const screenY = (-(_tmpPos.y * halfH)) + halfH;
+      label.screenX = (_tmpPos.x * halfW) + halfW;
+      label.screenY = (-(_tmpPos.y * halfH)) + halfH;
+      label.shiftY = 0;
+      activeItems.push(label);
+    }
 
+    // Pass 2: Lightweight 2D collision solver for overlapping projected labels
+    for (let i = 0; i < activeItems.length; i++) {
+      const a = activeItems[i];
+      for (let j = i + 1; j < activeItems.length; j++) {
+        const b = activeItems[j];
+        const dx = Math.abs(a.screenX - b.screenX);
+        const dy = Math.abs((a.screenY + a.shiftY) - (b.screenY + b.shiftY));
+
+        if (dx < 110 && dy < 24) {
+          // Resolve overlap by shifting lower priority / secondary subnode vertically
+          if (a.type === 'skill-subnode' && b.type !== 'skill-subnode') {
+            a.shiftY += 18;
+          } else if (b.type === 'skill-subnode' && a.type !== 'skill-subnode') {
+            b.shiftY += 18;
+          } else {
+            b.shiftY += 18;
+          }
+        }
+      }
+    }
+
+    // Pass 3: Apply final 2D transforms to DOM label elements
+    for (let i = 0; i < activeItems.length; i++) {
+      const label = activeItems[i];
+      const finalY = label.screenY + label.shiftY;
       label.element.style.display = 'block';
-      label.element.style.transform = `translate3d(${screenX}px, ${screenY}px, 0px) translate(-50%, -50%)`;
+      label.element.style.transform = `translate3d(${label.screenX}px, ${finalY}px, 0px) translate(-50%, -50%)`;
     }
   }
 
@@ -270,12 +303,25 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
+    let skillSubIdx = 0;
     this.skillsNodeGroups.forEach((groupObj, key) => {
       const title = skillTitles[key] || key.toUpperCase();
       const isRoot = key === 'skills_root';
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
-      const offset = isRoot ? new THREE.Vector3(0, 1.10, 0) : (isCategory ? new THREE.Vector3(0, 0.85, 0) : new THREE.Vector3(0, 0.48, 0));
+
+      let offset;
+      if (isRoot) {
+        offset = new THREE.Vector3(0, 1.10, 0);
+      } else if (isCategory) {
+        offset = new THREE.Vector3(0, 0.85, 0);
+      } else {
+        // Multi-row vertical staggering for 16 skill subnodes to prevent single horizontal line overlap
+        skillSubIdx++;
+        const isTopTier = (skillSubIdx % 2 === 0);
+        offset = isTopTier ? new THREE.Vector3(0, 0.48, 0.10) : new THREE.Vector3(0, -0.55, 0.10);
+      }
+
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
     });
   }
@@ -374,10 +420,10 @@ export class SceneController {
       obj.visible = true;
       obj.frustumCulled = false;
 
-      // Guarantee full scale (1, 1, 1) and zero position offsets for Blender core/shell/node objects
-      if (nm.endsWith('_core') || nm.endsWith('_shell')) {
-        obj.position.set(0, 0, 0);
+      // Guarantee full scale (1, 1, 1) and zero position offsets for Blender core/shell/node/edge objects
+      if (nm.endsWith('_core') || nm.endsWith('_shell') || nm.includes('->') || nm.includes('curve') || obj.isMesh) {
         obj.scale.set(1, 1, 1);
+        if (nm.endsWith('_core') || nm.endsWith('_shell')) obj.position.set(0, 0, 0);
       }
 
       // Register group container nodes starting with 'Node_' and enforce scale (1, 1, 1)
@@ -415,10 +461,10 @@ export class SceneController {
             color: 0x00ff88, emissive: 0x003322, emissiveIntensity: 0.25,
             roughness: 0.35, wireframe: true, transparent: true, opacity: 0.40, side: THREE.DoubleSide
           });
-        } else if (nm.includes('->')) {
+        } else if (nm.includes('->') || nm.includes('curve')) {
           obj.material = new THREE.MeshStandardMaterial({
-            color: 0x00ff88, emissive: 0x009955, emissiveIntensity: 0.45,
-            transparent: true, opacity: 0.70
+            color: 0x00ff88, emissive: 0x00cc77, emissiveIntensity: 0.65,
+            transparent: true, opacity: 0.85, side: THREE.DoubleSide
           });
         }
       }
