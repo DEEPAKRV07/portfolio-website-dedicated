@@ -1,3 +1,93 @@
+
+/* ──────────────────────────────────────────────────────────────
+   RuntimeLabelManager (GLB-Independent Runtime Label Architecture)
+   
+   Decouples typography and camera-facing readability from Blender GLB text geometry.
+   Hides GLB text meshes non-destructively while rendering high-contrast, camera-oriented
+   billboard labels anchored to node world positions.
+────────────────────────────────────────────────────────────── */
+export class RuntimeLabelManager {
+  constructor() {
+    this.labels = new Map(); // key -> { container, textMesh, glbTextMesh, offset }
+    this.activeWorld = 'home';
+  }
+
+  registerLabel(key, nodeObj, displayText, glbTextMesh = null, world = 'home', customOffset = null) {
+    if (!nodeObj) return;
+
+    // Hide GLB text mesh non-destructively for instant rollback support
+    if (glbTextMesh) {
+      glbTextMesh.visible = false;
+    }
+
+    const container = new THREE.Object3D();
+    container.name = `runtime_label_${key}`;
+
+    // Create high-contrast text canvas texture
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 512;
+    canvas.height = 128;
+
+    ctx.font = 'Bold 42px "Space Grotesk", "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Glow background behind text for readability against dark 3D scene
+    ctx.shadowColor = '#00ff88';
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(displayText.toUpperCase(), 256, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+
+    const spriteMat = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    });
+
+    const sprite = new THREE.Sprite(spriteMat);
+    const aspect = canvas.width / canvas.height;
+    const isMainHeader = key.includes('root') || key === 'hero' || key.includes('category');
+    const scaleY = isMainHeader ? 1.10 : 0.75;
+    sprite.scale.set(scaleY * aspect, scaleY, 1.0);
+
+    container.add(sprite);
+
+    // Calculate clearance offset above node
+    const offset = customOffset || new THREE.Vector3(0, isMainHeader ? 0.85 : 0.55, 0.15);
+    container.position.copy(offset);
+
+    nodeObj.add(container);
+
+    this.labels.set(`${world}:${key}`, {
+      container,
+      sprite,
+      nodeObj,
+      glbTextMesh,
+      world,
+    });
+  }
+
+  update(camera, activeWorld) {
+    this.activeWorld = activeWorld;
+    for (const [idKey, data] of this.labels.entries()) {
+      const isWorldVisible = data.world === activeWorld;
+      data.container.visible = isWorldVisible;
+    }
+  }
+
+  restoreGLBLabels() {
+    for (const data of this.labels.values()) {
+      if (data.glbTextMesh) data.glbTextMesh.visible = true;
+      data.container.visible = false;
+    }
+  }
+}
+
 import * as THREE from 'three';
 
 /* ============================================================
@@ -119,6 +209,7 @@ export class SceneController {
     this.skillsAsset       = null;
 
     this.activeWorld       = 'home'; // 'home' | 'projects' | 'skills'
+    this.runtimeLabelManager = new RuntimeLabelManager();
   }
 
   /* ──────────────────────────────────────────────────────────────
@@ -775,6 +866,9 @@ updateIdleMotion(currentTime, delta, camera) {
     // -- 1. BILLBOARD (PHASE 1: DISABLED for isolation test) --
     // Billboard wrapper implementation is in _setupBillboardWrappers() below.
     // To enable: set _billboardActive = true in _activateBillboard() and call _setupBillboardWrappers().
+    if (this.runtimeLabelManager && camera) {
+      this.runtimeLabelManager.update(camera, this.activeWorld);
+    }
     if (this._billboardActive && camera) {
       // WRAPPER billboard: wrapper.rotation.y = atan2(dx,dz) to face camera horizontally
       // Label mesh quaternion is NOT modified here — animation owns it.
