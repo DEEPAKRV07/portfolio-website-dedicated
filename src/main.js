@@ -45,9 +45,15 @@ assetManager.loadAll((ratio, statusText, assetId) => {
     sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
     sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
     sceneController.initSkillsScene(scene, assetManager.getAsset('skills'), camera);
+    sceneController.initExperienceScene(scene, assetManager.getAsset('experience'), camera);
+    sceneController.initEducationScene(scene, assetManager.getAsset('education'), camera);
+    sceneController.initContactScene(scene, assetManager.getAsset('contact'), camera);
 
-    // Resolve initial route after scenes are ready
-    // initRouteFromUrl now invoked inside assetManager.loadAll().then()
+    // Explicitly guarantee activeWorld = 'home' on first load
+    sceneController.setActiveWorld('home');
+
+    // Resolve initial route after 3D scenes are fully ready
+    initRouteFromUrl();
   } catch (err) {
     console.error('[3D Scene Init Error]', err);
   } finally {
