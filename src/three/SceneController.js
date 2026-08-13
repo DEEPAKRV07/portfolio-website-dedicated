@@ -51,17 +51,17 @@ export class V1DOMLabelManager {
     el.style.userSelect = 'none';
     el.style.willChange = 'transform, opacity, font-size';
 
-    let baseFontSize = 14;
+    let baseFontSize = 13;
     if (type === 'root-core') {
-      baseFontSize = 20;
+      baseFontSize = 18;
       el.style.color = '#ffffff';
       el.style.textShadow = '0 0 20px rgba(0, 255, 136, 0.60), 0 2px 6px rgba(0, 0, 0, 0.95)';
     } else if (type === 'skill-subnode') {
-      baseFontSize = 11;
+      baseFontSize = 10;
       el.style.fontWeight = '600';
-      el.style.opacity = '0.90';
+      el.style.opacity = '0.92';
     } else {
-      baseFontSize = 14;
+      baseFontSize = 13;
     }
 
     el.style.fontSize = `${baseFontSize}px`;
@@ -300,10 +300,10 @@ export class SceneController {
       if (isRoot) {
         offset = new THREE.Vector3(0, 1.10, 0);
       } else if (isCategory) {
-        offset = new THREE.Vector3(0, 0.85, 0);
+        offset = new THREE.Vector3(0, 0.75, 0);
       } else {
-        // Fixed 3D world clearance offset attached to skill node position
-        offset = new THREE.Vector3(0, 0.42, 0.10);
+        // Compact 3D world-space clearance offset floating right above node sphere
+        offset = new THREE.Vector3(0, 0.36, 0.08);
       }
 
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
