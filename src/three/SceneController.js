@@ -180,6 +180,7 @@ export class SceneController {
 
     this.activeWorld = 'home';
     this.v1LabelManager = new V1DOMLabelManager();
+    this.mixers = new Map();
   }
 
   /* ── 1. HOME GLB INITIALIZATION (LOCKED REFERENCE) ── */
@@ -389,6 +390,14 @@ export class SceneController {
 
   /* ── PRECISE GEOMETRY & MATERIAL SETUP FOR ALL GLB WORLDS ── */
   _setupWorldGeometry(rootScene, worldKey, nodeGroupsMap, nodeMap, interactiveMeshesArr) {
+    if (rootScene.animations && rootScene.animations.length > 0) {
+      const mixer = new THREE.AnimationMixer(rootScene);
+      for (const clip of rootScene.animations) {
+        const action = mixer.clipAction(clip);
+        action.play();
+      }
+      this.mixers.set(worldKey, mixer);
+    }
     rootScene.traverse((obj) => {
       const nm = obj.name || '';
       obj.visible = true;
@@ -492,7 +501,31 @@ export class SceneController {
     }
   }
 
+  playWorldAnimation(worldKey) {
+    const mixer = this.mixers.get(worldKey);
+    if (mixer) {
+      mixer.stopAllAction();
+      mixer.time = 0;
+      if (mixer._actions) {
+        for (const action of mixer._actions) {
+          if (action) {
+            action.reset();
+            action.enabled = true;
+            action.setEffectiveTimeScale(1);
+            action.setEffectiveWeight(1);
+            action.play();
+          }
+        }
+      }
+    }
+  }
+
   updateIdleMotion(currentTime, delta, camera) {
+    const activeMixer = this.mixers.get(this.activeWorld);
+    if (activeMixer) {
+      activeMixer.update(delta);
+    }
+
     if (this.v1LabelManager && camera) {
       this.v1LabelManager.update(camera, this.activeWorld);
     }

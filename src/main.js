@@ -1701,32 +1701,20 @@ function setLayerVisibility(layerName) {
 }
 
 function enterSubnet(subnetId, isPush = true) {
+  hideDetailPresentation();
+  hideSkillContextPanel();
+
   if (subnetId === 'projects') {
     sceneController.setActiveWorld('projects');
     activeSubnet = null;
-    hideDetailPresentation();
-    hideSkillContextPanel();
     setLayerVisibility('SUBNET');
-
     document.body.classList.add('project-mode');
     document.body.classList.remove('detail-mode');
-
     setMode('ENGINEERING PROJECTS');
     setLayerPath('NEURAL NETWORK / PROJECTS WORLD');
 
-    const projBounds = sceneController.computeProjectsBounds();
-    let projZ = 16.5, projY = 0.5, projTarget = new THREE.Vector3(0, -0.2, 0);
-    if (projBounds && !projBounds.isEmpty()) {
-      const center = projBounds.getCenter(new THREE.Vector3());
-      const size   = projBounds.getSize(new THREE.Vector3());
-      const radius = Math.max(size.x, size.y, size.z) * 0.5;
-      const fovRad = THREE.MathUtils.degToRad(camera.fov);
-      const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.15;
-      projZ = isMobileViewport() ? dist * 1.25 : dist;
-      projY = center.y + 0.6;
-      projTarget = new THREE.Vector3(center.x, center.y - 0.3, center.z);
-    }
-    startTransition(new THREE.Vector3(0, projY, projZ), projTarget, 950);
+    startTransition(new THREE.Vector3(0, -0.8, 17.5), new THREE.Vector3(0, -0.5, 0), 850);
+    sceneController.playWorldAnimation('projects');
     updateBrowserRoute('projects', isPush);
     return;
   }
@@ -1734,51 +1722,62 @@ function enterSubnet(subnetId, isPush = true) {
   if (subnetId === 'skills') {
     sceneController.setActiveWorld('skills');
     activeSubnet = null;
-    hideDetailPresentation();
-    hideSkillContextPanel();
     setLayerVisibility('SUBNET');
-
     document.body.classList.add('project-mode');
     document.body.classList.remove('detail-mode');
-
     setMode('SKILLS & TECHNOLOGIES');
     setLayerPath('NEURAL NETWORK / SKILLS WORLD');
 
-    const skillsBounds = sceneController.computeSkillsBounds();
-    let skZ = 16.5, skY = 0.5, skTarget = new THREE.Vector3(0, -0.2, 0);
-    if (skillsBounds && !skillsBounds.isEmpty()) {
-      const center = skillsBounds.getCenter(new THREE.Vector3());
-      const size   = skillsBounds.getSize(new THREE.Vector3());
-      const radius = Math.max(size.x, size.y, size.z) * 0.5;
-      const fovRad = THREE.MathUtils.degToRad(camera.fov);
-      const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.15;
-      skZ = isMobileViewport() ? dist * 1.25 : dist;
-      skY = center.y + 0.6;
-      skTarget = new THREE.Vector3(center.x, center.y - 0.3, center.z);
-    }
-    startTransition(new THREE.Vector3(0, skY, skZ), skTarget, 950);
+    startTransition(new THREE.Vector3(0, 0, 18.0), new THREE.Vector3(0, 0, 0), 850);
+    sceneController.playWorldAnimation('skills');
     updateBrowserRoute('skills', isPush);
     return;
   }
 
-  const world = subnetWorlds.get(subnetId);
-  if (!world) return;
+  if (subnetId === 'experience') {
+    sceneController.setActiveWorld('experience');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('WORK EXPERIENCE');
+    setLayerPath('NEURAL NETWORK / EXPERIENCE WORLD');
 
-  activeSubnet = world;
-  hideDetailPresentation();
-  hideSkillContextPanel();
+    startTransition(new THREE.Vector3(0, 0, 20.0), new THREE.Vector3(0, 0, 0), 850);
+    sceneController.playWorldAnimation('experience');
+    updateBrowserRoute('experience', isPush);
+    return;
+  }
 
-  setLayerVisibility('SUBNET');
+  if (subnetId === 'education') {
+    sceneController.setActiveWorld('education');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('EDUCATION');
+    setLayerPath('NEURAL NETWORK / EDUCATION WORLD');
 
-  document.body.classList.add('project-mode');
-  document.body.classList.remove('detail-mode');
+    startTransition(new THREE.Vector3(0, -0.5, 14.0), new THREE.Vector3(0, -0.5, 0), 850);
+    sceneController.playWorldAnimation('education');
+    updateBrowserRoute('education', isPush);
+    return;
+  }
 
-  setMode(world.definition.title);
-  setLayerPath(`NEURAL NETWORK / ${world.definition.title}`);
-  const subnetZ = isMobileViewport() ? 24.5 : 18.5;
-  const subnetY = isMobileViewport() ? 0.8 : 1.2;
-  startTransition(new THREE.Vector3(0, subnetY, subnetZ), new THREE.Vector3(0, 0, 0), 850);
-  updateBrowserRoute(subnetId, isPush);
+  if (subnetId === 'contact') {
+    sceneController.setActiveWorld('contact');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('CONTACT');
+    setLayerPath('NEURAL NETWORK / CONTACT WORLD');
+
+    startTransition(new THREE.Vector3(0, -0.5, 15.0), new THREE.Vector3(0, -0.5, 0), 850);
+    sceneController.playWorldAnimation('contact');
+    updateBrowserRoute('contact', isPush);
+    return;
+  }
 }
 
 function returnToCore(isPush = true) {
@@ -1795,23 +1794,8 @@ function returnToCore(isPush = true) {
   setMode('OVERVIEW');
   setLayerPath('NEURAL NETWORK / OVERVIEW');
 
-  const glbBounds = sceneController.computeNetworkBounds();
-  let homeZ, homeY, homeTarget;
-  if (glbBounds && !glbBounds.isEmpty()) {
-    const center = glbBounds.getCenter(new THREE.Vector3());
-    const size   = glbBounds.getSize(new THREE.Vector3());
-    const radius = Math.max(size.x, size.y, size.z) * 0.5;
-    const fovRad = THREE.MathUtils.degToRad(camera.fov);
-    const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.20;
-    homeZ = isMobileViewport() ? dist * 1.25 : dist;
-    homeY = center.y + 0.8;
-    homeTarget = new THREE.Vector3(center.x, center.y - 0.5, center.z);
-  } else {
-    homeZ = isMobileViewport() ? 18.5 : 14.0;
-    homeY = 0.8;
-    homeTarget = new THREE.Vector3(0, -0.3, 0);
-  }
-  startTransition(new THREE.Vector3(0, homeY, homeZ), homeTarget, 950);
+  startTransition(new THREE.Vector3(0, 2.2, 23.0), new THREE.Vector3(0, -0.5, 0), 850);
+  sceneController.playWorldAnimation('home');
   updateBrowserRoute('home', isPush);
 }
 
