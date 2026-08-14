@@ -120,8 +120,9 @@ export class V1DOMLabelManager {
       const screenY = (-(_tmpPos.y * halfH)) + halfH;
 
       // 3. True 3D perspective scaling factor S based on camera distance
+      const refDist = activeWorld === 'skills' ? 14.5 : 18.0;
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.50), 1.50);
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.65), 1.80);
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
       const popScale = label.isPopped ? 1.0 : 0.82;
@@ -308,29 +309,29 @@ export class SceneController {
       'systems-category': 'DEVELOPMENT',
       'lang-category': 'MOBILE / DEVOPS',
 
-      // Category 1: AI / ML
+      // Category 1: AI / ML (4 subnodes)
       'yolov8': 'Machine Learning',
       'bytetrack': 'Deep Learning',
       'opencv': 'Computer Vision',
       'fast-scnn': 'Generative AI',
 
-      // Category 2: AI TOOLS
+      // Category 2: AI TOOLS (4 subnodes)
       'pytorch': 'TensorFlow',
       'tensorflow': 'PyTorch',
       'ml-kit': 'YOLOv8',
       'kmeans': 'OpenCV',
 
-      // Category 3: DEVELOPMENT
+      // Category 3: DEVELOPMENT (4 subnodes mapping to 5 items)
       'playwright': 'Python',
       'sqlite': 'JavaScript',
       'concurrency': 'React',
       'pandas': 'Next.js',
 
-      // Category 4: MOBILE / DEVOPS
+      // Category 4: MOBILE / DEVOPS (4 subnodes mapping to 2 items - NO extra DevOps child node)
       'python': 'Three.js',
       'flutter': 'Flutter / Dart',
       'nextjs': 'Git & GitHub',
-      'git': 'DevOps',
+      'git': 'Git & GitHub',
     };
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
@@ -605,8 +606,8 @@ export class SceneController {
       }
     }
 
-    // Calculate exact pop delay so text pops ONLY AFTER 3D node entrance animation completes
-    const popDelay = Math.round((maxClipDuration * 1000) + 180);
+    // Quick 150ms pop delay so text labels appear crisp and readable immediately on world entry
+    const popDelay = 150;
     if (this.v1LabelManager) {
       this.v1LabelManager.fadeInWorldLabels(worldKey, popDelay);
     }

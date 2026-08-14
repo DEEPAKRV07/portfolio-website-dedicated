@@ -1754,7 +1754,7 @@ function enterSubnet(subnetId, isPush = true) {
     setMode('SKILLS & TECHNOLOGIES');
     setLayerPath('NEURAL NETWORK / SKILLS WORLD');
 
-    startTransition(new THREE.Vector3(0, 0, 18.0), new THREE.Vector3(0, 0, 0), 850);
+    startTransition(new THREE.Vector3(0, -0.2, 14.5), new THREE.Vector3(0, -0.1, 0), 850);
     sceneController.playWorldAnimation('skills');
     updateBrowserRoute('skills', isPush);
     return;
