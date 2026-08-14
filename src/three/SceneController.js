@@ -303,37 +303,56 @@ export class SceneController {
     const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
     const skillTitles = {
       'skills_root': 'SKILLS & TECHNOLOGIES',
-      'cv-category': 'COMPUTER VISION',
-      'dl-category': 'DEEP LEARNING & AI',
-      'systems-category': 'SYSTEMS & DEPLOYMENT',
-      'lang-category': 'LANGUAGES & TOOLS',
-      'yolov8': 'YOLOv8',
-      'bytetrack': 'ByteTrack',
-      'opencv': 'OpenCV',
-      'fast-scnn': 'Fast-SCNN',
-      'pytorch': 'PyTorch',
-      'tensorflow': 'TensorFlow Lite',
-      'ml-kit': 'Google ML Kit',
-      'kmeans': 'K-Means',
-      'playwright': 'Playwright',
-      'sqlite': 'SQLite',
-      'concurrency': 'ThreadPoolExecutor',
-      'pandas': 'Pandas',
-      'python': 'Python',
+      'cv-category': 'AI / ML',
+      'dl-category': 'AI TOOLS',
+      'systems-category': 'DEVELOPMENT',
+      'lang-category': 'MOBILE / DEVOPS',
+
+      // Category 1: AI / ML
+      'yolov8': 'Machine Learning',
+      'bytetrack': 'Deep Learning',
+      'opencv': 'Computer Vision',
+      'fast-scnn': 'Generative AI',
+
+      // Category 2: AI TOOLS
+      'pytorch': 'TensorFlow',
+      'tensorflow': 'PyTorch',
+      'ml-kit': 'YOLOv8',
+      'kmeans': 'OpenCV',
+
+      // Category 3: DEVELOPMENT
+      'playwright': 'Python',
+      'sqlite': 'JavaScript',
+      'concurrency': 'React',
+      'pandas': 'Next.js',
+
+      // Category 4: MOBILE / DEVOPS
+      'python': 'Three.js',
       'flutter': 'Flutter / Dart',
-      'nextjs': 'Next.js',
-      'git': 'Git & GitHub',
+      'nextjs': 'Git & GitHub',
+      'git': 'DevOps',
     };
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
-      const title = skillTitles[key] || key.toUpperCase();
+      // Read semantic metadata directly from GLB userData exported by Blender generator
+      let title = groupObj.userData?.node_label || groupObj.userData?.label;
+      if (!title && groupObj.userData?.meta_json) {
+        try {
+          const meta = JSON.parse(groupObj.userData.meta_json);
+          title = meta.name;
+        } catch (e) {}
+      }
+      if (!title) {
+        title = skillTitles[key] || key.toUpperCase();
+      }
+
       const isRoot = key === 'skills_root';
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
 
-      let offset = new THREE.Vector3(0, 0, 0); // Skill subnodes centered exactly inside sphere
+      let offset = new THREE.Vector3(0, 0.48, 0); // Small world-space clearance right above sphere
       if (isRoot) {
-        offset = new THREE.Vector3(0, 0.95, 0);
+        offset = new THREE.Vector3(0, 1.10, 0);
       } else if (isCategory) {
         if (key === 'cv-category') offset = new THREE.Vector3(-0.45, 0.85, 0);
         else if (key === 'dl-category') offset = new THREE.Vector3(-0.35, 0.85, 0);
