@@ -486,18 +486,44 @@ function showSkillContextPanel(skillData) {
 
   skillUsedListEl.innerHTML = '';
   if (Array.isArray(skillData.usedIn)) {
-    for (const proj of skillData.usedIn) {
+    for (const projName of skillData.usedIn) {
       const itemEl = document.createElement('div');
       itemEl.className = 'skill-used-item';
+
+      const leftEl = document.createElement('div');
+      leftEl.style.display = 'flex';
+      leftEl.style.alignItems = 'center';
+      leftEl.style.gap = '8px';
 
       const dot = document.createElement('span');
       dot.className = 'skill-used-dot';
 
       const text = document.createElement('span');
-      text.textContent = proj;
+      text.textContent = projName;
 
-      itemEl.appendChild(dot);
-      itemEl.appendChild(text);
+      leftEl.appendChild(dot);
+      leftEl.appendChild(text);
+      itemEl.appendChild(leftEl);
+
+      // Match project in SUBNET_DEFINITIONS.projects.categories
+      const matchedProj = SUBNET_DEFINITIONS.projects?.categories?.find(p =>
+        p.label?.toLowerCase().includes(projName.toLowerCase()) ||
+        p.title?.toLowerCase().includes(projName.toLowerCase()) ||
+        projName.toLowerCase().includes(p.label?.toLowerCase())
+      );
+
+      if (matchedProj) {
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'skill-view-proj-btn';
+        viewBtn.textContent = 'VIEW PROJECT ↗';
+        viewBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          hideSkillContextPanel();
+          showDetailPresentation(matchedProj);
+        });
+        itemEl.appendChild(viewBtn);
+      }
+
       skillUsedListEl.appendChild(itemEl);
     }
   }
@@ -1953,27 +1979,29 @@ renderer.domElement.addEventListener('click', event => {
     const destId = hit.destId;
     const worldKey = hit.object.userData.world || sceneController.activeWorld;
 
-    // Check if the central root node of any world was clicked -> Return to Home Overview
-    if (
-      destId.endsWith('_root') ||
+    // Check if exact central root node was clicked -> Return to Home Overview
+    const isExactRoot = (
       destId === 'projects_root' ||
       destId === 'skills_root' ||
       destId === 'experience_root' ||
       destId === 'education_root' ||
       destId === 'contact_root' ||
-      (worldKey !== 'home' && (destId === 'core' || destId === 'hero' || destId === worldKey))
-    ) {
+      destId === 'hero'
+    );
+
+    if (isExactRoot) {
       returnToCore();
       return;
     }
 
-    // 1. Skills World Node Click -> Open V1 Skill Context Panel Card
+    // 1. Skills World Node Click
     if (worldKey === 'skills') {
-      const categoryMatch = SUBNET_DEFINITIONS.skills?.categories?.find(c => c.id === destId || destId.includes(c.id));
-      if (categoryMatch) {
-        showSkillContextPanel(categoryMatch);
-        return;
+      // Parent category nodes (cv-category, dl-category, systems-category, lang-category) are NON-INTERACTIVE anchors
+      const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
+      if (categories.includes(destId)) {
+        return; // Ignore clicks on structural category parent nodes
       }
+
       let foundSkillData = null;
       if (SUBNET_DEFINITIONS.skills?.categories) {
         for (const cat of SUBNET_DEFINITIONS.skills.categories) {
@@ -2042,7 +2070,7 @@ renderer.domElement.addEventListener('click', event => {
     }
 
     // 5. Contact World Node Click -> Trigger Email / LinkedIn / GitHub / Resume PDF Actions
-    if (worldKey === 'contact') {
+    if (worldKey === 'contact' || destId.includes('email') || destId.includes('linkedin') || destId.includes('github') || destId.includes('resume')) {
       if (destId.includes('email')) {
         window.open('mailto:deepakvetrivelan@gmail.com', '_self');
       } else if (destId.includes('linkedin')) {

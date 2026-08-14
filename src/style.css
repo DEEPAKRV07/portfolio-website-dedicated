@@ -1775,3 +1775,110 @@ body.detail-mode .intro {
   padding-top: 4px;
   border-top: 1px solid rgba(0, 255, 136, 0.10);
 }
+
+/* ============================================================
+   GLASSMORPHIC TOP HEADER NAVBAR
+   ============================================================ */
+.glass-navbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 14px;
+  background: rgba(8, 14, 10, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 255, 136, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(0, 255, 136, 0.15);
+  pointer-events: auto;
+}
+
+.nav-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-btn, .action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  background: rgba(0, 255, 136, 0.04);
+  border: 1px solid rgba(0, 255, 136, 0.14);
+  border-radius: 6px;
+  color: rgba(220, 255, 235, 0.85);
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.action-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  opacity: 0.85;
+}
+
+.nav-btn:hover, .action-btn:hover {
+  background: rgba(0, 255, 136, 0.16);
+  border-color: rgba(0, 255, 136, 0.50);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 255, 136, 0.25);
+}
+
+.nav-btn.active {
+  background: rgba(0, 255, 136, 0.22);
+  border-color: var(--green-bright);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.35);
+}
+
+.nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green-bright);
+  box-shadow: 0 0 8px var(--green-bright);
+}
+
+.nav-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(0, 255, 136, 0.20);
+}
+
+.skill-used-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 255, 136, 0.04);
+  border: 1px solid rgba(0, 255, 136, 0.12);
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.skill-view-proj-btn {
+  padding: 4px 10px;
+  background: rgba(0, 255, 136, 0.14);
+  border: 1px solid rgba(0, 255, 136, 0.35);
+  border-radius: 4px;
+  color: var(--green-bright);
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skill-view-proj-btn:hover {
+  background: rgba(0, 255, 136, 0.30);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+}
