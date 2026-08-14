@@ -44,25 +44,25 @@ export class V1DOMLabelManager {
     el.style.left = '0';
     el.style.fontFamily = "var(--font-display, 'Deltha', 'Space Grotesk', sans-serif)";
     el.style.fontWeight = '700';
-    el.style.letterSpacing = '0.12em';
+    el.style.letterSpacing = '0.08em';
     el.style.color = '#ffffff';
-    el.style.textShadow = '0 0 16px rgba(0, 255, 136, 0.45), 0 2px 4px rgba(0, 0, 0, 0.9)';
+    el.style.textShadow = '0 0 14px rgba(0, 255, 136, 0.45), 0 2px 4px rgba(0, 0, 0, 0.9)';
     el.style.pointerEvents = 'none';
     el.style.whiteSpace = 'nowrap';
     el.style.userSelect = 'none';
     el.style.willChange = 'transform, opacity, font-size';
 
-    let baseFontSize = 13;
+    let baseFontSize = 12;
     if (type === 'root-core') {
-      baseFontSize = 18;
+      baseFontSize = 17;
       el.style.color = '#ffffff';
-      el.style.textShadow = '0 0 20px rgba(0, 255, 136, 0.60), 0 2px 6px rgba(0, 0, 0, 0.95)';
+      el.style.textShadow = '0 0 18px rgba(0, 255, 136, 0.60), 0 2px 6px rgba(0, 0, 0, 0.95)';
     } else if (type === 'skill-subnode') {
-      baseFontSize = 10;
+      baseFontSize = 9.5;
       el.style.fontWeight = '600';
       el.style.opacity = '0.92';
     } else {
-      baseFontSize = 13;
+      baseFontSize = 11.5;
     }
 
     el.style.fontSize = `${baseFontSize}px`;
@@ -117,7 +117,7 @@ export class V1DOMLabelManager {
 
       // 3. True 3D perspective scaling factor S based on camera distance
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.50), 1.60);
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.50), 1.50);
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
 
@@ -195,7 +195,7 @@ export class SceneController {
     this.homeGroup.add(homeAsset.scene);
     scene.add(this.homeGroup);
 
-    this._setupWorldGeometry(homeAsset.scene, 'home', this.nodeGroups, this.nodeMap, this.interactiveMeshes);
+    this._setupWorldGeometry(homeAsset.scene, 'home', this.nodeGroups, this.nodeMap, this.interactiveMeshes, homeAsset.animations);
     this.homeGroup.updateMatrixWorld(true);
 
     const homeLabels = {
@@ -210,7 +210,8 @@ export class SceneController {
     this.nodeGroups.forEach((groupObj, key) => {
       const text = homeLabels[key];
       if (text) {
-        const offset = key === 'hero' ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.75, 0);
+        let offset = new THREE.Vector3(0, 0.70, 0);
+        if (key === 'hero') offset = new THREE.Vector3(0, 0.95, 0);
         this.v1LabelManager.createLabel(key, text, groupObj, 'home', key === 'hero' ? 'root-core' : 'category', offset);
       }
     });
@@ -228,7 +229,7 @@ export class SceneController {
     this.projectsGroup.add(projectsAsset.scene);
     scene.add(this.projectsGroup);
 
-    this._setupWorldGeometry(projectsAsset.scene, 'projects', this.projectsNodeGroups, this.projectsNodeMap, this.projectsInteractiveMeshes);
+    this._setupWorldGeometry(projectsAsset.scene, 'projects', this.projectsNodeGroups, this.projectsNodeMap, this.projectsInteractiveMeshes, projectsAsset.animations);
     this.projectsGroup.updateMatrixWorld(true);
 
     const projectTitles = {
@@ -245,7 +246,7 @@ export class SceneController {
     this.projectsNodeGroups.forEach((groupObj, key) => {
       const title = projectTitles[key];
       if (title) {
-        const offset = key === 'projects_root' ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0);
+        const offset = key === 'projects_root' ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0);
         this.v1LabelManager.createLabel(key, title, groupObj, 'projects', key === 'projects_root' ? 'root-core' : 'category', offset);
       }
     });
@@ -263,7 +264,7 @@ export class SceneController {
     this.skillsGroup.add(skillsAsset.scene);
     scene.add(this.skillsGroup);
 
-    this._setupWorldGeometry(skillsAsset.scene, 'skills', this.skillsNodeGroups, this.skillsNodeMap, this.skillsInteractiveMeshes);
+    this._setupWorldGeometry(skillsAsset.scene, 'skills', this.skillsNodeGroups, this.skillsNodeMap, this.skillsInteractiveMeshes, skillsAsset.animations);
     this.skillsGroup.updateMatrixWorld(true);
 
     const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
@@ -296,7 +297,7 @@ export class SceneController {
       const isRoot = key === 'skills_root';
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
-      const offset = isRoot ? new THREE.Vector3(0, 1.10, 0) : (isCategory ? new THREE.Vector3(0, 0.75, 0) : new THREE.Vector3(0, 0.36, 0.08));
+      const offset = isRoot ? new THREE.Vector3(0, 0.85, 0) : (isCategory ? new THREE.Vector3(0, 0.65, 0) : new THREE.Vector3(0, 0.32, 0));
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
     });
   }
@@ -313,7 +314,7 @@ export class SceneController {
     this.experienceGroup.add(experienceAsset.scene);
     scene.add(this.experienceGroup);
 
-    this._setupWorldGeometry(experienceAsset.scene, 'experience', this.experienceNodeGroups, this.experienceNodeMap, this.experienceInteractiveMeshes);
+    this._setupWorldGeometry(experienceAsset.scene, 'experience', this.experienceNodeGroups, this.experienceNodeMap, this.experienceInteractiveMeshes, experienceAsset.animations);
     this.experienceGroup.updateMatrixWorld(true);
 
     const expTitles = {
@@ -327,7 +328,7 @@ export class SceneController {
     this.experienceNodeGroups.forEach((groupObj, key) => {
       const title = expTitles[key] || key.toUpperCase();
       const isRoot = key === 'experience_root';
-      this.v1LabelManager.createLabel(key, title, groupObj, 'experience', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
+      this.v1LabelManager.createLabel(key, title, groupObj, 'experience', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0));
     });
   }
 
@@ -343,7 +344,7 @@ export class SceneController {
     this.educationGroup.add(educationAsset.scene);
     scene.add(this.educationGroup);
 
-    this._setupWorldGeometry(educationAsset.scene, 'education', this.educationNodeGroups, this.educationNodeMap, this.educationInteractiveMeshes);
+    this._setupWorldGeometry(educationAsset.scene, 'education', this.educationNodeGroups, this.educationNodeMap, this.educationInteractiveMeshes, educationAsset.animations);
     this.educationGroup.updateMatrixWorld(true);
 
     const eduTitles = {
@@ -354,7 +355,7 @@ export class SceneController {
     this.educationNodeGroups.forEach((groupObj, key) => {
       const title = eduTitles[key] || key.toUpperCase();
       const isRoot = key === 'education_root';
-      this.v1LabelManager.createLabel(key, title, groupObj, 'education', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
+      this.v1LabelManager.createLabel(key, title, groupObj, 'education', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0));
     });
   }
 
@@ -370,7 +371,7 @@ export class SceneController {
     this.contactGroup.add(contactAsset.scene);
     scene.add(this.contactGroup);
 
-    this._setupWorldGeometry(contactAsset.scene, 'contact', this.contactNodeGroups, this.contactNodeMap, this.contactInteractiveMeshes);
+    this._setupWorldGeometry(contactAsset.scene, 'contact', this.contactNodeGroups, this.contactNodeMap, this.contactInteractiveMeshes, contactAsset.animations);
     this.contactGroup.updateMatrixWorld(true);
 
     const contactTitles = {
@@ -384,34 +385,30 @@ export class SceneController {
     this.contactNodeGroups.forEach((groupObj, key) => {
       const title = contactTitles[key] || key.toUpperCase();
       const isRoot = key === 'contact_root';
-      this.v1LabelManager.createLabel(key, title, groupObj, 'contact', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 1.10, 0) : new THREE.Vector3(0, 0.85, 0));
+      this.v1LabelManager.createLabel(key, title, groupObj, 'contact', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0));
     });
   }
 
   /* ── PRECISE GEOMETRY & MATERIAL SETUP FOR ALL GLB WORLDS ── */
-  _setupWorldGeometry(rootScene, worldKey, nodeGroupsMap, nodeMap, interactiveMeshesArr) {
-    if (rootScene.animations && rootScene.animations.length > 0) {
+  _setupWorldGeometry(rootScene, worldKey, nodeGroupsMap, nodeMap, interactiveMeshesArr, animations = []) {
+    // 1. Setup AnimationMixer from gltf.animations array
+    if (animations && animations.length > 0) {
       const mixer = new THREE.AnimationMixer(rootScene);
-      for (const clip of rootScene.animations) {
+      for (const clip of animations) {
         const action = mixer.clipAction(clip);
         action.play();
       }
       this.mixers.set(worldKey, mixer);
     }
+
+    // 2. Traverse scene geometry preserving Blender-authored transforms
     rootScene.traverse((obj) => {
       const nm = obj.name || '';
       obj.visible = true;
       obj.frustumCulled = false;
 
-      // Guarantee scale (1, 1, 1) and zero position offsets for core/shell/node/edge objects
-      if (nm.endsWith('_core') || nm.endsWith('_shell') || nm.includes('->') || nm.includes('curve') || obj.isMesh) {
-        obj.scale.set(1, 1, 1);
-        if (nm.endsWith('_core') || nm.endsWith('_shell')) obj.position.set(0, 0, 0);
-      }
-
-      // Register group container nodes starting with 'Node_' and enforce scale (1, 1, 1)
+      // Register group container nodes starting with 'Node_'
       if (nm.startsWith('Node_')) {
-        obj.scale.set(1, 1, 1);
         const key = nm.replace('Node_', '');
         nodeGroupsMap.set(key, obj);
       }
@@ -445,6 +442,7 @@ export class SceneController {
             roughness: 0.35, wireframe: true, transparent: true, opacity: 0.40, side: THREE.DoubleSide
           });
         } else if (nm.includes('->') || nm.includes('curve')) {
+          // Preserve authored edge curve geometry and scale
           obj.material = new THREE.MeshStandardMaterial({
             color: 0x00ff88, emissive: 0x00cc77, emissiveIntensity: 0.65,
             transparent: true, opacity: 0.85, side: THREE.DoubleSide
