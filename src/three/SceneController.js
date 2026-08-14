@@ -667,14 +667,12 @@ export class SceneController {
   }
 
   _destId(name) {
-    if (name.includes('hero'))       return 'core';
-    if (name.includes('about'))      return 'about';
-    if (name.includes('projects'))   return 'projects';
-    if (name.includes('skills'))     return 'skills';
-    if (name.includes('experience')) return 'experience';
-    if (name.includes('education'))  return 'education';
-    if (name.includes('contact'))    return 'contact';
-    return null;
+    if (!name) return null;
+    let clean = name;
+    if (clean.startsWith('Node_')) clean = clean.replace('Node_', '');
+    if (clean.endsWith('_core')) clean = clean.slice(0, -5);
+    if (clean.endsWith('_shell')) clean = clean.slice(0, -6);
+    return clean;
   }
 }
 

@@ -2790,3 +2790,9 @@ navChips.forEach(chip => {
     sceneController.setHoveredNode(null);
   });
 });
+
+window.sceneController = sceneController;
+window.camera = camera;
+window.THREE = THREE;
+
+
