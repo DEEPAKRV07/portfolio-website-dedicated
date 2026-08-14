@@ -243,7 +243,7 @@ export class SceneController {
     this.nodeGroups.forEach((groupObj, key) => {
       const text = homeLabels[key];
       if (text) {
-        let offset = new THREE.Vector3(0, -0.65, 0);
+        let offset = new THREE.Vector3(0, 0.70, 0);
         if (key === 'hero') offset = new THREE.Vector3(0, 0.95, 0);
         this.v1LabelManager.createLabel(key, text, groupObj, 'home', key === 'hero' ? 'root-core' : 'category', offset);
       }
@@ -279,7 +279,7 @@ export class SceneController {
     this.projectsNodeGroups.forEach((groupObj, key) => {
       const title = projectTitles[key];
       if (title) {
-        const offset = key === 'projects_root' ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, -0.65, 0);
+        const offset = key === 'projects_root' ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0);
         this.v1LabelManager.createLabel(key, title, groupObj, 'projects', key === 'projects_root' ? 'root-core' : 'category', offset);
       }
     });
@@ -330,7 +330,7 @@ export class SceneController {
       const isRoot = key === 'skills_root';
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
-      const offset = isRoot ? new THREE.Vector3(0, 0.85, 0) : (isCategory ? new THREE.Vector3(0, -0.60, 0) : new THREE.Vector3(0, -0.40, 0));
+      const offset = isRoot ? new THREE.Vector3(0, 0.85, 0) : (isCategory ? new THREE.Vector3(0, 0.65, 0) : new THREE.Vector3(0, 0.35, 0));
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
     });
   }
@@ -361,7 +361,7 @@ export class SceneController {
     this.experienceNodeGroups.forEach((groupObj, key) => {
       const title = expTitles[key] || key.toUpperCase();
       const isRoot = key === 'experience_root';
-      this.v1LabelManager.createLabel(key, title, groupObj, 'experience', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, -0.60, 0));
+      this.v1LabelManager.createLabel(key, title, groupObj, 'experience', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0));
     });
   }
 
@@ -388,7 +388,7 @@ export class SceneController {
     this.educationNodeGroups.forEach((groupObj, key) => {
       const title = eduTitles[key] || key.toUpperCase();
       const isRoot = key === 'education_root';
-      this.v1LabelManager.createLabel(key, title, groupObj, 'education', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, -0.60, 0));
+      this.v1LabelManager.createLabel(key, title, groupObj, 'education', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0));
     });
   }
 
@@ -418,7 +418,7 @@ export class SceneController {
     this.contactNodeGroups.forEach((groupObj, key) => {
       const title = contactTitles[key] || key.toUpperCase();
       const isRoot = key === 'contact_root';
-      this.v1LabelManager.createLabel(key, title, groupObj, 'contact', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, -0.60, 0));
+      this.v1LabelManager.createLabel(key, title, groupObj, 'contact', isRoot ? 'root-core' : 'category', isRoot ? new THREE.Vector3(0, 0.95, 0) : new THREE.Vector3(0, 0.70, 0));
     });
   }
 
