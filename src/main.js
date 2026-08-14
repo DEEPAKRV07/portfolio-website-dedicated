@@ -1953,8 +1953,15 @@ renderer.domElement.addEventListener('click', event => {
 
   if (hit.type === 'glb-home-node') {
     const destId = hit.destId;
-    if (hit.object.userData.world === 'skills' || sceneController.activeWorld === 'skills') {
-      // Clicked a skill node inside skills.glb world
+    const worldKey = hit.object.userData.world || sceneController.activeWorld;
+
+    // 1. Skills World Node Click -> Open V1 Skill Context Panel
+    if (worldKey === 'skills') {
+      const categoryMatch = SUBNET_DEFINITIONS.skills?.categories?.find(c => c.id === destId || destId.includes(c.id));
+      if (categoryMatch) {
+        showSkillContextPanel(categoryMatch);
+        return;
+      }
       let foundSkillData = null;
       if (SUBNET_DEFINITIONS.skills?.categories) {
         for (const cat of SUBNET_DEFINITIONS.skills.categories) {
@@ -1970,8 +1977,9 @@ renderer.domElement.addEventListener('click', event => {
       return;
     }
 
-    if (hit.object.userData.world === 'projects' || sceneController.activeWorld === 'projects') {
-      const projectCategory = SUBNET_DEFINITIONS.projects?.categories?.find(c => c.id === destId || c.id.includes(destId));
+    // 2. Projects World Node Click -> Open V1 Case Study Presentation Card
+    if (worldKey === 'projects') {
+      const projectCategory = SUBNET_DEFINITIONS.projects?.categories?.find(c => c.id === destId || c.id.includes(destId) || destId.includes(c.id));
       if (projectCategory) {
         showDetailPresentation(projectCategory);
       } else {
@@ -1981,6 +1989,61 @@ renderer.domElement.addEventListener('click', event => {
       return;
     }
 
+    // 3. Experience World Node Click -> Open V1 Experience Career Presentation Card
+    if (worldKey === 'experience') {
+      const expCategory = SUBNET_DEFINITIONS.experience?.categories?.find(c => c.id === destId || destId.includes(c.id) || c.id.includes(destId));
+      if (expCategory) {
+        showDetailPresentation(expCategory);
+      } else {
+        const fallbackExp = SUBNET_DEFINITIONS.experience?.categories?.[0];
+        if (fallbackExp) showDetailPresentation(fallbackExp);
+      }
+      return;
+    }
+
+    // 4. Education World Node Click -> Open V1 Education Degree Presentation Card
+    if (worldKey === 'education') {
+      const eduCategory = {
+        kicker: 'ACADEMIC EDUCATION',
+        title: 'B.E. Computer Science & Engineering',
+        subtitle: 'S.A. Engineering College (AIML Specialization)',
+        sections: [
+          {
+            heading: 'DEGREE & SPECIALIZATION',
+            content: 'Bachelor of Engineering in Computer Science & Engineering with specialization in Artificial Intelligence and Machine Learning (AIML). Graduated with expertise in real-time Computer Vision, spatial reasoning systems, neural network optimization, and full-stack software development.',
+          },
+          {
+            heading: 'KEY ACADEMIC HIGHLIGHTS',
+            bullets: [
+              'Specialized in AI/ML model architecture, OpenCV, PyTorch, and TensorFlow Lite pipelines',
+              'Engineered SightMate real-time spatial navigation assistant for visually impaired users',
+              'Developed Google Maps Lead Intelligence automated data harvesting and geocoding platform',
+              'Built Football Analysis multi-object player tracking system with YOLOv8 & ByteTrack',
+            ],
+          },
+        ],
+        tags: ['B.E. CSE', 'AIML', 'Computer Vision', 'Deep Learning', 'Spatial Computing', 'Full Stack'],
+        actions: [],
+      };
+      showDetailPresentation(eduCategory);
+      return;
+    }
+
+    // 5. Contact World Node Click -> Trigger Email / LinkedIn / GitHub / Resume PDF Actions
+    if (worldKey === 'contact') {
+      if (destId.includes('email')) {
+        window.open('mailto:deepakvetrivelan@gmail.com', '_self');
+      } else if (destId.includes('linkedin')) {
+        window.open('https://www.linkedin.com/in/deepakrv07/', '_blank');
+      } else if (destId.includes('github')) {
+        window.open('https://github.com/DEEPAKRV07', '_blank');
+      } else if (destId.includes('resume')) {
+        window.open(`${BASE_URL}DEEPAK_R_V_deepakvetrivelan_gmail_com_.pdf`, '_blank');
+      }
+      return;
+    }
+
+    // 6. Home World Node Click -> Navigate to Subnet or Open About Card
     if (destId === 'about') {
       showDetailPresentation(combinedAboutData);
       updateBrowserRoute('about', true);
@@ -2590,34 +2653,16 @@ window.addEventListener('popstate', () => {
 });
 
 function initRouteFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const redirectedPath = params.get('p');
-  let path = window.location.pathname;
+  // Whenever user reloads/refreshes the site, ALWAYS return to HOME
+  sceneController.setActiveWorld('home');
+  setLayerVisibility('MAIN');
+  setMode('OVERVIEW');
+  setLayerPath('NEURAL NETWORK / OVERVIEW');
+  updateCounters(mainNodeObjects.length + 1, mainEdges.length);
+  returnToCore(false);
 
-  if (redirectedPath) {
-    path = `/portfolio-website-dedicated/${redirectedPath}`.replace(/\/+/g, '/');
-    history.replaceState(null, '', path);
-  }
-
-  const normalizedPath = path.toLowerCase().replace(/\/$/, '');
-
-  if (normalizedPath.endsWith('/about')) {
-    showDetailPresentation(combinedAboutData);
-    updateBrowserRoute('about', false);
-  } else if (normalizedPath.endsWith('/skills')) {
-    enterSubnet('skills', false);
-  } else if (normalizedPath.endsWith('/projects')) {
-    enterSubnet('projects', false);
-  } else if (normalizedPath.endsWith('/experience')) {
-    enterSubnet('experience', false);
-  } else if (normalizedPath.endsWith('/contact')) {
-    enterSubnet('contact', false);
-  } else {
-    setLayerVisibility('MAIN');
-    setMode('OVERVIEW');
-    setLayerPath('NEURAL NETWORK / OVERVIEW');
-    updateCounters(mainNodeObjects.length + 1, mainEdges.length);
-    updateBrowserRoute('home', false);
+  if (window.location.pathname !== BASE_URL && window.location.pathname !== '/portfolio-website-dedicated/') {
+    history.replaceState({ routeKey: 'home' }, 'DEEPAK R V — Neural Network', BASE_URL);
   }
 }
 
