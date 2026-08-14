@@ -10,7 +10,8 @@ import * as THREE from 'three';
 ────────────────────────────────────────────────────────────── */
 export class V1DOMLabelManager {
   constructor() {
-    this.labels = []; // Array of label objects { id, text, object, world, offset, element, type, baseFontSize }
+    this.labels = []; // Array of label objects { id, text, object, world, offset, element, type, baseFontSize, isPopped }
+    this.fadeTimeouts = new Map();
     this.container = document.getElementById('graph-labels-container');
     if (!this.container) {
       this.container = document.createElement('div');
@@ -67,7 +68,7 @@ export class V1DOMLabelManager {
 
     el.style.fontSize = `${baseFontSize}px`;
     el.style.opacity = '0';
-    el.style.transition = 'opacity 0.45s ease-out';
+    el.style.transition = 'opacity 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     this.container.appendChild(el);
 
     this.labels.push({
@@ -79,6 +80,7 @@ export class V1DOMLabelManager {
       baseFontSize,
       offset: offset.clone(),
       element: el,
+      isPopped: false,
     });
   }
 
@@ -122,29 +124,41 @@ export class V1DOMLabelManager {
       perspectiveScale = Math.min(Math.max(perspectiveScale, 0.50), 1.50);
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
+      const popScale = label.isPopped ? 1.0 : 0.82;
 
-      // 4. Render label physically anchored to 3D node world position
+      // 4. Render label physically anchored to 3D node world position with subtle pop scale
       label.element.style.display = 'block';
       label.element.style.fontSize = `${computedFontSize}px`;
-      label.element.style.transform = `translate3d(${screenX}px, ${screenY}px, 0px) translate(-50%, -50%)`;
+      label.element.style.transform = `translate3d(${screenX}px, ${screenY}px, 0px) translate(-50%, -50%) scale(${popScale})`;
     }
   }
 
-  fadeInWorldLabels(worldKey, delayMs = 450) {
+  fadeInWorldLabels(worldKey, delayMs = 1200) {
     for (let i = 0; i < this.labels.length; i++) {
       const l = this.labels[i];
       if (l.world === worldKey) {
-        l.element.style.opacity = '0';
+        l.isPopped = false;
+        if (l.element) {
+          l.element.style.opacity = '0';
+        }
       }
     }
-    setTimeout(() => {
+
+    if (this.fadeTimeouts.has(worldKey)) {
+      clearTimeout(this.fadeTimeouts.get(worldKey));
+    }
+
+    const timer = setTimeout(() => {
       for (let i = 0; i < this.labels.length; i++) {
         const l = this.labels[i];
         if (l.world === worldKey && l.element) {
+          l.isPopped = true;
           l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
         }
       }
     }, delayMs);
+
+    this.fadeTimeouts.set(worldKey, timer);
   }
 
   getLabelCount(world = null) {
@@ -538,6 +552,7 @@ export class SceneController {
   }
 
   playWorldAnimation(worldKey) {
+    let maxClipDuration = 1.0;
     const mixer = this.mixers.get(worldKey);
     if (mixer) {
       mixer.stopAllAction();
@@ -552,13 +567,18 @@ export class SceneController {
             action.setEffectiveTimeScale(1);
             action.setEffectiveWeight(1);
             action.play();
+            if (action._clip?.duration) {
+              maxClipDuration = Math.max(maxClipDuration, action._clip.duration);
+            }
           }
         }
       }
     }
 
+    // Calculate exact pop delay so text pops ONLY AFTER 3D node entrance animation completes
+    const popDelay = Math.round((maxClipDuration * 1000) + 180);
     if (this.v1LabelManager) {
-      this.v1LabelManager.fadeInWorldLabels(worldKey, 450);
+      this.v1LabelManager.fadeInWorldLabels(worldKey, popDelay);
     }
   }
 
