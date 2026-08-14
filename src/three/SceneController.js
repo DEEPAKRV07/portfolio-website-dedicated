@@ -6,6 +6,7 @@ import * as THREE from 'three';
    Creates crisp, browser-rendered HTML graph-label elements using the Deltha
    font. Projects node world positions through the camera every frame to NDC
    screen coordinates, eliminating 3D mesh mirroring, edge-on text, or flipping.
+   Includes camera-distance perspective scaling (S) so labels scale with 3D nodes.
 ────────────────────────────────────────────────────────────── */
 export class V1DOMLabelManager {
   constructor() {
@@ -86,7 +87,7 @@ export class V1DOMLabelManager {
     const _camPos = camera.position;
     const halfW = window.innerWidth * 0.5;
     const halfH = window.innerHeight * 0.5;
-    const refDist = 18.0; // Reference distance for 1.0x perspective scale
+    const refDist = 18.0; // Reference camera distance for 1.0x perspective scale
 
     for (let i = 0; i < this.labels.length; i++) {
       const label = this.labels[i];
@@ -95,20 +96,17 @@ export class V1DOMLabelManager {
         continue;
       }
 
-      // 1. Get exact 3D node world position + fixed 3D world-space clearance offset
+      // 1. Get 3D node world position + fixed 3D world-space clearance offset
       label.object.updateMatrixWorld(true);
       label.object.getWorldPosition(_tmpPos);
 
-      // Measure 3D camera distance to node
+      // Measure 3D camera distance to node for perspective scaling
       const dist = _camPos.distanceTo(_tmpPos);
-
-      // Apply fixed world-space clearance offset above/near node sphere
       _tmpPos.add(label.offset);
 
-      // 2. Project 3D world position through camera
+      // 2. Project 3D world position through camera to screen NDC
       _tmpPos.project(camera);
 
-      // Check camera frustum
       if (_tmpPos.z > 1.0 || _tmpPos.z < -1.0) {
         label.element.style.display = 'none';
         continue;
@@ -123,7 +121,7 @@ export class V1DOMLabelManager {
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
 
-      // 4. Render label physically attached to node world position
+      // 4. Render label physically anchored to 3D node world position
       label.element.style.display = 'block';
       label.element.style.fontSize = `${computedFontSize}px`;
       label.element.style.transform = `translate3d(${screenX}px, ${screenY}px, 0px) translate(-50%, -50%)`;
@@ -236,9 +234,11 @@ export class SceneController {
       'projects_root': 'ENGINEERING PROJECTS',
       'sightmate': 'SIGHTMATE',
       'football': 'FOOTBALL ANALYSIS',
+      'football-analysis': 'FOOTBALL ANALYSIS',
       'forcrux': 'FORCRUX',
       'google-maps': 'GOOGLE MAPS PLATFORM',
       'kaatchi': 'KAATCHI MEDIA',
+      'kaatchi-media': 'KAATCHI MEDIA',
     };
 
     this.projectsNodeGroups.forEach((groupObj, key) => {
@@ -295,17 +295,7 @@ export class SceneController {
       const isRoot = key === 'skills_root';
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
-
-      let offset;
-      if (isRoot) {
-        offset = new THREE.Vector3(0, 1.10, 0);
-      } else if (isCategory) {
-        offset = new THREE.Vector3(0, 0.75, 0);
-      } else {
-        // Compact 3D world-space clearance offset floating right above node sphere
-        offset = new THREE.Vector3(0, 0.36, 0.08);
-      }
-
+      const offset = isRoot ? new THREE.Vector3(0, 1.10, 0) : (isCategory ? new THREE.Vector3(0, 0.75, 0) : new THREE.Vector3(0, 0.36, 0.08));
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
     });
   }
@@ -404,7 +394,7 @@ export class SceneController {
       obj.visible = true;
       obj.frustumCulled = false;
 
-      // Guarantee full scale (1, 1, 1) and zero position offsets for Blender core/shell/node/edge objects
+      // Guarantee scale (1, 1, 1) and zero position offsets for core/shell/node/edge objects
       if (nm.endsWith('_core') || nm.endsWith('_shell') || nm.includes('->') || nm.includes('curve') || obj.isMesh) {
         obj.scale.set(1, 1, 1);
         if (nm.endsWith('_core') || nm.endsWith('_shell')) obj.position.set(0, 0, 0);
