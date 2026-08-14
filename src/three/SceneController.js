@@ -391,11 +391,13 @@ export class SceneController {
 
   /* ── PRECISE GEOMETRY & MATERIAL SETUP FOR ALL GLB WORLDS ── */
   _setupWorldGeometry(rootScene, worldKey, nodeGroupsMap, nodeMap, interactiveMeshesArr, animations = []) {
-    // 1. Setup AnimationMixer from gltf.animations array
+    // 1. Setup AnimationMixer from gltf.animations array (LoopOnce + clampWhenFinished to prevent repeat flickering)
     if (animations && animations.length > 0) {
       const mixer = new THREE.AnimationMixer(rootScene);
       for (const clip of animations) {
         const action = mixer.clipAction(clip);
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
         action.play();
       }
       this.mixers.set(worldKey, mixer);
@@ -407,10 +409,13 @@ export class SceneController {
       obj.visible = true;
       obj.frustumCulled = false;
 
-      // Register group container nodes starting with 'Node_'
+      // Register group container nodes starting with 'Node_' and guarantee non-zero default scale
       if (nm.startsWith('Node_')) {
         const key = nm.replace('Node_', '');
         nodeGroupsMap.set(key, obj);
+        if (obj.scale.x === 0 && obj.scale.y === 0 && obj.scale.z === 0) {
+          obj.scale.set(1, 1, 1);
+        }
       }
 
       // Hide ONLY text-only meshes ending with '_label'
@@ -509,6 +514,8 @@ export class SceneController {
           if (action) {
             action.reset();
             action.enabled = true;
+            action.setLoop(THREE.LoopOnce, 1);
+            action.clampWhenFinished = true;
             action.setEffectiveTimeScale(1);
             action.setEffectiveWeight(1);
             action.play();
