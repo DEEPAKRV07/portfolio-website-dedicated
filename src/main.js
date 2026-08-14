@@ -1895,17 +1895,15 @@ function getPointerObject() {
     }
   }
 
-  /* 5. Main Homepage Authored GLB Scene Raycast Target */
-  if (currentLayer === 'MAIN') {
-    const glbTargets = sceneController.getRaycastTargets();
-    if (glbTargets.length) {
-      const hits = raycaster.intersectObjects(glbTargets, false);
-      if (hits.length) {
-        const hitObj = hits[0].object;
-        const destId = hitObj.userData.destId || hitObj.userData.id;
-        if (destId) {
-          return { type: 'glb-home-node', object: hitObj, destId };
-        }
+  /* 5. Authored GLB Scene Raycast Target (Works across ALL 6 GLB worlds) */
+  const glbTargets = sceneController.getRaycastTargets();
+  if (glbTargets && glbTargets.length) {
+    const hits = raycaster.intersectObjects(glbTargets, false);
+    if (hits.length) {
+      const hitObj = hits[0].object;
+      const destId = hitObj.userData.destId || hitObj.userData.id;
+      if (destId) {
+        return { type: 'glb-home-node', object: hitObj, destId };
       }
     }
   }
@@ -1955,7 +1953,21 @@ renderer.domElement.addEventListener('click', event => {
     const destId = hit.destId;
     const worldKey = hit.object.userData.world || sceneController.activeWorld;
 
-    // 1. Skills World Node Click -> Open V1 Skill Context Panel
+    // Check if the central root node of any world was clicked -> Return to Home Overview
+    if (
+      destId.endsWith('_root') ||
+      destId === 'projects_root' ||
+      destId === 'skills_root' ||
+      destId === 'experience_root' ||
+      destId === 'education_root' ||
+      destId === 'contact_root' ||
+      (worldKey !== 'home' && (destId === 'core' || destId === 'hero' || destId === worldKey))
+    ) {
+      returnToCore();
+      return;
+    }
+
+    // 1. Skills World Node Click -> Open V1 Skill Context Panel Card
     if (worldKey === 'skills') {
       const categoryMatch = SUBNET_DEFINITIONS.skills?.categories?.find(c => c.id === destId || destId.includes(c.id));
       if (categoryMatch) {
