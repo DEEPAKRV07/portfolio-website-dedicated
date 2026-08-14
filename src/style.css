@@ -1611,22 +1611,23 @@ body.detail-mode .intro {
 
 .top-action-bar {
   position: fixed;
-  top: 24px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 30;
+  z-index: 100;
   pointer-events: auto;
   display: flex;
-  gap: 10px;
   align-items: center;
-  padding: 6px 12px;
-  background: rgba(5, 5, 5, 0.78);
-  border: 1px solid rgba(0, 255, 136, 0.22);
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(6, 18, 12, 0.75);
+  border: 1px solid rgba(0, 255, 136, 0.25);
   border-radius: 30px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 255, 136, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 16px rgba(0, 255, 136, 0.14);
   transition: all 300ms ease;
+  white-space: nowrap;
 }
 
 .action-btn {
@@ -1883,23 +1884,11 @@ body.detail-mode .intro {
   box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
 }
 
-/* Glassmorphic Top Navbar */
-.top-action-bar {
-  position: absolute;
-  top: 24px;
-  right: 28px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: rgba(8, 20, 14, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 255, 136, 0.25);
-  border-radius: 30px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(0, 255, 136, 0.1);
-  z-index: 100;
-  pointer-events: auto;
+/* Glassmorphic Top Navbar Styling */
+.top-action-bar .action-btn {
+  padding: 5px 10px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
 }
 
 .nav-links-group, .nav-social-group {

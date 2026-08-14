@@ -325,7 +325,7 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
-    const topTierSubnodes = ['yolov8', 'fast-scnn', 'bytetrack', 'tensorflow', 'pytorch', 'opencv', 'ml-kit', 'kmeans'];
+    const topTierSubnodes = ['yolov8', 'bytetrack', 'pytorch', 'tensorflow', 'playwright', 'sqlite', 'python', 'flutter'];
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
       const title = skillTitles[key] || key.toUpperCase();
@@ -333,13 +333,17 @@ export class SceneController {
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
 
-      let offset = new THREE.Vector3(0, 0.42, 0);
+      let offset = new THREE.Vector3(0, 0.50, 0);
       if (isRoot) {
-        offset = new THREE.Vector3(0, 0.90, 0);
+        offset = new THREE.Vector3(0, 0.95, 0);
       } else if (isCategory) {
-        offset = (key === 'systems-category' || key === 'lang-category') ? new THREE.Vector3(0, -0.65, 0) : new THREE.Vector3(0, 0.70, 0);
+        if (key === 'cv-category') offset = new THREE.Vector3(-0.35, 0.85, 0);
+        else if (key === 'dl-category') offset = new THREE.Vector3(-0.25, 0.85, 0);
+        else if (key === 'systems-category') offset = new THREE.Vector3(0.25, 0.85, 0);
+        else if (key === 'lang-category') offset = new THREE.Vector3(0.35, 0.85, 0);
+        else offset = new THREE.Vector3(0, 0.85, 0);
       } else {
-        offset = topTierSubnodes.includes(key) ? new THREE.Vector3(0, 0.42, 0) : new THREE.Vector3(0, -0.45, 0);
+        offset = topTierSubnodes.includes(key) ? new THREE.Vector3(0, 0.50, 0) : new THREE.Vector3(0, -0.58, 0);
       }
 
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
