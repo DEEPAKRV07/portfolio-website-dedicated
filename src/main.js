@@ -2692,6 +2692,21 @@ window.addEventListener('popstate', () => {
   }
 });
 
+// Glassmorphic Top Navbar Click Listeners
+document.querySelectorAll('.top-action-bar .nav-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const route = btn.dataset.nodeRoute;
+    if (route === 'core' || route === 'home') {
+      returnToCore();
+    } else if (route === 'about') {
+      showDetailPresentation(combinedAboutData);
+    } else {
+      enterSubnet(route);
+    }
+  });
+});
+
 function initRouteFromUrl() {
   // Whenever user reloads/refreshes the site, ALWAYS return to HOME
   sceneController.setActiveWorld('home');

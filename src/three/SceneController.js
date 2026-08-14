@@ -325,12 +325,23 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
+    const topTierSubnodes = ['yolov8', 'fast-scnn', 'bytetrack', 'tensorflow', 'pytorch', 'opencv', 'ml-kit', 'kmeans'];
+
     this.skillsNodeGroups.forEach((groupObj, key) => {
       const title = skillTitles[key] || key.toUpperCase();
       const isRoot = key === 'skills_root';
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
-      const offset = isRoot ? new THREE.Vector3(0, 0.85, 0) : (isCategory ? new THREE.Vector3(0, 0.65, 0) : new THREE.Vector3(0, 0.35, 0));
+
+      let offset = new THREE.Vector3(0, 0.42, 0);
+      if (isRoot) {
+        offset = new THREE.Vector3(0, 0.90, 0);
+      } else if (isCategory) {
+        offset = (key === 'systems-category' || key === 'lang-category') ? new THREE.Vector3(0, -0.65, 0) : new THREE.Vector3(0, 0.70, 0);
+      } else {
+        offset = topTierSubnodes.includes(key) ? new THREE.Vector3(0, 0.42, 0) : new THREE.Vector3(0, -0.45, 0);
+      }
+
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
     });
   }
