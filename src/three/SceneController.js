@@ -409,7 +409,17 @@ export class SceneController {
       obj.visible = true;
       obj.frustumCulled = false;
 
-      // Register group container nodes starting with 'Node_' and guarantee non-zero default scale
+      // Guarantee core/shell child meshes are centered (0,0,0) at scale (1,1,1) inside their parent Node_* container
+      if (nm.endsWith('_core') || nm.endsWith('_shell')) {
+        obj.position.set(0, 0, 0);
+        obj.scale.set(1, 1, 1);
+      }
+
+      if (nm.includes('->') || nm.includes('curve')) {
+        obj.scale.set(1, 1, 1);
+      }
+
+      // Register group container nodes starting with 'Node_'
       if (nm.startsWith('Node_')) {
         const key = nm.replace('Node_', '');
         nodeGroupsMap.set(key, obj);
