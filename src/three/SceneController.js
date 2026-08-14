@@ -134,7 +134,11 @@ export class V1DOMLabelManager {
     }
   }
 
-  fadeInWorldLabels(worldKey, delayMs = 1200) {
+  hideWorldLabels(worldKey) {
+    if (this.fadeTimeouts.has(worldKey)) {
+      clearTimeout(this.fadeTimeouts.get(worldKey));
+      this.fadeTimeouts.delete(worldKey);
+    }
     for (let i = 0; i < this.labels.length; i++) {
       const l = this.labels[i];
       if (l.world === worldKey) {
@@ -144,10 +148,10 @@ export class V1DOMLabelManager {
         }
       }
     }
+  }
 
-    if (this.fadeTimeouts.has(worldKey)) {
-      clearTimeout(this.fadeTimeouts.get(worldKey));
-    }
+  fadeInWorldLabels(worldKey, delayMs = 1200) {
+    this.hideWorldLabels(worldKey);
 
     const timer = setTimeout(() => {
       for (let i = 0; i < this.labels.length; i++) {
@@ -606,10 +610,12 @@ export class SceneController {
       }
     }
 
-    // Quick 150ms pop delay so text labels appear crisp and readable immediately on world entry
-    const popDelay = 150;
+    // Hide labels immediately when world entrance animation starts
     if (this.v1LabelManager) {
-      this.v1LabelManager.fadeInWorldLabels(worldKey, popDelay);
+      this.v1LabelManager.hideWorldLabels(worldKey);
+      // Wait for GLB entrance animation completion (maxClipDuration * 1000ms) before fading in labels!
+      const animationDurationMs = Math.round(maxClipDuration * 1000);
+      this.v1LabelManager.fadeInWorldLabels(worldKey, animationDurationMs);
     }
   }
 
