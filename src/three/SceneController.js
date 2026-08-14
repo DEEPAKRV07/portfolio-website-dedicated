@@ -350,15 +350,15 @@ export class SceneController {
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
 
-      let offset = new THREE.Vector3(0, 0.48, 0); // Small world-space clearance right above sphere
+      let offset = new THREE.Vector3(0, 0.45, 0); // Small world-space clearance right above sphere
       if (isRoot) {
-        offset = new THREE.Vector3(0, 1.10, 0);
+        offset = new THREE.Vector3(0, 1.05, 0);
       } else if (isCategory) {
-        if (key === 'cv-category') offset = new THREE.Vector3(-0.45, 0.85, 0);
-        else if (key === 'dl-category') offset = new THREE.Vector3(-0.35, 0.85, 0);
-        else if (key === 'systems-category') offset = new THREE.Vector3(0.35, 0.85, 0);
-        else if (key === 'lang-category') offset = new THREE.Vector3(0.45, 0.85, 0);
-        else offset = new THREE.Vector3(0, 0.85, 0);
+        if (key === 'cv-category') offset = new THREE.Vector3(-0.45, 0.82, 0);
+        else if (key === 'dl-category') offset = new THREE.Vector3(-0.35, 0.82, 0);
+        else if (key === 'systems-category') offset = new THREE.Vector3(0.35, 0.82, 0);
+        else if (key === 'lang-category') offset = new THREE.Vector3(0.45, 0.82, 0);
+        else offset = new THREE.Vector3(0, 0.82, 0);
       }
 
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);

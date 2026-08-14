@@ -1979,9 +1979,8 @@ renderer.domElement.addEventListener('click', event => {
     const destId = hit.destId;
     const worldKey = hit.object.userData.world || sceneController.activeWorld;
 
-    // 1. Root Node Click -> Return Home for ALL root nodes across ALL 6 worlds
-    const isRootNode = (
-      destId.endsWith('_root') ||
+    // 1. Central Root Node Click -> Return Home (ONLY central root nodes return home; contact child nodes perform external actions)
+    const isExactCentralRootNode = (
       destId === 'projects_root' ||
       destId === 'skills_root' ||
       destId === 'experience_root' ||
@@ -1989,11 +1988,10 @@ renderer.domElement.addEventListener('click', event => {
       destId === 'contact_root' ||
       destId === 'hero' ||
       destId === 'core' ||
-      destId === 'hero_core' ||
-      destId === worldKey
+      destId === 'hero_core'
     );
 
-    if (isRootNode) {
+    if (isExactCentralRootNode) {
       returnToCore();
       return;
     }
@@ -2073,7 +2071,7 @@ renderer.domElement.addEventListener('click', event => {
       return;
     }
 
-    // 5. Contact World Node Click -> Trigger Email / LinkedIn / GitHub / Resume PDF Actions
+    // 5. Contact World Child Nodes -> Trigger Email / LinkedIn / GitHub / Resume PDF Actions (Does NOT return Home)
     if (worldKey === 'contact' || destId.includes('email') || destId.includes('linkedin') || destId.includes('github') || destId.includes('resume')) {
       if (destId.includes('email')) {
         window.open('mailto:deepakvetrivelan@gmail.com', '_self');
