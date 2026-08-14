@@ -1979,17 +1979,21 @@ renderer.domElement.addEventListener('click', event => {
     const destId = hit.destId;
     const worldKey = hit.object.userData.world || sceneController.activeWorld;
 
-    // Check if exact central root node was clicked -> Return to Home Overview
-    const isExactRoot = (
+    // 1. Root Node Click -> Return Home for ALL root nodes across ALL 6 worlds
+    const isRootNode = (
+      destId.endsWith('_root') ||
       destId === 'projects_root' ||
       destId === 'skills_root' ||
       destId === 'experience_root' ||
       destId === 'education_root' ||
       destId === 'contact_root' ||
-      destId === 'hero'
+      destId === 'hero' ||
+      destId === 'core' ||
+      destId === 'hero_core' ||
+      destId === worldKey
     );
 
-    if (isExactRoot) {
+    if (isRootNode) {
       returnToCore();
       return;
     }
