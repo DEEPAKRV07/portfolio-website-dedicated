@@ -325,7 +325,31 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
-    const topTierSubnodes = ['yolov8', 'bytetrack', 'pytorch', 'tensorflow', 'playwright', 'sqlite', 'python', 'flutter'];
+    const skillDirectionalOffsets = {
+      // Category 1: Computer Vision (Far Left)
+      'yolov8':      new THREE.Vector3(-0.45,  0.52, 0),
+      'bytetrack':   new THREE.Vector3( 0.45,  0.52, 0),
+      'opencv':      new THREE.Vector3(-0.45, -0.58, 0),
+      'fast-scnn':   new THREE.Vector3( 0.45, -0.58, 0),
+
+      // Category 2: Deep Learning & AI (Middle Left - shift towards open left/right spaces)
+      'pytorch':     new THREE.Vector3(-0.55,  0.52, 0),
+      'tensorflow':  new THREE.Vector3( 0.55,  0.52, 0),
+      'ml-kit':      new THREE.Vector3(-0.45, -0.58, 0),
+      'kmeans':      new THREE.Vector3(-0.50, -0.58, 0),
+
+      // Category 3: Systems & Deployment (Middle Right - shift towards open left/right spaces)
+      'playwright':  new THREE.Vector3(-0.45,  0.52, 0),
+      'sqlite':      new THREE.Vector3( 0.45,  0.52, 0),
+      'concurrency': new THREE.Vector3(-0.50, -0.58, 0),
+      'pandas':      new THREE.Vector3( 0.50, -0.58, 0),
+
+      // Category 4: Languages & Tools (Far Right)
+      'python':      new THREE.Vector3(-0.45,  0.52, 0),
+      'flutter':     new THREE.Vector3( 0.45,  0.52, 0),
+      'nextjs':      new THREE.Vector3(-0.45, -0.58, 0),
+      'git':         new THREE.Vector3( 0.45, -0.58, 0),
+    };
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
       const title = skillTitles[key] || key.toUpperCase();
@@ -333,17 +357,15 @@ export class SceneController {
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
 
-      let offset = new THREE.Vector3(0, 0.50, 0);
+      let offset = skillDirectionalOffsets[key] || new THREE.Vector3(0, 0.52, 0);
       if (isRoot) {
         offset = new THREE.Vector3(0, 0.95, 0);
       } else if (isCategory) {
-        if (key === 'cv-category') offset = new THREE.Vector3(-0.35, 0.85, 0);
-        else if (key === 'dl-category') offset = new THREE.Vector3(-0.25, 0.85, 0);
-        else if (key === 'systems-category') offset = new THREE.Vector3(0.25, 0.85, 0);
-        else if (key === 'lang-category') offset = new THREE.Vector3(0.35, 0.85, 0);
+        if (key === 'cv-category') offset = new THREE.Vector3(-0.45, 0.85, 0);
+        else if (key === 'dl-category') offset = new THREE.Vector3(-0.35, 0.85, 0);
+        else if (key === 'systems-category') offset = new THREE.Vector3(0.35, 0.85, 0);
+        else if (key === 'lang-category') offset = new THREE.Vector3(0.45, 0.85, 0);
         else offset = new THREE.Vector3(0, 0.85, 0);
-      } else {
-        offset = topTierSubnodes.includes(key) ? new THREE.Vector3(0, 0.50, 0) : new THREE.Vector3(0, -0.58, 0);
       }
 
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
