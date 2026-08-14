@@ -91,8 +91,8 @@ export const SUBNET_DEFINITIONS = {
         position: [6.8, 3.8, -1.8],
         skills: [
           { id: 'pytorch', label: 'PyTorch', position: [5.2, 6.2, -3.2], name: 'PyTorch', category: 'Deep Learning & AI', usedIn: ['Football Analysis System', 'Custom Vision Models'], tags: ['Model Training', 'Neural Networks'] },
-          { id: 'tensorflow', label: 'TensorFlow', position: [9.8, 5.5, -2.5], name: 'TensorFlow Lite', category: 'Deep Learning & AI', usedIn: ['SightMate (TFLite)'], tags: ['On-Device Inference', 'TFLite'] },
-          { id: 'ml-kit', label: 'ML Kit', position: [4.2, 2.0, 2.2], name: 'Google ML Kit', category: 'Deep Learning & AI', usedIn: ['SightMate (OCR & Translation)'], tags: ['Text Recognition', 'On-Device AI'] },
+          { id: 'tensorflow', label: 'TensorFlow', position: [9.8, 5.5, -2.5], name: 'TensorFlow', category: 'Deep Learning & AI', usedIn: ['SightMate (TFLite)'], tags: ['On-Device Inference', 'TFLite'] },
+          { id: 'ml-kit', label: 'ML Kit', position: [4.2, 2.0, 2.2], name: 'ML Kit', category: 'Deep Learning & AI', usedIn: ['SightMate (OCR & Translation)'], tags: ['Text Recognition', 'On-Device AI'] },
           { id: 'kmeans', label: 'K-Means', position: [9.2, 2.2, -0.8], name: 'K-Means Clustering', category: 'Deep Learning & AI', usedIn: ['Football Analysis System'], tags: ['Color Clustering', 'Team Assignment'] },
         ],
       },
@@ -103,7 +103,7 @@ export const SUBNET_DEFINITIONS = {
         skills: [
           { id: 'playwright', label: 'Playwright', position: [-9.8, -5.5, -2.5], name: 'Playwright & Chromium', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform'], tags: ['Browser Automation', 'Scraping'] },
           { id: 'sqlite', label: 'SQLite', position: [-9.2, -2.2, -0.8], name: 'SQLite Master DB', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform', 'FORCRUX'], tags: ['Stateful Queue', 'Item Checkpoints'] },
-          { id: 'concurrency', label: 'Concurrency', position: [-5.2, -6.2, -3.2], name: 'ThreadPoolExecutor', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform'], tags: ['Multithreading', 'Parallel Crawling'] },
+          { id: 'concurrency', label: 'Concurrency', position: [-5.2, -6.2, -3.2], name: 'Concurrency', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform'], tags: ['Multithreading', 'Parallel Crawling'] },
           { id: 'pandas', label: 'Pandas', position: [-4.2, -2.0, 2.2], name: 'Pandas & Data Pipelines', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform', 'Football Analysis'], tags: ['Data Processing', 'Analytics'] },
         ],
       },
@@ -219,7 +219,7 @@ export const SUBNET_DEFINITIONS = {
             ],
           },
         ],
-        tags: ['Python', 'Playwright', 'SQLite', 'Pandas', 'ThreadPoolExecutor', 'Data Engineering', 'Lead Generation', 'CRM Automation'],
+        tags: ['Python', 'Playwright', 'SQLite', 'Pandas', 'Concurrency', 'Data Engineering', 'Lead Generation', 'CRM Automation'],
         actions: [
           { label: 'VIEW GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Google-Maps-Lead-Generator' },
         ],
@@ -265,7 +265,7 @@ export const SUBNET_DEFINITIONS = {
             ],
           },
         ],
-        tags: ['Flutter', 'Dart', 'YOLOv8', 'TensorFlow Lite', 'Fast-SCNN', 'Google ML Kit', 'Computer Vision', 'Accessibility'],
+        tags: ['Flutter', 'Dart', 'YOLOv8', 'TensorFlow', 'Fast-SCNN', 'ML Kit', 'Computer Vision', 'Accessibility'],
         actions: [
           { label: 'VIEW GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/SightMate-AI-Assistant' },
         ],
