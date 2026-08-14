@@ -1928,3 +1928,56 @@ body.detail-mode .intro {
 .network-control-panel {
   display: none !important;
 }
+
+/* Skill Subnode Inner Sphere Label Micro-Typography */
+.graph-label.skill-subnode {
+  max-width: 72px;
+  text-align: center;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: break-word;
+  font-size: 7px !important;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.9), 0 0 2px #000000;
+  pointer-events: none;
+}
+
+/* Minimal Stylish HUD Controls Legend (Bottom Right) */
+.hud-legend-minimal {
+  position: fixed;
+  bottom: 20px;
+  right: 28px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: rgba(6, 18, 12, 0.65);
+  border: 1px solid rgba(0, 255, 136, 0.20);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.legend-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: rgba(220, 255, 235, 0.70);
+}
+
+.key-badge {
+  background: rgba(0, 255, 136, 0.12);
+  border: 1px solid rgba(0, 255, 136, 0.25);
+  color: #00ff88;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 7.5px;
+  font-weight: 700;
+}

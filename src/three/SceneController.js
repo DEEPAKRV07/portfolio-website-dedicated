@@ -325,39 +325,13 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
-    const skillDirectionalOffsets = {
-      // Category 1: Computer Vision (Far Left)
-      'yolov8':      new THREE.Vector3(-0.45,  0.52, 0),
-      'bytetrack':   new THREE.Vector3( 0.45,  0.52, 0),
-      'opencv':      new THREE.Vector3(-0.45, -0.58, 0),
-      'fast-scnn':   new THREE.Vector3( 0.45, -0.58, 0),
-
-      // Category 2: Deep Learning & AI (Middle Left - shift towards open left/right spaces)
-      'pytorch':     new THREE.Vector3(-0.55,  0.52, 0),
-      'tensorflow':  new THREE.Vector3( 0.55,  0.52, 0),
-      'ml-kit':      new THREE.Vector3(-0.45, -0.58, 0),
-      'kmeans':      new THREE.Vector3(-0.50, -0.58, 0),
-
-      // Category 3: Systems & Deployment (Middle Right - shift towards open left/right spaces)
-      'playwright':  new THREE.Vector3(-0.45,  0.52, 0),
-      'sqlite':      new THREE.Vector3( 0.45,  0.52, 0),
-      'concurrency': new THREE.Vector3(-0.50, -0.58, 0),
-      'pandas':      new THREE.Vector3( 0.50, -0.58, 0),
-
-      // Category 4: Languages & Tools (Far Right)
-      'python':      new THREE.Vector3(-0.45,  0.52, 0),
-      'flutter':     new THREE.Vector3( 0.45,  0.52, 0),
-      'nextjs':      new THREE.Vector3(-0.45, -0.58, 0),
-      'git':         new THREE.Vector3( 0.45, -0.58, 0),
-    };
-
     this.skillsNodeGroups.forEach((groupObj, key) => {
       const title = skillTitles[key] || key.toUpperCase();
       const isRoot = key === 'skills_root';
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
 
-      let offset = skillDirectionalOffsets[key] || new THREE.Vector3(0, 0.52, 0);
+      let offset = new THREE.Vector3(0, 0, 0); // Skill subnodes centered exactly inside sphere
       if (isRoot) {
         offset = new THREE.Vector3(0, 0.95, 0);
       } else if (isCategory) {
