@@ -66,6 +66,8 @@ export class V1DOMLabelManager {
     }
 
     el.style.fontSize = `${baseFontSize}px`;
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.45s ease-out';
     this.container.appendChild(el);
 
     this.labels.push({
@@ -126,6 +128,23 @@ export class V1DOMLabelManager {
       label.element.style.fontSize = `${computedFontSize}px`;
       label.element.style.transform = `translate3d(${screenX}px, ${screenY}px, 0px) translate(-50%, -50%)`;
     }
+  }
+
+  fadeInWorldLabels(worldKey, delayMs = 450) {
+    for (let i = 0; i < this.labels.length; i++) {
+      const l = this.labels[i];
+      if (l.world === worldKey) {
+        l.element.style.opacity = '0';
+      }
+    }
+    setTimeout(() => {
+      for (let i = 0; i < this.labels.length; i++) {
+        const l = this.labels[i];
+        if (l.world === worldKey && l.element) {
+          l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
+        }
+      }
+    }, delayMs);
   }
 
   getLabelCount(world = null) {
@@ -476,6 +495,10 @@ export class SceneController {
     this.experienceGroup.visible  = (worldId === 'experience');
     this.educationGroup.visible   = (worldId === 'education');
     this.contactGroup.visible     = (worldId === 'contact');
+
+    if (this.v1LabelManager) {
+      this.v1LabelManager.fadeInWorldLabels(worldId, 450);
+    }
   }
 
   getRaycastTargets() {
@@ -532,6 +555,10 @@ export class SceneController {
           }
         }
       }
+    }
+
+    if (this.v1LabelManager) {
+      this.v1LabelManager.fadeInWorldLabels(worldKey, 450);
     }
   }
 
