@@ -122,7 +122,7 @@ export class V1DOMLabelManager {
       // 3. Universal 3D perspective scaling factor S based on camera distance (unified across ALL worlds)
       const refDist = 18.0; // Universal reference distance for 1.0x perspective scale across all worlds
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.75), 1.65); // Safety bounds: 0.75x to 1.65x
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.86), 1.75); // Safety bounds: 0.75x to 1.65x
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
       const popScale = label.isPopped ? 1.0 : 0.82;
@@ -276,7 +276,7 @@ export class SceneController {
       if (text) {
         let offset = new THREE.Vector3(0, 0.70, 0);
         if (key === 'hero') offset = new THREE.Vector3(0, 0.95, 0);
-        else if (key === 'projects') offset = new THREE.Vector3(-0.35, 0.70, 0); // Shift slightly left to prevent overlap with EXPERIENCE
+        else if (key === 'projects') offset = new THREE.Vector3(-0.12, 0.70, 0); // Centered over sphere with comfortable clearance from EXPERIENCE
         this.v1LabelManager.createLabel(key, text, groupObj, 'home', key === 'hero' ? 'root-core' : 'category', offset);
       }
     });
