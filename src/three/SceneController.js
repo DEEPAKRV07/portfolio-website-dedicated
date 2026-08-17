@@ -152,18 +152,42 @@ export class V1DOMLabelManager {
     }
   }
 
-  fadeInWorldLabels(worldKey, delayMs = 1200) {
+  fadeInWorldLabels(worldKey, startDelayMs = 1200) {
     this.hideWorldLabels(worldKey);
 
     const timer = setTimeout(() => {
-      for (let i = 0; i < this.labels.length; i++) {
-        const l = this.labels[i];
-        if (l.world === worldKey && l.element) {
-          l.isPopped = true;
-          l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
-        }
+      const worldLabels = this.labels.filter(l => l.world === worldKey && l.element);
+
+      if (worldKey === 'skills') {
+        // One-by-one / level-by-level reveal for skills network after entrance animation completes
+        worldLabels.forEach(l => {
+          let nodeDelay = 0;
+          if (l.type === 'root-core') {
+            nodeDelay = 0;
+          } else if (l.type === 'category') {
+            nodeDelay = 110;
+          } else {
+            const subnodeIdx = worldLabels.filter(x => x.type === 'skill-subnode').indexOf(l);
+            nodeDelay = 220 + Math.max(0, subnodeIdx) * 32;
+          }
+
+          setTimeout(() => {
+            if (l.element) {
+              l.isPopped = true;
+              l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
+            }
+          }, nodeDelay);
+        });
+      } else {
+        // All other worlds: all labels arrive together cleanly after animation finishes
+        worldLabels.forEach(l => {
+          if (l.element) {
+            l.isPopped = true;
+            l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
+          }
+        });
       }
-    }, delayMs);
+    }, startDelayMs);
 
     this.fadeTimeouts.set(worldKey, timer);
   }
@@ -252,6 +276,7 @@ export class SceneController {
       if (text) {
         let offset = new THREE.Vector3(0, 0.70, 0);
         if (key === 'hero') offset = new THREE.Vector3(0, 0.95, 0);
+        else if (key === 'projects') offset = new THREE.Vector3(-0.35, 0.70, 0); // Shift slightly left to prevent overlap with EXPERIENCE
         this.v1LabelManager.createLabel(key, text, groupObj, 'home', key === 'hero' ? 'root-core' : 'category', offset);
       }
     });
