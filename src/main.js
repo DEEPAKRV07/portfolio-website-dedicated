@@ -1820,7 +1820,7 @@ function returnToCore(isPush = true) {
   setMode('OVERVIEW');
   setLayerPath('NEURAL NETWORK / OVERVIEW');
 
-  startTransition(new THREE.Vector3(0, 2.2, 23.0), new THREE.Vector3(0, -0.5, 0), 850);
+  startTransition(new THREE.Vector3(0, 1.1, 18.2), new THREE.Vector3(0, 0.4, 0), 850);
   sceneController.playWorldAnimation('home');
   updateBrowserRoute('home', isPush);
 }
