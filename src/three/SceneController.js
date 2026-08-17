@@ -150,18 +150,33 @@ export class V1DOMLabelManager {
     }
   }
 
-  fadeInWorldLabels(worldKey, delayMs = 1200) {
+  fadeInWorldLabels(worldKey, startDelayMs = 1200) {
     this.hideWorldLabels(worldKey);
 
+    // Wait until full GLB entrance animation finishes before starting hierarchical label reveal sequence
     const timer = setTimeout(() => {
-      for (let i = 0; i < this.labels.length; i++) {
-        const l = this.labels[i];
-        if (l.world === worldKey && l.element) {
-          l.isPopped = true;
-          l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
+      const worldLabels = this.labels.filter(l => l.world === worldKey && l.element);
+
+      // Hierarchical reveal sequence: Root -> Categories -> Subnodes (staggered cascade)
+      worldLabels.forEach(l => {
+        let nodeDelay = 0;
+        if (l.type === 'root-core') {
+          nodeDelay = 0;
+        } else if (l.type === 'category') {
+          nodeDelay = 110;
+        } else {
+          const subnodeIdx = worldLabels.filter(x => x.type === 'skill-subnode').indexOf(l);
+          nodeDelay = 220 + Math.max(0, subnodeIdx) * 32;
         }
-      }
-    }, delayMs);
+
+        setTimeout(() => {
+          if (l.element) {
+            l.isPopped = true;
+            l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
+          }
+        }, nodeDelay);
+      });
+    }, startDelayMs);
 
     this.fadeTimeouts.set(worldKey, timer);
   }
@@ -331,14 +346,20 @@ export class SceneController {
       'concurrency': 'React',
       'pandas': 'Next.js',
 
-      // Category 4: MOBILE / DEVOPS (4 subnodes mapping to 2 items - NO extra DevOps child node)
+      // Category 4: MOBILE / DEVOPS (3 subnodes -> 3 unique skills)
       'python': 'Three.js',
       'flutter': 'Flutter / Dart',
       'nextjs': 'Git & GitHub',
-      'git': 'Git & GitHub',
     };
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
+      // 16th node 'git' in GLB is hidden so the Skills network displays EXACTLY 15 unique child skills
+      if (key === 'git') {
+        groupObj.visible = false;
+        groupObj.traverse(child => { child.visible = false; });
+        return;
+      }
+
       let title = skillTitles[key];
       if (!title) {
         title = groupObj.userData?.node_label || groupObj.userData?.label;
@@ -505,6 +526,17 @@ export class SceneController {
         const destId = this._destId(nm) || nm;
         obj.userData.destId = destId;
         obj.userData.world = worldKey;
+
+        // Apply relative node sphere geometry scale for Skills world so spheres match Blender spacing cleanly
+        if (worldKey === 'skills') {
+          if (nm.includes('skills_root')) {
+            obj.scale.set(0.88, 0.88, 0.88);
+          } else if (nm.includes('category')) {
+            obj.scale.set(0.62, 0.62, 0.62);
+          } else if (nm.endsWith('_core') || nm.endsWith('_shell')) {
+            obj.scale.set(0.42, 0.42, 0.42);
+          }
+        }
 
         if (nm.endsWith('_core')) {
           obj.material = new THREE.MeshStandardMaterial({

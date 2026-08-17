@@ -636,26 +636,26 @@ body.detail-mode .core-home-hint {
   padding: 20px 22px;
   z-index: 90;
   pointer-events: auto;
-  border: 1px solid rgba(0, 255, 136, 0.32);
-  background: rgba(5, 5, 5, 0.94);
+  border: 1px solid rgba(0, 255, 136, 0.38);
+  background: rgba(5, 5, 5, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow:
-    0 0 30px rgba(0, 255, 136, 0.12),
-    0 16px 36px rgba(0, 0, 0, 0.85);
+    0 0 30px rgba(0, 255, 136, 0.16),
+    0 16px 36px rgba(0, 0, 0, 0.88);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(12px);
+  transform: translateY(16px) scale(0.96);
   transition:
-    opacity 240ms ease,
-    transform 240ms ease,
-    visibility 240ms ease;
+    opacity 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 280ms ease;
 }
 
 .skill-context-panel.active {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .skill-close-btn {
