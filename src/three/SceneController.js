@@ -375,21 +375,21 @@ export class SceneController {
       // Category 4: MOBILE / DEVOPS (3 subnodes -> 3 unique skills)
       'python': 'Three.js',
       'flutter': 'Flutter / Dart',
-      'nextjs': 'Git & GitHub',
+      'git': 'Git & GitHub',
     };
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
-      // Node_nextjs is the true 3D sphere centered at the tip of lang-category->nextjs branch line
+      // Hide unmapped 16th GLB node 'nextjs' and its edge so Column 4 renders EXACTLY 3 subnodes with 0 dangling edges
       if (key === 'nextjs') {
-        groupObj.visible = true;
-        groupObj.traverse(child => { child.visible = true; });
-      }
-
-      // Hide the offset 16th GLB node 'git' so Column 4 renders EXACTLY 3 subnodes with 0 dangling edges
-      if (key === 'git') {
         groupObj.visible = false;
         groupObj.traverse(child => { child.visible = false; });
         return;
+      }
+
+      // Node_git is the true 3D sphere connected to lang-category->git branch line
+      if (key === 'git') {
+        groupObj.visible = true;
+        groupObj.traverse(child => { child.visible = true; });
       }
 
       let title = skillTitles[key];
@@ -547,8 +547,8 @@ export class SceneController {
         }
       }
 
-      // Hide text-only meshes ending with '_label' and 16th duplicate 'git' node in skills world
-      if (nm.endsWith('_label') || (worldKey === 'skills' && (nm === 'Node_git' || nm.startsWith('git_') || nm === 'git'))) {
+      // Hide text-only meshes ending with '_label' and unmapped 16th node/edge 'nextjs' in skills world
+      if (nm.endsWith('_label') || (worldKey === 'skills' && (nm === 'Node_nextjs' || nm.startsWith('nextjs_') || nm === 'nextjs' || nm === 'lang-category->nextjs'))) {
         obj.visible = false;
         return;
       }
