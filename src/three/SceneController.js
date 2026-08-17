@@ -339,16 +339,12 @@ export class SceneController {
     };
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
-      // Read semantic metadata directly from GLB userData exported by Blender generator
-      let title = groupObj.userData?.node_label || groupObj.userData?.label;
-      if (!title && groupObj.userData?.meta_json) {
-        try {
-          const meta = JSON.parse(groupObj.userData.meta_json);
-          title = meta.name;
-        } catch (e) {}
+      let title = skillTitles[key];
+      if (!title) {
+        title = groupObj.userData?.node_label || groupObj.userData?.label;
       }
       if (!title) {
-        title = skillTitles[key] || key.toUpperCase();
+        title = key.toUpperCase();
       }
 
       const isRoot = key === 'skills_root';
@@ -477,10 +473,12 @@ export class SceneController {
       obj.visible = true;
       obj.frustumCulled = false;
 
-      // Guarantee core/shell child meshes are centered (0,0,0) at scale (1,1,1) inside their parent Node_* container
+      // Guarantee core/shell child meshes are centered (0,0,0) inside parent container while retaining GLB-authored scale
       if (nm.endsWith('_core') || nm.endsWith('_shell')) {
         obj.position.set(0, 0, 0);
-        obj.scale.set(1, 1, 1);
+        if (obj.scale.x === 0 && obj.scale.y === 0 && obj.scale.z === 0) {
+          obj.scale.set(1, 1, 1);
+        }
       }
 
       if (nm.includes('->') || nm.includes('curve')) {
@@ -496,8 +494,8 @@ export class SceneController {
         }
       }
 
-      // Hide ONLY text-only meshes ending with '_label'
-      if (nm.endsWith('_label')) {
+      // Hide text-only meshes ending with '_label' and 16th duplicate 'git' node in skills world
+      if (nm.endsWith('_label') || (worldKey === 'skills' && (nm === 'Node_git' || nm.startsWith('git_') || nm === 'git'))) {
         obj.visible = false;
         return;
       }
