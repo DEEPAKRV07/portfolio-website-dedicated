@@ -53,17 +53,17 @@ export class V1DOMLabelManager {
     el.style.userSelect = 'none';
     el.style.willChange = 'transform, opacity, font-size';
 
-    let baseFontSize = 12;
+    let baseFontSize = 14;
     if (type === 'root-core') {
-      baseFontSize = 17;
+      baseFontSize = 18;
       el.style.color = '#ffffff';
       el.style.textShadow = '0 0 18px rgba(0, 255, 136, 0.60), 0 2px 6px rgba(0, 0, 0, 0.95)';
     } else if (type === 'skill-subnode') {
-      baseFontSize = 9.5;
+      baseFontSize = 12; // Calibrated for crisp readability matching Home/Experience/Contact reference worlds
       el.style.fontWeight = '600';
       el.style.opacity = '0.92';
     } else {
-      baseFontSize = 11.5;
+      baseFontSize = 14; // Category nodes
     }
 
     el.style.fontSize = `${baseFontSize}px`;
@@ -119,10 +119,10 @@ export class V1DOMLabelManager {
       const screenX = (_tmpPos.x * halfW) + halfW;
       const screenY = (-(_tmpPos.y * halfH)) + halfH;
 
-      // 3. True 3D perspective scaling factor S based on camera distance
-      const refDist = activeWorld === 'skills' ? 14.5 : 18.0;
+      // 3. True 3D perspective scaling factor S based on camera distance with readability floor (0.82)
+      const refDist = activeWorld === 'skills' ? 21.0 : 18.0; // Skills reference camera distance matches default 21.0
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.65), 1.80);
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.82), 1.65); // Readability floor = 0.82 (never becomes tiny)
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
       const popScale = label.isPopped ? 1.0 : 0.82;
@@ -184,7 +184,7 @@ export class V1DOMLabelManager {
 
       // Category 4: MOBILE / DEVOPS subnodes
       'flutter': 4220,    // Flutter / Dart
-      'nextjs': 4560,     // Git & GitHub
+      'nextjs': 4560,     // Git & GitHub (Node_nextjs 3D sphere at branch tip)
       'python': 4900,     // Three.js
     };
 
@@ -379,7 +379,13 @@ export class SceneController {
     };
 
     this.skillsNodeGroups.forEach((groupObj, key) => {
-      // 16th node 'git' in GLB is hidden so the Skills network displays EXACTLY 15 unique child skills
+      // Node_nextjs is the true 3D sphere centered at the tip of lang-category->nextjs branch line
+      if (key === 'nextjs') {
+        groupObj.visible = true;
+        groupObj.traverse(child => { child.visible = true; });
+      }
+
+      // Hide the offset 16th GLB node 'git' so Column 4 renders EXACTLY 3 subnodes with 0 dangling edges
       if (key === 'git') {
         groupObj.visible = false;
         groupObj.traverse(child => { child.visible = false; });
