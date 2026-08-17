@@ -271,12 +271,20 @@ export class SceneController {
       'contact': 'CONTACT'
     };
 
+    // Swap 3D positions of PROJECTS and EXPERIENCE so order is ABOUT | SKILLS | EXPERIENCE | PROJECTS | CONTACT
+    const projectsGroupObj = this.nodeGroups.get('projects');
+    const expGroupObj = this.nodeGroups.get('experience');
+    if (projectsGroupObj && expGroupObj) {
+      const projPos = projectsGroupObj.position.clone();
+      projectsGroupObj.position.copy(expGroupObj.position);
+      expGroupObj.position.copy(projPos);
+    }
+
     this.nodeGroups.forEach((groupObj, key) => {
       const text = homeLabels[key];
       if (text) {
         let offset = new THREE.Vector3(0, 0.70, 0);
         if (key === 'hero') offset = new THREE.Vector3(0, 0.95, 0);
-        else if (key === 'projects') offset = new THREE.Vector3(-0.12, 0.70, 0); // Centered over sphere with comfortable clearance from EXPERIENCE
         this.v1LabelManager.createLabel(key, text, groupObj, 'home', key === 'hero' ? 'root-core' : 'category', offset);
       }
     });
