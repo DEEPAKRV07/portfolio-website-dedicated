@@ -55,15 +55,15 @@ export class V1DOMLabelManager {
 
     let baseFontSize = 14;
     if (type === 'root-core') {
-      baseFontSize = 18;
+      baseFontSize = 19;
       el.style.color = '#ffffff';
       el.style.textShadow = '0 0 18px rgba(0, 255, 136, 0.60), 0 2px 6px rgba(0, 0, 0, 0.95)';
     } else if (type === 'skill-subnode') {
-      baseFontSize = 12; // Calibrated for crisp readability matching Home/Experience/Contact reference worlds
+      baseFontSize = 13.5; // Calibrated to match perceived font weight of Home/Experience/Contact reference worlds
       el.style.fontWeight = '600';
       el.style.opacity = '0.92';
     } else {
-      baseFontSize = 14; // Category nodes
+      baseFontSize = 15; // Category nodes
     }
 
     el.style.fontSize = `${baseFontSize}px`;
@@ -119,10 +119,10 @@ export class V1DOMLabelManager {
       const screenX = (_tmpPos.x * halfW) + halfW;
       const screenY = (-(_tmpPos.y * halfH)) + halfH;
 
-      // 3. True 3D perspective scaling factor S based on camera distance with readability floor (0.82)
-      const refDist = activeWorld === 'skills' ? 21.0 : 18.0; // Skills reference camera distance matches default 21.0
+      // 3. Universal 3D perspective scaling factor S based on camera distance (unified across ALL worlds)
+      const refDist = 18.0; // Universal reference distance for 1.0x perspective scale across all worlds
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.82), 1.65); // Readability floor = 0.82 (never becomes tiny)
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.75), 1.65); // Safety bounds: 0.75x to 1.65x
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
       const popScale = label.isPopped ? 1.0 : 0.82;
@@ -378,8 +378,15 @@ export class SceneController {
       'git': 'Git & GitHub',
     };
 
+    // Explicitly hide unmapped 16th GLB edge curve 'lang-category->nextjs' so 0 dangling edges remain
+    skillsAsset.scene.traverse((obj) => {
+      if (obj.name === 'lang-category->nextjs' || obj.name === 'Node_nextjs' || obj.name.startsWith('nextjs_')) {
+        obj.visible = false;
+      }
+    });
+
     this.skillsNodeGroups.forEach((groupObj, key) => {
-      // Hide unmapped 16th GLB node 'nextjs' and its edge so Column 4 renders EXACTLY 3 subnodes with 0 dangling edges
+      // Hide unmapped 16th GLB node 'nextjs' so Column 4 renders EXACTLY 3 subnodes with 0 dangling edges
       if (key === 'nextjs') {
         groupObj.visible = false;
         groupObj.traverse(child => { child.visible = false; });
