@@ -152,59 +152,20 @@ export class V1DOMLabelManager {
     }
   }
 
-  fadeInWorldLabels(worldKey, startDelayMs = 0) {
+  fadeInWorldLabels(worldKey, delayMs = 1200) {
     this.hideWorldLabels(worldKey);
 
-    // Exact GLB animation keyframe completion timestamps per node (in milliseconds)
-    const nodeAnimTimings = {
-      // Root & Categories
-      'skills_root': 480,
-      'cv-category': 1600,
-      'dl-category': 1680,
-      'lang-category': 1760,
-      'systems-category': 1850,
-
-      // Category 1: AI / ML subnodes
-      'bytetrack': 3980,  // Deep Learning
-      'fast-scnn': 4140,  // Generative AI
-      'opencv': 4640,     // Computer Vision
-      'yolov8': 5220,     // Machine Learning
-
-      // Category 2: AI TOOLS subnodes
-      'kmeans': 4400,     // OpenCV
-      'ml-kit': 4480,     // YOLOv8
-      'pytorch': 4980,    // TensorFlow
-      'tensorflow': 5140, // PyTorch
-
-      // Category 3: DEVELOPMENT subnodes
-      'concurrency': 4060, // React
-      'pandas': 4720,      // Next.js
-      'playwright': 4810,  // Python
-      'sqlite': 5060,      // JavaScript
-
-      // Category 4: MOBILE / DEVOPS subnodes
-      'flutter': 4220,    // Flutter / Dart
-      'nextjs': 4560,     // Git & GitHub (Node_nextjs 3D sphere at branch tip)
-      'python': 4900,     // Three.js
-    };
-
-    const worldLabels = this.labels.filter(l => l.world === worldKey && l.element);
-
-    worldLabels.forEach(l => {
-      let nodeDelay = 1200; // Fallback for non-skills worlds
-      if (worldKey === 'skills') {
-        nodeDelay = nodeAnimTimings[l.id] || 3800;
-      }
-
-      const timer = setTimeout(() => {
-        if (l.element) {
+    const timer = setTimeout(() => {
+      for (let i = 0; i < this.labels.length; i++) {
+        const l = this.labels[i];
+        if (l.world === worldKey && l.element) {
           l.isPopped = true;
-          l.element.style.opacity = (l.type === 'skill-subnode' ? '0.94' : '1');
+          l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
         }
-      }, nodeDelay);
+      }
+    }, delayMs);
 
-      this.fadeTimeouts.set(`${worldKey}_${l.id}`, timer);
-    });
+    this.fadeTimeouts.set(worldKey, timer);
   }
 
   getLabelCount(world = null) {
