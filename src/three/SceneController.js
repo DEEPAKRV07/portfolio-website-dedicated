@@ -152,44 +152,60 @@ export class V1DOMLabelManager {
     }
   }
 
-  fadeInWorldLabels(worldKey, startDelayMs = 1200) {
+  fadeInWorldLabels(worldKey, startDelayMs = 0) {
     this.hideWorldLabels(worldKey);
 
-    const timer = setTimeout(() => {
-      const worldLabels = this.labels.filter(l => l.world === worldKey && l.element);
+    const worldLabels = this.labels.filter(l => l.world === worldKey && l.element);
 
-      if (worldKey === 'skills') {
-        // One-by-one / level-by-level reveal for skills network after entrance animation completes
-        worldLabels.forEach(l => {
-          let nodeDelay = 0;
-          if (l.type === 'root-core') {
-            nodeDelay = 0;
-          } else if (l.type === 'category') {
-            nodeDelay = 110;
-          } else {
-            const subnodeIdx = worldLabels.filter(x => x.type === 'skill-subnode').indexOf(l);
-            nodeDelay = 220 + Math.max(0, subnodeIdx) * 32;
+    if (worldKey === 'skills') {
+      // Individual per-node reveal timings linked to GLB node entrance keyframes
+      const nodeRevealDelays = {
+        'skills_root': 400,
+        'cv-category': 1400,
+        'dl-category': 1500,
+        'systems-category': 1600,
+        'lang-category': 1700,
+
+        // Subnodes reveal individually as their 3D spheres emerge
+        'yolov8': 2600,
+        'bytetrack': 2800,
+        'opencv': 3000,
+        'fast-scnn': 3200,
+        'pytorch': 2900,
+        'tensorflow': 3100,
+        'ml-kit': 3300,
+        'kmeans': 3500,
+        'playwright': 3100,
+        'sqlite': 3300,
+        'concurrency': 3500,
+        'pandas': 3700,
+        'python': 3400,
+        'flutter': 3600,
+        'nextjs': 3800,
+      };
+
+      worldLabels.forEach(l => {
+        const delay = nodeRevealDelays[l.id] || 3200;
+        const timer = setTimeout(() => {
+          if (l.element) {
+            l.isPopped = true;
+            l.element.style.opacity = (l.type === 'skill-subnode' ? '0.94' : '1');
           }
-
-          setTimeout(() => {
-            if (l.element) {
-              l.isPopped = true;
-              l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
-            }
-          }, nodeDelay);
-        });
-      } else {
-        // All other worlds: all labels arrive together cleanly after animation finishes
+        }, delay);
+        this.fadeTimeouts.set(`skills_${l.id}`, timer);
+      });
+    } else {
+      // Other worlds: reveal after world animation completes
+      const timer = setTimeout(() => {
         worldLabels.forEach(l => {
           if (l.element) {
             l.isPopped = true;
-            l.element.style.opacity = (l.type === 'skill-subnode' ? '0.92' : '1');
+            l.element.style.opacity = '1';
           }
         });
-      }
-    }, startDelayMs);
-
-    this.fadeTimeouts.set(worldKey, timer);
+      }, 1200);
+      this.fadeTimeouts.set(worldKey, timer);
+    }
   }
 
   getLabelCount(world = null) {

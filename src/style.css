@@ -1929,17 +1929,15 @@ body.detail-mode .intro {
   display: none !important;
 }
 
-/* Skill Subnode Inner Sphere Label Micro-Typography */
+/* Skill Subnode Label Styling - Controlled by JS V1DOMLabelManager */
 .graph-label.skill-subnode {
-  max-width: 72px;
   text-align: center;
   line-height: 1.1;
-  white-space: normal;
-  word-break: break-word;
-  font-size: 7px !important;
-  letter-spacing: 0.04em;
-  color: #ffffff;
-  text-shadow: 0 0 8px rgba(0, 255, 136, 0.9), 0 0 2px #000000;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 14px rgba(0, 255, 136, 0.70), 0 2px 6px rgba(0, 0, 0, 0.95);
   pointer-events: none;
 }
 
