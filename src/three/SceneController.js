@@ -53,17 +53,17 @@ export class V1DOMLabelManager {
     el.style.userSelect = 'none';
     el.style.willChange = 'transform, opacity, font-size';
 
-    let baseFontSize = 14;
+    let baseFontSize = 15;
     if (type === 'root-core') {
-      baseFontSize = 19;
+      baseFontSize = 24; // SKILLS & TECHNOLOGIES
       el.style.color = '#ffffff';
       el.style.textShadow = '0 0 18px rgba(0, 255, 136, 0.60), 0 2px 6px rgba(0, 0, 0, 0.95)';
+    } else if (type === 'category') {
+      baseFontSize = 18; // AI / ML, AI TOOLS, DEVELOPMENT, MOBILE / DEVOPS
     } else if (type === 'skill-subnode') {
-      baseFontSize = 13.5; // Calibrated to match perceived font weight of Home/Experience/Contact reference worlds
+      baseFontSize = 15; // Machine Learning, Python, React, Git & GitHub, etc.
       el.style.fontWeight = '600';
-      el.style.opacity = '0.92';
-    } else {
-      baseFontSize = 15; // Category nodes
+      el.style.opacity = '0.94';
     }
 
     el.style.fontSize = `${baseFontSize}px`;
@@ -119,10 +119,10 @@ export class V1DOMLabelManager {
       const screenX = (_tmpPos.x * halfW) + halfW;
       const screenY = (-(_tmpPos.y * halfH)) + halfH;
 
-      // 3. Universal 3D perspective scaling factor S based on camera distance (unified across ALL worlds)
-      const refDist = 18.0; // Universal reference distance for 1.0x perspective scale across all worlds
+      // 3. Perspective scaling factor with minimum readability floor 1.0x
+      const refDist = 18.0;
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 1.15), 1.95); // Safety bounds: 0.75x to 1.65x
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 1.0), 2.2); // Minimum floor: 1.0x (never shrinks below base font size)
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
       const popScale = label.isPopped ? 1.0 : 0.82;
