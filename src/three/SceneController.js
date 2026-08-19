@@ -122,7 +122,7 @@ export class V1DOMLabelManager {
       // 3. Universal 3D perspective scaling factor S based on camera distance (unified across ALL worlds)
       const refDist = 18.0; // Universal reference distance for 1.0x perspective scale across all worlds
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 1.0), 1.75); // Safety bounds: 0.75x to 1.65x
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 1.15), 1.95); // Safety bounds: 0.75x to 1.65x
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
       const popScale = label.isPopped ? 1.0 : 0.82;
