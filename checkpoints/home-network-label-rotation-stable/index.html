@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050505" />
+    <meta
+      name="description"
+      content="Deepak R V — AI/ML Engineer & Computer Vision Specialist portfolio built as an interactive 3D neural network."
+    />
+    <!-- GitHub Pages SPA Redirect Decoder -->
+    <script type="text/javascript">
+      (function(l) {
+        if (l.search && l.search[1] === 'p') {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&');
+          }).filter(function(s) { return s.slice(0, 2) === 'p='; })[0];
+          if (decoded) {
+            var targetPath = (l.pathname.slice(0, -1) + '/' + decoded.slice(2)).replace(/\/+/g, '/');
+            window.history.replaceState(null, null, targetPath + (l.hash || ''));
+          }
+        }
+      }(window.location));
+    </script>
+    <title>DEEPAK R V — Neural Network</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Inline Critical CSS for Neural Initialization Screen (Eliminating White Flash) -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #050505;
+        color: #f0f0f0;
+        font-family: monospace, system-ui, sans-serif;
+        overflow: hidden;
+      }
+      #neuralLoader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #050505;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 500ms ease, visibility 500ms ease;
+      }
+      #neuralLoader.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .loader-core {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 22px;
+      }
+      .loader-dot {
+        width: 12px;
+        height: 12px;
+        background: #00ff88;
+        border-radius: 50%;
+        box-shadow: 0 0 18px #00ff88;
+      }
+      .loader-ring {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(0, 255, 136, 0.35);
+        border-top-color: #00ff88;
+        border-radius: 50%;
+        animation: loaderSpin 1.2s linear infinite;
+      }
+      @keyframes loaderSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loader-kicker {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        color: #00ff88;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .loader-status {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: #aaaaaa;
+        margin-bottom: 16px;
+      }
+      .loader-bar-bg {
+        width: 180px;
+        height: 2px;
+        background: rgba(0, 255, 136, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+      .loader-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: #00ff88;
+        box-shadow: 0 0 10px #00ff88;
+        transition: width 180ms ease;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Neural Initialization Screen (Eliminating White Flash) -->
+    <div id="neuralLoader" aria-label="Loading neural network system">
+      <div class="loader-core">
+        <div class="loader-ring"></div>
+        <div class="loader-dot"></div>
+      </div>
+      <div class="loader-kicker">INSIDE MY NEURAL NETWORK</div>
+      <div class="loader-status" id="loaderStatus">INITIALIZING SYSTEM...</div>
+      <div class="loader-bar-bg">
+        <div class="loader-bar-fill" id="loaderBarFill"></div>
+      </div>
+    </div>
+
+    <main id="portfolio" class="desktop-experience" aria-label="Interactive neural network portfolio">
+      <div class="atmosphere"></div>
+
+      <div class="hud">
+        <header class="identity">
+          <h1>DEEPAK R V</h1>
+          <span>AI / ML ENGINEER &amp; SOFTWARE DEVELOPER</span>
+        </header>
+
+        <div id="mobileChapterIndicator" class="mobile-chapter-indicator">
+          <span>CHAPTER 01 / OVERVIEW</span>
+        </div>
+
+        <section class="system-panel" aria-label="Network status">
+          <div class="system-heading">
+            <span>SYSTEM</span>
+            <strong>ONLINE</strong>
+          </div>
+
+          <div class="system-context" data-layer-path>
+            NEURAL NETWORK / OVERVIEW
+          </div>
+
+          <div class="system-grid">
+            <span>MODE</span>
+            <strong data-mode>OVERVIEW</strong>
+
+            <span>NODES</span>
+            <strong data-node-count>0</strong>
+
+            <span>EDGES</span>
+            <strong data-edge-count>0</strong>
+
+            <span>SIGNALS</span>
+            <strong>LIVE</strong>
+
+            <span>FPS</span>
+            <strong data-fps>60</strong>
+          </div>
+        </section>
+
+        <section class="intro" aria-label="Introduction">
+          <div class="intro-kicker">INSIDE MY NEURAL NETWORK</div>
+
+          <h2>
+            Intelligence,<br />
+            connected.
+          </h2>
+
+          <p>
+            Explore projects, skills and experience through a living
+            3D computational graph.
+          </p>
+        </section>
+
+        <section class="interaction-legend" aria-label="Navigation controls">
+          <div class="legend-title">NAVIGATION</div>
+
+          <div class="legend-row">
+            <span class="legend-key">LEFT DRAG</span>
+            <span>ORBIT</span>
+          </div>
+
+          <div class="legend-row">
+            <span class="legend-key">SCROLL</span>
+            <span>ZOOM</span>
+          </div>
+
+          <div class="legend-row">
+            <span class="legend-key">RIGHT DRAG</span>
+            <span>PAN</span>
+          </div>
+
+          <div class="legend-row">
+            <span class="legend-key">CLICK</span>
+            <span>ENTER NODE</span>
+          </div>
+
+          <div class="legend-row">
+            <span class="legend-key">C</span>
+            <span>RESET CAMERA</span>
+          </div>
+
+          <div class="legend-row">
+            <span class="legend-key">ESC / HOME</span>
+            <span>CORE VIEW</span>
+          </div>
+        </section>
+
+        <!-- Network Lab Playful Controls -->
+        <section class="network-lab-panel" aria-label="Network lab controls">
+          <div class="lab-title">NETWORK LAB</div>
+          <button class="lab-btn" id="burstBtn">▹ BURST NETWORK</button>
+          <button class="lab-btn" id="reconstructBtn">▹ RECONSTRUCT NETWORK</button>
+        </section>
+
+        <div class="core-home-hint" data-core-hint>
+          <span class="hint-dot"></span>
+          <span>NEURAL CORE IS ALWAYS ACCESSIBLE</span>
+        </div>
+
+        <!-- Large Technical Detail Presentation Overlay (Projects & Experience & About) -->
+        <article class="node-detail-panel" id="detailPanel" aria-hidden="true" tabindex="-1">
+          <button class="panel-close-btn" id="panelCloseBtn" aria-label="Close presentation">✕</button>
+
+          <header class="panel-header">
+            <div class="panel-kicker" id="panelKicker">PROJECT PRESENTATION</div>
+            <h2 class="panel-title" id="panelTitle">PROJECT TITLE</h2>
+            <div class="panel-subtitle" id="panelSubtitle">SUBTITLE</div>
+          </header>
+
+          <div class="panel-body" id="panelBody">
+            <!-- Dynamic structured content -->
+          </div>
+
+          <footer class="panel-footer">
+            <div class="panel-tags" id="panelTags"></div>
+            <div class="panel-actions" id="panelActions"></div>
+          </footer>
+        </article>
+
+        <!-- Small Contextual Skill Tooltip Panel -->
+        <article class="skill-context-panel" id="skillContextPanel" aria-hidden="true">
+          <button class="skill-close-btn" id="skillCloseBtn" aria-label="Close skill context">✕</button>
+          <div class="skill-title" id="skillTitle">PYTHON</div>
+          <div class="skill-subtitle" id="skillSubtitle">PROGRAMMING / AI &amp; ML</div>
+          <div class="skill-section-title">USED IN PROJECTS</div>
+          <div class="skill-used-list" id="skillUsedList"></div>
+          <div class="skill-tags" id="skillTags"></div>
+        </article>
+      </div>
+    </main>
+
+    <!-- SEPARATE MOBILE DOM PRESENTATION LAYER (Width < 768px) -->
+    <section id="mobileApp" class="mobile-experience" aria-label="Mobile portfolio presentation">
+      <!-- FIXED TOP NAVBAR -->
+      <header class="m-header">
+        <div class="m-identity">
+          <h1 class="m-name">DEEPAK R V</h1>
+          <div class="m-role">AI / ML ENGINEER &amp; SOFTWARE DEVELOPER</div>
+        </div>
+        <button class="m-hamburger-btn" id="mHamburgerBtn" aria-label="Toggle Navigation Menu" aria-expanded="false" aria-controls="mNavDrawer">
+          <span class="m-bar"></span>
+          <span class="m-bar"></span>
+          <span class="m-bar"></span>
+        </button>
+      </header>
+
+      <!-- OVERLAY HAMBURGER DRAWER -->
+      <div class="m-nav-backdrop" id="mNavBackdrop"></div>
+      <nav class="m-nav-drawer" id="mNavDrawer" aria-label="Mobile navigation menu">
+        <div class="m-drawer-header">
+          <span>SYSTEM NAVIGATION</span>
+          <button class="m-drawer-close" id="mDrawerCloseBtn" aria-label="Close menu">✕</button>
+        </div>
+        <div class="m-drawer-links">
+          <button class="m-nav-btn active" data-m-route="home">HOME ↗</button>
+          <button class="m-nav-btn" data-m-route="about">ABOUT ↗</button>
+          <button class="m-nav-btn" data-m-route="skills">SKILLS ↗</button>
+          <button class="m-nav-btn" data-m-route="projects">PROJECTS ↗</button>
+          <button class="m-nav-btn" data-m-route="experience">EXPERIENCE ↗</button>
+          <button class="m-nav-btn" data-m-route="contact">CONTACT ↗</button>
+        </div>
+      </nav>
+
+      <!-- HERO SECTION -->
+      <section class="m-hero">
+        <div class="m-hero-kicker">INSIDE MY NEURAL NETWORK</div>
+        <h2 class="m-hero-title">INTELLIGENCE,<br />CONNECTED.</h2>
+        <p class="m-hero-desc">Applied AI, Computer Vision, and Data Systems Engineering presented as a cinematic narrative.</p>
+      </section>
+
+      <div class="m-content-container">
+        <!-- 01 / ABOUT -->
+        <section id="mSectionAbout" class="m-section">
+          <div class="m-sec-kicker">01 / PROFILE &amp; CAPABILITIES</div>
+          <h2 class="m-sec-title">DEEPAK R V</h2>
+          <div class="m-sec-subtitle">AI / ML ENGINEER &amp; SOFTWARE DEVELOPER</div>
+
+          <div class="m-card">
+            <h3>PROFESSIONAL SUMMARY</h3>
+            <p>B.E. Computer Science &amp; Engineering (AIML Specialization) graduate specializing in real-time Computer Vision, Deep Learning, spatial decision reasoning, automated lead data engineering, and full-stack web platforms. Proven experience designing object detection and tracking pipelines (YOLOv8, ByteTrack), spatial navigation systems (SightMate), production data harvesting platforms (Google Maps Lead Intelligence), and design-system-driven web applications (FORCRUX, Kaatchi Media).</p>
+          </div>
+
+          <div class="m-card">
+            <h3>EDUCATION &amp; QUALIFICATIONS</h3>
+            <p><strong>Bachelor of Engineering (B.E.)</strong> in Computer Science and Engineering (AI/ML Specialization)</p>
+            <p class="m-dim-text">S.A. Engineering College, Chennai (2022–2026) | <strong>CGPA: 8.1 / 10</strong></p>
+          </div>
+
+          <div class="m-card">
+            <h3>CORE TECHNICAL FOCUS</h3>
+            <ul class="m-list">
+              <li><strong>Computer Vision &amp; Tracking</strong> — YOLOv8, ByteTrack, OpenCV, Fast-SCNN, Optical Flow, K-Means</li>
+              <li><strong>Deep Learning &amp; Edge AI</strong> — TensorFlow Lite, PyTorch, Google ML Kit OCR, Model Quantization</li>
+              <li><strong>Data Engineering &amp; Automation</strong> — Python, Playwright, SQLite Master DB, ThreadPoolExecutor</li>
+              <li><strong>Full-Stack &amp; Web Engineering</strong> — Next.js, React, TypeScript, GSAP Motion Design, Payload CMS</li>
+            </ul>
+          </div>
+
+          <div class="m-card">
+            <h3>CAREER MILESTONES</h3>
+            <ul class="m-list">
+              <li>Lead Frontend Engineer &amp; Design Systems — FORCRUX Studio Platform</li>
+              <li>Software Developer Intern / Frontend Developer — Kaatchi Media (kaatchimedia.com)</li>
+              <li>Embedded Systems Intern — MSME Technology Development Centre (MSME TDC)</li>
+              <li>Digital Media Contributor — Quality Threads</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 02 / SKILLS -->
+        <section id="mSectionSkills" class="m-section">
+          <div class="m-sec-kicker">02 / KNOWLEDGE GRAPH</div>
+          <h2 class="m-sec-title">SKILLS &amp; TECHNOLOGIES</h2>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">01 / COMPUTER VISION</div>
+            <div class="m-skill-grid" id="mCvSkills"></div>
+          </div>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">02 / DEEP LEARNING &amp; AI</div>
+            <div class="m-skill-grid" id="mDlSkills"></div>
+          </div>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">03 / SYSTEMS &amp; DEPLOYMENT</div>
+            <div class="m-skill-grid" id="mSystemsSkills"></div>
+          </div>
+
+          <div class="m-card">
+            <div class="m-skill-cat-title">04 / LANGUAGES &amp; TOOLS</div>
+            <div class="m-skill-grid" id="mLangSkills"></div>
+          </div>
+        </section>
+
+        <!-- 03 / PROJECTS -->
+        <section id="mSectionProjects" class="m-section">
+          <div class="m-sec-kicker">03 / CASE STUDIES</div>
+          <h2 class="m-sec-title">ENGINEERING PROJECTS</h2>
+          <div class="m-projects-list" id="mProjectsList"></div>
+        </section>
+
+        <!-- 04 / EXPERIENCE -->
+        <section id="mSectionExperience" class="m-section">
+          <div class="m-sec-kicker">04 / TIMELINE</div>
+          <h2 class="m-sec-title">CAREER EXPERIENCE</h2>
+          <div class="m-exp-list" id="mExpList"></div>
+        </section>
+
+        <!-- 05 / CONTACT -->
+        <section id="mSectionContact" class="m-section">
+          <div class="m-sec-kicker">05 / NETWORK TRANSMISSION</div>
+          <h2 class="m-sec-title">CONTACT &amp; CONNECT</h2>
+          <div class="m-contact-grid">
+            <a class="m-contact-card" href="mailto:deepakvetrivelan@gmail.com">
+              <div class="m-contact-label">PRIMARY EMAIL</div>
+              <div class="m-contact-val">deepakvetrivelan@gmail.com</div>
+            </a>
+            <a class="m-contact-card" href="https://www.linkedin.com/in/deepakrv07/" target="_blank" rel="noopener noreferrer">
+              <div class="m-contact-label">LINKEDIN PROFILE</div>
+              <div class="m-contact-val">linkedin.com/in/deepakrv07/</div>
+            </a>
+            <a class="m-contact-card" href="https://github.com/DEEPAKRV07/" target="_blank" rel="noopener noreferrer">
+              <div class="m-contact-label">GITHUB REPOSITORIES</div>
+              <div class="m-contact-val">github.com/DEEPAKRV07/</div>
+            </a>
+            <a class="m-contact-card m-accent-card" id="mResumeLink" href="/portfolio-website-dedicated/my_resume.pdf" target="_blank" rel="noopener noreferrer">
+              <div class="m-contact-label">OFFICIAL CURRICULUM VITAE</div>
+              <div class="m-contact-val">VIEW RESUME PDF ↗</div>
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <footer class="m-footer">
+        <div>DEEPAK R V © 2026 — NEURAL NETWORK PORTFOLIO</div>
+      </footer>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

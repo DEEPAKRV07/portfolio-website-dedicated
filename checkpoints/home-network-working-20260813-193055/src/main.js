@@ -32,37 +32,39 @@ const loaderEl = document.getElementById('neuralLoader');
 const loaderStatusEl = document.getElementById('loaderStatus');
 const loaderBarFillEl = document.getElementById('loaderBarFill');
 
-assetManager.loadAll((ratio, statusText, assetId) => {
+assetManager.loadAll((ratio, statusText) => {
   const percent = Math.min(Math.round(ratio * 100), 100);
   if (loaderBarFillEl) loaderBarFillEl.style.width = `${percent}%`;
   if (loaderStatusEl) loaderStatusEl.textContent = statusText;
-  if (assetId) {
-    console.log(`[ASSET COMPLETE] ${assetId} (${percent}%)`);
-  }
 }).then(() => {
-  console.log('[ALL ASSETS COMPLETE] Initializing 3D scenes...');
-  try {
-    sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
-    sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
-    sceneController.initSkillsScene(scene, assetManager.getAsset('skills'), camera);
-    sceneController.initExperienceScene(scene, assetManager.getAsset('experience'), camera);
-    sceneController.initEducationScene(scene, assetManager.getAsset('education'), camera);
-    sceneController.initContactScene(scene, assetManager.getAsset('contact'), camera);
+  sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
+  setLayerVisibility(currentLayer);
 
-    // Explicitly guarantee activeWorld = 'home' on first load
-    sceneController.setActiveWorld('home');
-
-    // Resolve initial route after 3D scenes are fully ready
-    initRouteFromUrl();
-  } catch (err) {
-    console.error('[3D Scene Init Error]', err);
-  } finally {
-    if (loaderBarFillEl) loaderBarFillEl.style.width = '100%';
-    if (loaderStatusEl) loaderStatusEl.textContent = 'SYSTEM ONLINE — 3D GRAPH READY';
-    setTimeout(() => {
-      if (loaderEl) loaderEl.classList.add('hidden');
-    }, 350);
+  // Auto-frame camera from actual GLB network bounds
+  const glbBounds = sceneController.computeNetworkBounds();
+  let homeZ, homeY, homeTarget;
+  if (glbBounds && !glbBounds.isEmpty()) {
+    const center = glbBounds.getCenter(new THREE.Vector3());
+    const size   = glbBounds.getSize(new THREE.Vector3());
+    const radius = Math.max(size.x, size.y, size.z) * 0.5;
+    // Distance = radius / tan(halfFOV), add 20% breathing room
+    const fovRad = THREE.MathUtils.degToRad(camera.fov);
+    const dist   = (radius / Math.tan(fovRad * 0.5)) * 1.20;
+    homeZ = isMobileViewport() ? dist * 1.25 : dist;
+    homeY = center.y + 0.8;
+    homeTarget = new THREE.Vector3(center.x, center.y - 0.5, center.z);
+  } else {
+    homeZ = isMobileViewport() ? 18.5 : 14.0;
+    homeY = 0.8;
+    homeTarget = new THREE.Vector3(0, -0.3, 0);
   }
+  startTransition(new THREE.Vector3(0, homeY, homeZ), homeTarget, 1200);
+
+  if (loaderBarFillEl) loaderBarFillEl.style.width = '100%';
+  if (loaderStatusEl) loaderStatusEl.textContent = 'SYSTEM ONLINE — 3D GRAPH READY';
+  setTimeout(() => {
+    if (loaderEl) loaderEl.classList.add('hidden');
+  }, 350);
 });
 
 /* ============================================================
@@ -78,7 +80,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   300
 );
-camera.position.set(0, 0.5, 24.0); // Matched to home world camera preset for no jump on first load
+camera.position.set(0, 2.2, 23.0); // Slightly higher + zoomed out to frame lifted network
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -486,44 +488,18 @@ function showSkillContextPanel(skillData) {
 
   skillUsedListEl.innerHTML = '';
   if (Array.isArray(skillData.usedIn)) {
-    for (const projName of skillData.usedIn) {
+    for (const proj of skillData.usedIn) {
       const itemEl = document.createElement('div');
       itemEl.className = 'skill-used-item';
-
-      const leftEl = document.createElement('div');
-      leftEl.style.display = 'flex';
-      leftEl.style.alignItems = 'center';
-      leftEl.style.gap = '8px';
 
       const dot = document.createElement('span');
       dot.className = 'skill-used-dot';
 
       const text = document.createElement('span');
-      text.textContent = projName;
+      text.textContent = proj;
 
-      leftEl.appendChild(dot);
-      leftEl.appendChild(text);
-      itemEl.appendChild(leftEl);
-
-      // Match project in SUBNET_DEFINITIONS.projects.categories
-      const matchedProj = SUBNET_DEFINITIONS.projects?.categories?.find(p =>
-        p.label?.toLowerCase().includes(projName.toLowerCase()) ||
-        p.title?.toLowerCase().includes(projName.toLowerCase()) ||
-        projName.toLowerCase().includes(p.label?.toLowerCase())
-      );
-
-      if (matchedProj) {
-        const viewBtn = document.createElement('button');
-        viewBtn.className = 'skill-view-proj-btn';
-        viewBtn.textContent = 'VIEW PROJECT ↗';
-        viewBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          hideSkillContextPanel();
-          showDetailPresentation(matchedProj);
-        });
-        itemEl.appendChild(viewBtn);
-      }
-
+      itemEl.appendChild(dot);
+      itemEl.appendChild(text);
       skillUsedListEl.appendChild(itemEl);
     }
   }
@@ -1693,7 +1669,9 @@ function setLayerVisibility(layerName) {
     setWorldOpacity(mainGraph, 0.0);
     setWorldOpacity(core, 0.0);
 
-    sceneController.setActiveWorld('home');
+    sceneController.setVisible(true);
+
+    /* 5 AMBIENT 3D FLOATING LOGOS EXIST ONLY ON HOME! */
     ambientLogosGroup.visible = true;
 
     for (const world of subnetWorlds.values()) {
@@ -1704,21 +1682,18 @@ function setLayerVisibility(layerName) {
     setLabelMode('main');
     showCoreBeacon(false);
   } else if (layerName === 'SUBNET') {
+    /* STRICT ACTIVE-LAYER ISOLATION: Hide Home network completely in subnets! */
     setWorldVisibility(mainGraph, false);
     setWorldOpacity(mainGraph, 0.0);
     setWorldOpacity(core, 0.0);
 
+    sceneController.setVisible(false);
     ambientLogosGroup.visible = false;
 
-    // Ensure active GLB world visibility (projects vs skills)
-    if (sceneController.activeWorld === 'home') {
-      sceneController.setActiveWorld('projects');
-    }
-
-    // Hide all old procedural subnetWorlds
     for (const world of subnetWorlds.values()) {
-      setWorldVisibility(world.group, false);
-      setWorldOpacity(world.group, 0.0);
+      const isCurrent = world === activeSubnet;
+      setWorldVisibility(world.group, isCurrent);
+      setWorldOpacity(world.group, isCurrent ? 1.0 : 0.0);
     }
 
     setLabelMode('subnet');
@@ -1727,88 +1702,27 @@ function setLayerVisibility(layerName) {
 }
 
 function enterSubnet(subnetId, isPush = true) {
+  const world = subnetWorlds.get(subnetId);
+  if (!world) return;
+
+  activeSubnet = world;
   hideDetailPresentation();
   hideSkillContextPanel();
 
-  if (subnetId === 'projects') {
-    sceneController.setActiveWorld('projects');
-    activeSubnet = null;
-    setLayerVisibility('SUBNET');
-    document.body.classList.add('project-mode');
-    document.body.classList.remove('detail-mode');
-    setMode('ENGINEERING PROJECTS');
-    setLayerPath('NEURAL NETWORK / PROJECTS WORLD');
+  setLayerVisibility('SUBNET');
 
-    startTransition(new THREE.Vector3(0, -0.8, 17.5), new THREE.Vector3(0, -0.5, 0), 850);
-    sceneController.playWorldAnimation('projects');
-    updateBrowserRoute('projects', isPush);
-    return;
-  }
+  document.body.classList.add('project-mode');
+  document.body.classList.remove('detail-mode');
 
-  if (subnetId === 'skills') {
-    sceneController.setActiveWorld('skills');
-    activeSubnet = null;
-    setLayerVisibility('SUBNET');
-    document.body.classList.add('project-mode');
-    document.body.classList.remove('detail-mode');
-    setMode('SKILLS & TECHNOLOGIES');
-    setLayerPath('NEURAL NETWORK / SKILLS WORLD');
-
-    // Skills camera: pulled back to z=25, looking at center so network fits centered with root above navbar
-    startTransition(new THREE.Vector3(0, 0.5, 25.0), new THREE.Vector3(0, 0, 0), 850);
-    sceneController.playWorldAnimation('skills');
-    updateBrowserRoute('skills', isPush);
-    return;
-  }
-
-  if (subnetId === 'experience') {
-    sceneController.setActiveWorld('experience');
-    activeSubnet = null;
-    setLayerVisibility('SUBNET');
-    document.body.classList.add('project-mode');
-    document.body.classList.remove('detail-mode');
-    setMode('WORK EXPERIENCE');
-    setLayerPath('NEURAL NETWORK / EXPERIENCE WORLD');
-
-    startTransition(new THREE.Vector3(0, 0, 20.0), new THREE.Vector3(0, 0, 0), 850);
-    sceneController.playWorldAnimation('experience');
-    updateBrowserRoute('experience', isPush);
-    return;
-  }
-
-  if (subnetId === 'education') {
-    sceneController.setActiveWorld('education');
-    activeSubnet = null;
-    setLayerVisibility('SUBNET');
-    document.body.classList.add('project-mode');
-    document.body.classList.remove('detail-mode');
-    setMode('EDUCATION');
-    setLayerPath('NEURAL NETWORK / EDUCATION WORLD');
-
-    startTransition(new THREE.Vector3(0, -0.5, 14.0), new THREE.Vector3(0, -0.5, 0), 850);
-    sceneController.playWorldAnimation('education');
-    updateBrowserRoute('education', isPush);
-    return;
-  }
-
-  if (subnetId === 'contact') {
-    sceneController.setActiveWorld('contact');
-    activeSubnet = null;
-    setLayerVisibility('SUBNET');
-    document.body.classList.add('project-mode');
-    document.body.classList.remove('detail-mode');
-    setMode('CONTACT');
-    setLayerPath('NEURAL NETWORK / CONTACT WORLD');
-
-    startTransition(new THREE.Vector3(0, -0.5, 15.0), new THREE.Vector3(0, -0.5, 0), 850);
-    sceneController.playWorldAnimation('contact');
-    updateBrowserRoute('contact', isPush);
-    return;
-  }
+  setMode(world.definition.title);
+  setLayerPath(`NEURAL NETWORK / ${world.definition.title}`);
+  const subnetZ = isMobileViewport() ? 24.5 : 18.5;
+  const subnetY = isMobileViewport() ? 0.8 : 1.2;
+  startTransition(new THREE.Vector3(0, subnetY, subnetZ), new THREE.Vector3(0, 0, 0), 850);
+  updateBrowserRoute(subnetId, isPush);
 }
 
 function returnToCore(isPush = true) {
-  sceneController.setActiveWorld('home');
   activeSubnet = null;
   hideDetailPresentation();
   hideSkillContextPanel();
@@ -1820,10 +1734,11 @@ function returnToCore(isPush = true) {
 
   setMode('OVERVIEW');
   setLayerPath('NEURAL NETWORK / OVERVIEW');
+  updateCounters(mainNodeObjects.length + 1, mainEdges.length);
 
-  // Home camera: pulled back to z=24 so all 5 nodes + root fit cleanly in viewport with no clipping
-  startTransition(new THREE.Vector3(0, 0.5, 24.0), new THREE.Vector3(0, 0, 0), 850);
-  sceneController.playWorldAnimation('home');
+  const homeZ = isMobileViewport() ? 18.5 : 13.5;
+  const homeY = isMobileViewport() ? 0.6 : 0.4;
+  startTransition(new THREE.Vector3(0, homeY, homeZ), new THREE.Vector3(0, -0.2, 0), 900);
   updateBrowserRoute('home', isPush);
 }
 
@@ -1839,6 +1754,112 @@ function exitLayer() {
 
   if (currentLayer === 'SUBNET') {
     returnToCore();
+  }
+}
+
+/* ============================================================
+   CANONICAL GLOBAL 3D BURST & RECONSTRUCT ENGINE
+   ============================================================ */
+
+let isBurstActive = false;
+const burstVelocities = new Map();
+
+const burstBtn = document.getElementById('burstBtn');
+const reconstructBtn = document.getElementById('reconstructBtn');
+
+function getActiveNetworkNodes() {
+  const activeNodes = [];
+
+  if (currentLayer === 'MAIN') {
+    for (const item of mainNodeObjects) {
+      if (item.group) activeNodes.push(item.group);
+    }
+  } else if (currentLayer === 'SUBNET' && activeSubnet) {
+    activeSubnet.group.traverse(child => {
+      if (child.isGroup && child.parent === activeSubnet.group) {
+        activeNodes.push(child);
+      }
+    });
+  }
+
+  return activeNodes;
+}
+
+function triggerBurstNetwork() {
+  if (isBurstActive) return;
+  if (document.body.classList.contains('detail-panel-open')) return;
+
+  isBurstActive = true;
+  burstVelocities.clear();
+
+  const targets = getActiveNetworkNodes();
+  for (const nodeGroup of targets) {
+    // Generate organic 3D random velocity vector (X, Y, Z) across broad environment
+    const velocity = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.42,
+      (Math.random() - 0.5) * 0.42,
+      (Math.random() - 0.5) * 0.42
+    );
+    const rotVelocity = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.08,
+      (Math.random() - 0.5) * 0.08,
+      (Math.random() - 0.5) * 0.08
+    );
+
+    burstVelocities.set(nodeGroup, {
+      velocity,
+      rotVelocity,
+      startPos: nodeGroup.position.clone(),
+      startRot: nodeGroup.rotation.clone(),
+    });
+  }
+
+  setMode('NETWORK BURST');
+}
+
+function triggerReconstructNetwork() {
+  if (!isBurstActive && burstVelocities.size === 0) return;
+  isBurstActive = false;
+}
+
+if (burstBtn) burstBtn.addEventListener('click', triggerBurstNetwork);
+if (reconstructBtn) reconstructBtn.addEventListener('click', triggerReconstructNetwork);
+
+function animateBurstState() {
+  if (isBurstActive) {
+    // Continuous random 3D travel through environment during burst state
+    for (const [obj, data] of burstVelocities.entries()) {
+      obj.position.add(data.velocity);
+      obj.rotation.x += data.rotVelocity.x;
+      obj.rotation.y += data.rotVelocity.y;
+    }
+  } else if (burstVelocities.size > 0) {
+    // Reconstruct state: Smoothly lerp scattered nodes back to original positions
+    let allRestored = true;
+    for (const [obj, data] of burstVelocities.entries()) {
+      obj.position.lerp(data.startPos, 0.12);
+      obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, data.startRot.x, 0.12);
+      obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, data.startRot.y, 0.12);
+      obj.rotation.z = THREE.MathUtils.lerp(obj.rotation.z, data.startRot.z, 0.12);
+
+      if (obj.position.distanceTo(data.startPos) > 0.05) {
+        allRestored = false;
+      }
+    }
+
+    if (allRestored) {
+      for (const [obj, data] of burstVelocities.entries()) {
+        obj.position.copy(data.startPos);
+        obj.rotation.copy(data.startRot);
+      }
+      burstVelocities.clear();
+
+      if (currentLayer === 'MAIN') {
+        setMode('OVERVIEW');
+      } else if (activeSubnet) {
+        setMode(activeSubnet.definition.title);
+      }
+    }
   }
 }
 
@@ -1923,15 +1944,17 @@ function getPointerObject() {
     }
   }
 
-  /* 5. Authored GLB Scene Raycast Target (Works across ALL 6 GLB worlds) */
-  const glbTargets = sceneController.getRaycastTargets();
-  if (glbTargets && glbTargets.length) {
-    const hits = raycaster.intersectObjects(glbTargets, false);
-    if (hits.length) {
-      const hitObj = hits[0].object;
-      const destId = hitObj.userData.destId || hitObj.userData.id;
-      if (destId) {
-        return { type: 'glb-home-node', object: hitObj, destId };
+  /* 5. Main Homepage Authored GLB Scene Raycast Target */
+  if (currentLayer === 'MAIN') {
+    const glbTargets = sceneController.getRaycastTargets();
+    if (glbTargets.length) {
+      const hits = raycaster.intersectObjects(glbTargets, false);
+      if (hits.length) {
+        const hitObj = hits[0].object;
+        const destId = hitObj.userData.destId || hitObj.userData.id;
+        if (destId) {
+          return { type: 'glb-home-node', object: hitObj, destId };
+        }
       }
     }
   }
@@ -1979,115 +2002,6 @@ renderer.domElement.addEventListener('click', event => {
 
   if (hit.type === 'glb-home-node') {
     const destId = hit.destId;
-    const worldKey = hit.object.userData.world || sceneController.activeWorld;
-
-    // 1. Central Root Node Click -> Return Home (ONLY central root nodes return home; contact child nodes perform external actions)
-    const isExactCentralRootNode = (
-      destId === 'projects_root' ||
-      destId === 'skills_root' ||
-      destId === 'experience_root' ||
-      destId === 'education_root' ||
-      destId === 'contact_root' ||
-      destId === 'hero' ||
-      destId === 'core' ||
-      destId === 'hero_core'
-    );
-
-    if (isExactCentralRootNode) {
-      returnToCore();
-      return;
-    }
-
-    // 1. Skills World Node Click
-    if (worldKey === 'skills') {
-      // Parent category nodes (cv-category, dl-category, systems-category, lang-category) are NON-INTERACTIVE anchors
-      const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
-      if (categories.includes(destId)) {
-        return; // Ignore clicks on structural category parent nodes
-      }
-
-      let foundSkillData = null;
-      if (SUBNET_DEFINITIONS.skills?.categories) {
-        for (const cat of SUBNET_DEFINITIONS.skills.categories) {
-          if (cat.skills) {
-            const match = cat.skills.find(s => s.id === destId || s.id.includes(destId) || s.name.toLowerCase().includes(destId.toLowerCase()));
-            if (match) { foundSkillData = match; break; }
-          }
-        }
-      }
-      if (foundSkillData) {
-        showSkillContextPanel(foundSkillData);
-      }
-      return;
-    }
-
-    // 2. Projects World Node Click -> Open V1 Case Study Presentation Card
-    if (worldKey === 'projects') {
-      const projectCategory = SUBNET_DEFINITIONS.projects?.categories?.find(c => c.id === destId || c.id.includes(destId) || destId.includes(c.id));
-      if (projectCategory) {
-        showDetailPresentation(projectCategory);
-      } else {
-        const fallbackObj = SUBNET_DEFINITIONS.projects?.categories?.[0];
-        if (fallbackObj) showDetailPresentation(fallbackObj);
-      }
-      return;
-    }
-
-    // 3. Experience World Node Click -> Open V1 Experience Career Presentation Card
-    if (worldKey === 'experience') {
-      const expCategory = SUBNET_DEFINITIONS.experience?.categories?.find(c => c.id === destId || destId.includes(c.id) || c.id.includes(destId));
-      if (expCategory) {
-        showDetailPresentation(expCategory);
-      } else {
-        const fallbackExp = SUBNET_DEFINITIONS.experience?.categories?.[0];
-        if (fallbackExp) showDetailPresentation(fallbackExp);
-      }
-      return;
-    }
-
-    // 4. Education World Node Click -> Open V1 Education Degree Presentation Card
-    if (worldKey === 'education') {
-      const eduCategory = {
-        kicker: 'ACADEMIC EDUCATION',
-        title: 'B.E. Computer Science & Engineering',
-        subtitle: 'S.A. Engineering College (AIML Specialization)',
-        sections: [
-          {
-            heading: 'DEGREE & SPECIALIZATION',
-            content: 'Bachelor of Engineering in Computer Science & Engineering with specialization in Artificial Intelligence and Machine Learning (AIML). Graduated with expertise in real-time Computer Vision, spatial reasoning systems, neural network optimization, and full-stack software development.',
-          },
-          {
-            heading: 'KEY ACADEMIC HIGHLIGHTS',
-            bullets: [
-              'Specialized in AI/ML model architecture, OpenCV, PyTorch, and TensorFlow Lite pipelines',
-              'Engineered SightMate real-time spatial navigation assistant for visually impaired users',
-              'Developed Google Maps Lead Intelligence automated data harvesting and geocoding platform',
-              'Built Football Analysis multi-object player tracking system with YOLOv8 & ByteTrack',
-            ],
-          },
-        ],
-        tags: ['B.E. CSE', 'AIML', 'Computer Vision', 'Deep Learning', 'Spatial Computing', 'Full Stack'],
-        actions: [],
-      };
-      showDetailPresentation(eduCategory);
-      return;
-    }
-
-    // 5. Contact World Child Nodes -> Trigger Email / LinkedIn / GitHub / Resume PDF Actions (Does NOT return Home)
-    if (worldKey === 'contact' || destId.includes('email') || destId.includes('linkedin') || destId.includes('github') || destId.includes('resume')) {
-      if (destId.includes('email')) {
-        window.open('mailto:deepakvetrivelan@gmail.com', '_self');
-      } else if (destId.includes('linkedin')) {
-        window.open('https://www.linkedin.com/in/deepakrv07/', '_blank');
-      } else if (destId.includes('github')) {
-        window.open('https://github.com/DEEPAKRV07', '_blank');
-      } else if (destId.includes('resume')) {
-        window.open(`${BASE_URL}DEEPAK_R_V_deepakvetrivelan_gmail_com_.pdf`, '_blank');
-      }
-      return;
-    }
-
-    // 6. Home World Node Click -> Navigate to Subnet or Open About Card
     if (destId === 'about') {
       showDetailPresentation(combinedAboutData);
       updateBrowserRoute('about', true);
@@ -2135,6 +2049,11 @@ const tempScale = new THREE.Vector3();
 let currentHoveredMesh = null;
 
 function updateHover() {
+  if (isBurstActive) {
+    currentHoveredMesh = null;
+    renderer.domElement.style.cursor = 'grab';
+    return;
+  }
 
   const hit = getPointerObject();
   currentHoveredMesh = hit ? hit.object : null;
@@ -2159,10 +2078,8 @@ function updateHover() {
 
   if (currentLayer === 'MAIN' && hit?.type === 'glb-home-node') {
     sceneController.setHoveredNode(hit.destId);
-    updateNavChipsState(currentLayer === 'MAIN' ? 'core' : (activeSubnet?.subnetId || 'core'), hit.destId);
   } else {
     sceneController.setHoveredNode(null);
-    updateNavChipsState(currentLayer === 'MAIN' ? 'core' : (activeSubnet?.subnetId || 'core'), null);
   }
 
   renderer.domElement.style.cursor = hit ? 'pointer' : 'grab';
@@ -2179,7 +2096,7 @@ prefersReducedMotionQuery.addEventListener('change', event => {
 });
 
 function animateAmbientDepthAndBreathing(currentTime) {
-  // (Burst engine disabled)
+  if (isBurstActive || burstVelocities.size > 0) return;
 
   const t = currentTime * 0.001;
   const isReduced = prefersReducedMotion;
@@ -2353,8 +2270,7 @@ window.addEventListener('keydown', event => {
 
   if (event.key === 'c' || event.key === 'C') {
     // CAMERA RESET KEY 'C'
-    // Camera reset key 'C'
-    startTransition(new THREE.Vector3(0, 0.5, 24.0), new THREE.Vector3(0, 0, 0), 850);
+    startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 850);
     return;
   }
 
@@ -2465,6 +2381,7 @@ function animate(currentTime) {
   }
 
   animateAmbientDepthAndBreathing(currentTime);
+  animateBurstState();
   updateCameraTransition();
   controls.update();
 
@@ -2697,32 +2614,35 @@ window.addEventListener('popstate', () => {
   }
 });
 
-// Glassmorphic Top Navbar Click Listeners
-document.querySelectorAll('.top-action-bar .nav-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const route = btn.dataset.nodeRoute;
-    if (route === 'core' || route === 'home') {
-      returnToCore();
-    } else if (route === 'about') {
-      showDetailPresentation(combinedAboutData);
-    } else {
-      enterSubnet(route);
-    }
-  });
-});
-
 function initRouteFromUrl() {
-  // Whenever user reloads/refreshes the site, ALWAYS return to HOME
-  sceneController.setActiveWorld('home');
-  setLayerVisibility('MAIN');
-  setMode('OVERVIEW');
-  setLayerPath('NEURAL NETWORK / OVERVIEW');
-  updateCounters(mainNodeObjects.length + 1, mainEdges.length);
-  returnToCore(false);
+  const params = new URLSearchParams(window.location.search);
+  const redirectedPath = params.get('p');
+  let path = window.location.pathname;
 
-  if (window.location.pathname !== BASE_URL && window.location.pathname !== '/portfolio-website-dedicated/') {
-    history.replaceState({ routeKey: 'home' }, 'DEEPAK R V — Neural Network', BASE_URL);
+  if (redirectedPath) {
+    path = `/portfolio-website-dedicated/${redirectedPath}`.replace(/\/+/g, '/');
+    history.replaceState(null, '', path);
+  }
+
+  const normalizedPath = path.toLowerCase().replace(/\/$/, '');
+
+  if (normalizedPath.endsWith('/about')) {
+    showDetailPresentation(combinedAboutData);
+    updateBrowserRoute('about', false);
+  } else if (normalizedPath.endsWith('/skills')) {
+    enterSubnet('skills', false);
+  } else if (normalizedPath.endsWith('/projects')) {
+    enterSubnet('projects', false);
+  } else if (normalizedPath.endsWith('/experience')) {
+    enterSubnet('experience', false);
+  } else if (normalizedPath.endsWith('/contact')) {
+    enterSubnet('contact', false);
+  } else {
+    setLayerVisibility('MAIN');
+    setMode('OVERVIEW');
+    setLayerPath('NEURAL NETWORK / OVERVIEW');
+    updateCounters(mainNodeObjects.length + 1, mainEdges.length);
+    updateBrowserRoute('home', false);
   }
 }
 
@@ -2749,53 +2669,3 @@ window.addEventListener('resize', () => {
 
 // Run initial layout check
 requestAnimationFrame(animate);
-/* ============================================================
-   CONSOLIDATED NETWORK CONTROL & QUICK NAVIGATION LISTENERS
-   ============================================================ */
-
-const navChips = document.querySelectorAll('.nav-chip[data-node-route]');
-
-function updateNavChipsState(activeRoute, hoveredRoute = null) {
-  navChips.forEach(chip => {
-    const route = chip.dataset.nodeRoute;
-    if (activeRoute && (route === activeRoute || (activeRoute === 'MAIN' && route === 'core'))) {
-      chip.classList.add('active');
-    } else {
-      chip.classList.remove('active');
-    }
-    if (hoveredRoute && (route === hoveredRoute || (hoveredRoute === 'core' && route === 'core'))) {
-      chip.classList.add('node-hovered');
-    } else {
-      chip.classList.remove('node-hovered');
-    }
-  });
-}
-
-navChips.forEach(chip => {
-  chip.addEventListener('click', () => {
-    const route = chip.dataset.nodeRoute;
-    if (route === 'core' || route === 'home') {
-      returnToCore();
-    } else if (route === 'about') {
-      showDetailPresentation(combinedAboutData);
-      updateBrowserRoute('about', true);
-    } else {
-      enterSubnet(route);
-    }
-  });
-
-  chip.addEventListener('mouseenter', () => {
-    const route = chip.dataset.nodeRoute;
-    sceneController.setHoveredNode(route);
-  });
-
-  chip.addEventListener('mouseleave', () => {
-    sceneController.setHoveredNode(null);
-  });
-});
-
-window.sceneController = sceneController;
-window.camera = camera;
-window.THREE = THREE;
-
-

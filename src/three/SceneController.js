@@ -91,7 +91,17 @@ export class V1DOMLabelManager {
     const _camPos = camera.position;
     const halfW = window.innerWidth * 0.5;
     const halfH = window.innerHeight * 0.5;
-    const refDist = 18.0; // Reference camera distance for 1.0x perspective scale
+
+    // Per-world reference distances matched to actual camera presets
+    const worldRefDist = {
+      'home': 24.0,
+      'skills': 25.0,
+      'projects': 17.5,
+      'experience': 20.0,
+      'education': 14.0,
+      'contact': 15.0,
+    };
+    const refDist = worldRefDist[activeWorld] || 20.0;
 
     for (let i = 0; i < this.labels.length; i++) {
       const label = this.labels[i];
@@ -119,15 +129,15 @@ export class V1DOMLabelManager {
       const screenX = (_tmpPos.x * halfW) + halfW;
       const screenY = (-(_tmpPos.y * halfH)) + halfH;
 
-      // 3. Perspective scaling factor with minimum readability floor 1.0x
-      const refDist = 18.0;
+      // 3. Perspective scaling: grows when zooming IN (dist < refDist), stable minimum when zoomed OUT
+      // Floor 0.90x so labels never go below 90% of base size when zoomed far out
       let perspectiveScale = refDist / Math.max(dist, 1.0);
-      perspectiveScale = Math.min(Math.max(perspectiveScale, 1.0), 2.2); // Minimum floor: 1.0x (never shrinks below base font size)
+      perspectiveScale = Math.min(Math.max(perspectiveScale, 0.90), 2.4);
 
       const computedFontSize = Math.round(label.baseFontSize * perspectiveScale);
       const popScale = label.isPopped ? 1.0 : 0.82;
 
-      // 4. Render label physically anchored to 3D node world position with subtle pop scale
+      // 4. Render label physically anchored to 3D node world position
       label.element.style.display = 'block';
       label.element.style.fontSize = `${computedFontSize}px`;
       label.element.style.transform = `translate3d(${screenX}px, ${screenY}px, 0px) translate(-50%, -50%) scale(${popScale})`;
@@ -287,20 +297,21 @@ export class SceneController {
       'contact': 'CONTACT'
     };
 
-    // Swap 3D positions of PROJECTS and EXPERIENCE so order is ABOUT | SKILLS | EXPERIENCE | PROJECTS | CONTACT
-    const projectsGroupObj = this.nodeGroups.get('projects');
-    const expGroupObj = this.nodeGroups.get('experience');
-    if (projectsGroupObj && expGroupObj) {
-      const projPos = projectsGroupObj.position.clone();
-      projectsGroupObj.position.copy(expGroupObj.position);
-      expGroupObj.position.copy(projPos);
-    }
+    // Per-node Y stagger: from left to right in GLB the node order is ABOUT|SKILLS|PROJECTS|EXPERIENCE|CONTACT
+    // Zigzag HIGH/LOW/HIGH/LOW/HIGH — every adjacent pair is always on different rows
+    const homeLabelOffsets = {
+      'hero':       new THREE.Vector3(0,      1.05, 0),  // Root — centered above root sphere
+      'about':      new THREE.Vector3(0,      1.10, 0),  // Node 1 (far left) — HIGH row
+      'skills':     new THREE.Vector3(0,      0.35, 0),  // Node 2 — LOW row
+      'projects':   new THREE.Vector3(0,      1.10, 0),  // Node 3 (center) — HIGH row
+      'experience': new THREE.Vector3(0,      0.35, 0),  // Node 4 — LOW row
+      'contact':    new THREE.Vector3(0,      1.10, 0),  // Node 5 (far right) — HIGH row
+    };
 
     this.nodeGroups.forEach((groupObj, key) => {
       const text = homeLabels[key];
       if (text) {
-        let offset = new THREE.Vector3(0, 0.70, 0);
-        if (key === 'hero') offset = new THREE.Vector3(0, 0.95, 0);
+        const offset = homeLabelOffsets[key] || new THREE.Vector3(0, 0.80, 0);
         this.v1LabelManager.createLabel(key, text, groupObj, 'home', key === 'hero' ? 'root-core' : 'category', offset);
       }
     });
@@ -447,15 +458,18 @@ export class SceneController {
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
 
-      let offset = subnodeOffsets[key] || new THREE.Vector3(0, 0.75, 0);
+      let offset = subnodeOffsets[key] || new THREE.Vector3(0, 0.70, 0);
       if (isRoot) {
-        offset = new THREE.Vector3(0, 1.30, 0);
+        // Root sits clearly below the navbar — lower Y offset so title never clips behind top bar
+        offset = new THREE.Vector3(0, 0.60, 0);
       } else if (isCategory) {
-        if (key === 'cv-category') offset = new THREE.Vector3(-0.45, 1.05, 0);
-        else if (key === 'dl-category') offset = new THREE.Vector3(-0.35, 1.05, 0);
-        else if (key === 'systems-category') offset = new THREE.Vector3(0.35, 1.05, 0);
-        else if (key === 'lang-category') offset = new THREE.Vector3(0.45, 1.05, 0);
-        else offset = new THREE.Vector3(0, 1.05, 0);
+        // Zigzag 4 category labels: AI/ML(LOW) | AI TOOLS(HIGH) | DEVELOPMENT(LOW) | MOBILE/DEVOPS(HIGH)
+        // Every adjacent pair is on a different Y row — zero merge possible
+        if (key === 'cv-category')           offset = new THREE.Vector3(0, 0.45, 0);   // AI / ML — LOW row
+        else if (key === 'dl-category')      offset = new THREE.Vector3(0, 1.15, 0);   // AI TOOLS — HIGH row
+        else if (key === 'systems-category') offset = new THREE.Vector3(0, 0.45, 0);   // DEVELOPMENT — LOW row
+        else if (key === 'lang-category')    offset = new THREE.Vector3(0, 1.15, 0);   // MOBILE / DEVOPS — HIGH row
+        else offset = new THREE.Vector3(0, 0.85, 0);
       }
 
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
