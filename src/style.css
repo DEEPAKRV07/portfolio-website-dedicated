@@ -1934,10 +1934,15 @@ body.detail-mode .intro {
   text-align: center;
   line-height: 1.1;
   white-space: nowrap;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   color: #ffffff !important;
   font-weight: 700 !important;
-  text-shadow: 0 0 14px rgba(0, 255, 136, 0.70), 0 2px 6px rgba(0, 0, 0, 0.95);
+  background: rgba(2, 14, 8, 0.88);
+  border: 1px solid rgba(0, 255, 136, 0.45);
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.30), 0 3px 8px rgba(0, 0, 0, 0.95);
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.80);
   pointer-events: none;
 }
 

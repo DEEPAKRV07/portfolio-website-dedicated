@@ -395,6 +395,32 @@ export class SceneController {
       }
     });
 
+    // Staggered 3D offsets for left and right subnodes so overlap is 100% IMPOSSIBLE
+    const subnodeOffsets = {
+      // Category 1: AI / ML (Left subnode higher Y=1.05, Right subnode lower Y=0.48)
+      'yolov8': new THREE.Vector3(-0.85, 1.05, 0),    // Machine Learning (Shift left + higher)
+      'bytetrack': new THREE.Vector3(0.85, 0.48, 0),   // Deep Learning (Shift right + lower)
+      'opencv': new THREE.Vector3(-0.85, 1.05, 0),     // Computer Vision (Shift left + higher)
+      'fast-scnn': new THREE.Vector3(0.85, 0.48, 0),   // Generative AI (Shift right + lower)
+
+      // Category 2: AI TOOLS
+      'pytorch': new THREE.Vector3(-0.60, 1.05, 0),    // TensorFlow (Shift left + higher)
+      'tensorflow': new THREE.Vector3(0.60, 0.48, 0), // PyTorch (Shift right + lower)
+      'ml-kit': new THREE.Vector3(-0.55, 1.05, 0),     // YOLOv8 (Shift left + higher)
+      'kmeans': new THREE.Vector3(0.55, 0.48, 0),     // OpenCV (Shift right + lower)
+
+      // Category 3: DEVELOPMENT
+      'playwright': new THREE.Vector3(-0.55, 1.05, 0), // Python (Shift left + higher)
+      'sqlite': new THREE.Vector3(0.55, 0.48, 0),     // JavaScript (Shift right + lower)
+      'concurrency': new THREE.Vector3(-0.50, 1.05, 0),// React (Shift left + higher)
+      'pandas': new THREE.Vector3(0.50, 0.48, 0),      // Next.js (Shift right + lower)
+
+      // Category 4: MOBILE / DEVOPS
+      'python': new THREE.Vector3(-0.50, 1.05, 0),     // Three.js (Shift left + higher)
+      'flutter': new THREE.Vector3(0.60, 0.48, 0),    // Flutter / Dart (Shift right + lower)
+      'git': new THREE.Vector3(0.60, 0.48, 0),        // Git & GitHub (Shift right + lower)
+    };
+
     this.skillsNodeGroups.forEach((groupObj, key) => {
       // Hide unmapped 16th GLB node 'nextjs' so Column 4 renders EXACTLY 3 subnodes with 0 dangling edges
       if (key === 'nextjs') {
@@ -421,15 +447,15 @@ export class SceneController {
       const isCategory = categories.includes(key);
       const type = isRoot ? 'root-core' : (isCategory ? 'category' : 'skill-subnode');
 
-      let offset = new THREE.Vector3(0, 0.45, 0); // Small world-space clearance right above sphere
+      let offset = subnodeOffsets[key] || new THREE.Vector3(0, 0.75, 0);
       if (isRoot) {
-        offset = new THREE.Vector3(0, 1.05, 0);
+        offset = new THREE.Vector3(0, 1.30, 0);
       } else if (isCategory) {
-        if (key === 'cv-category') offset = new THREE.Vector3(-0.45, 0.82, 0);
-        else if (key === 'dl-category') offset = new THREE.Vector3(-0.35, 0.82, 0);
-        else if (key === 'systems-category') offset = new THREE.Vector3(0.35, 0.82, 0);
-        else if (key === 'lang-category') offset = new THREE.Vector3(0.45, 0.82, 0);
-        else offset = new THREE.Vector3(0, 0.82, 0);
+        if (key === 'cv-category') offset = new THREE.Vector3(-0.45, 1.05, 0);
+        else if (key === 'dl-category') offset = new THREE.Vector3(-0.35, 1.05, 0);
+        else if (key === 'systems-category') offset = new THREE.Vector3(0.35, 1.05, 0);
+        else if (key === 'lang-category') offset = new THREE.Vector3(0.45, 1.05, 0);
+        else offset = new THREE.Vector3(0, 1.05, 0);
       }
 
       this.v1LabelManager.createLabel(key, title, groupObj, 'skills', type, offset);
