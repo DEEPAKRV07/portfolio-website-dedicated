@@ -1,0 +1,13 @@
+import { chromium } from '@playwright/test';
+import fs from 'node:fs';
+const browser=await chromium.launch({channel:'msedge',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:960}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
+await page.goto('http://127.0.0.1:5173/portfolio-website-dedicated/');
+await page.waitForSelector('canvas');await page.waitForTimeout(1600);
+fs.mkdirSync('docs/screenshots',{recursive:true});
+await page.screenshot({path:'docs/screenshots/home-desktop.png'});
+console.log(JSON.stringify({title:await page.title(),body:(await page.locator('body').innerText()).slice(0,1800),canvas:await page.locator('canvas').boundingBox(),errors},null,2));
+await page.setViewportSize({width:390,height:844});await page.waitForTimeout(500);await page.screenshot({path:'docs/screenshots/home-mobile.png',fullPage:true});
+await page.goto('http://127.0.0.1:5173/portfolio-website-dedicated/#/admin');await page.waitForTimeout(800);console.log((await page.locator('body').innerText()).slice(0,3500));await page.screenshot({path:'docs/screenshots/studio-mobile.png',fullPage:true});
+await browser.close();

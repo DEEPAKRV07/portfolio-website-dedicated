@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: '/portfolio-website-dedicated/',
+  build: { rollupOptions: { input: { main: 'index.html', legacy: 'legacy.html' } } },
   server: {
     watch: {
       ignored: [

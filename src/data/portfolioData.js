@@ -3,7 +3,7 @@
    Centralized data repository for Deepak R V's 3D Portfolio
    ============================================================ */
 
-export const BASE_URL = import.meta.env.BASE_URL || '/';
+export const BASE_URL = import.meta.env?.BASE_URL || '/';
 
 export const MAIN_NODES_MOBILE_POSITIONS = {
   'core':       [0.0,  1.8, 0.0],

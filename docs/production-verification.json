@@ -1,0 +1,15 @@
+{
+  "base": "http://127.0.0.1:4173/portfolio-website-dedicated/",
+  "passed": true,
+  "checks": [
+    "production canvas",
+    "case-study deep link and reload",
+    "owner editing locked without backend",
+    "resume bytes",
+    "mobile experience and overflow",
+    "retained GLB loading",
+    "no console errors or HTTP failures"
+  ],
+  "browser": "Headless Microsoft Edge; desktop and 390px viewport",
+  "verifiedAt": "2026-10-27T10:41:21.847Z"
+}
