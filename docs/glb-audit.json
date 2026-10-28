@@ -1,0 +1,1958 @@
+{
+  "home": {
+    "bytes": 336188,
+    "groups": [
+      {
+        "name": "Node_about",
+        "position": [
+          -4.800000190734863,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_contact",
+        "position": [
+          4.800000190734863,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_experience",
+        "position": [
+          2.4000000953674316,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_hero",
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_projects",
+        "position": [
+          0,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_skills",
+        "position": [
+          -2.4000000953674316,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.8673469462229876,
+          1,
+          0.9693877240708852
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 1.0780000443458562
+          }
+        },
+        "name": "NeuralLabel",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.8500000238418579,
+            0.949999988079071,
+            0.9300000071525574,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.4000000059604645
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.03960000135898589,
+          0.165600009584427,
+          0.14760000457763667
+        ],
+        "name": "NeuralConnection",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.14000000059604645,
+            0.1599999964237213,
+            0.18000000715255737,
+            1
+          ],
+          "metallicFactor": 0.4000000059604645,
+          "roughnessFactor": 0.5
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.23913042914889945,
+          1,
+          0.8913043238828227
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.944000097274781
+          }
+        },
+        "name": "NeuralCore",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.032999999821186066,
+            0.1379999965429306,
+            0.12300000339746475,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.25
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.07699999827146531,
+          0.32200000035762777,
+          0.2869999926090241
+        ],
+        "name": "NeuralCategory",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.04500000178813934,
+            0.05999999865889549,
+            0.07999999821186066,
+            1
+          ],
+          "metallicFactor": 0.6000000238418579,
+          "roughnessFactor": 0.2800000011920929
+        }
+      }
+    ],
+    "clips": [
+      {
+        "name": "about_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.4583333333333335
+      },
+      {
+        "name": "contact_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.625
+      },
+      {
+        "name": "experience_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.7916666666666665
+      },
+      {
+        "name": "hero->aboutAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.0416666666666667
+      },
+      {
+        "name": "hero->contactAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.2083333333333333
+      },
+      {
+        "name": "hero->experienceAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.375
+      },
+      {
+        "name": "hero->projectsAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.5416666666666667
+      },
+      {
+        "name": "hero->skillsAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.7083333333333333
+      },
+      {
+        "name": "hero_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 0.7916666666666666
+      },
+      {
+        "name": "Node_aboutAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.125
+      },
+      {
+        "name": "Node_contactAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.2916666666666665
+      },
+      {
+        "name": "Node_experienceAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.4583333333333335
+      },
+      {
+        "name": "Node_heroAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.4583333333333333
+      },
+      {
+        "name": "Node_projectsAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.625
+      },
+      {
+        "name": "Node_skillsAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.7916666666666665
+      },
+      {
+        "name": "projects_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.9583333333333335
+      },
+      {
+        "name": "skills_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 3.125
+      }
+    ]
+  },
+  "projects": {
+    "bytes": 29544,
+    "groups": [
+      {
+        "name": "Node_football-analysis",
+        "position": [
+          3.6500000953674316,
+          -3.450000047683716,
+          0.05999999865889549
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_forcrux",
+        "position": [
+          -4.400000095367432,
+          2.0999999046325684,
+          0.05999999865889549
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_google-maps",
+        "position": [
+          4.400000095367432,
+          2.0999999046325684,
+          -0.05999999865889549
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_kaatchi-media",
+        "position": [
+          0,
+          4.699999809265137,
+          -0.05000000074505806
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_projects_root",
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_sightmate",
+        "position": [
+          -3.6500000953674316,
+          -3.450000047683716,
+          -0.05999999865889549
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.03960000135898589,
+          0.165600009584427,
+          0.14760000457763667
+        ],
+        "name": "NeuralConnection",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.14000000059604645,
+            0.1599999964237213,
+            0.18000000715255737,
+            1
+          ],
+          "metallicFactor": 0.4000000059604645,
+          "roughnessFactor": 0.5
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.23913042914889945,
+          1,
+          0.8913043238828227
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.944000097274781
+          }
+        },
+        "name": "NeuralCore",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.032999999821186066,
+            0.1379999965429306,
+            0.12300000339746475,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.25
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.07699999827146531,
+          0.32200000035762777,
+          0.2869999926090241
+        ],
+        "name": "NeuralCategory",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.04500000178813934,
+            0.05999999865889549,
+            0.07999999821186066,
+            1
+          ],
+          "metallicFactor": 0.6000000238418579,
+          "roughnessFactor": 0.2800000011920929
+        }
+      }
+    ],
+    "clips": [
+      {
+        "name": "football-analysis->sightmateAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.9166666666666666
+      },
+      {
+        "name": "forcrux->kaatchi-mediaAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1
+      },
+      {
+        "name": "google-maps->football-analysisAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.0833333333333333
+      },
+      {
+        "name": "kaatchi-media->google-mapsAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.1666666666666667
+      },
+      {
+        "name": "Node_football-analysisAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.0416666666666665
+      },
+      {
+        "name": "Node_forcruxAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.125
+      },
+      {
+        "name": "Node_google-mapsAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.2083333333333335
+      },
+      {
+        "name": "Node_kaatchi-mediaAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.2916666666666665
+      },
+      {
+        "name": "Node_projects_rootAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.4166666666666667
+      },
+      {
+        "name": "Node_sightmateAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.375
+      },
+      {
+        "name": "projects_root->football-analysisAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.25
+      },
+      {
+        "name": "projects_root->forcruxAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.3333333333333333
+      },
+      {
+        "name": "projects_root->google-mapsAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.4166666666666667
+      },
+      {
+        "name": "projects_root->kaatchi-mediaAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.5
+      },
+      {
+        "name": "projects_root->sightmateAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.5833333333333333
+      },
+      {
+        "name": "sightmate->forcruxAction.001",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.6666666666666667
+      }
+    ]
+  },
+  "skills": {
+    "bytes": 59624,
+    "groups": [
+      {
+        "name": "Node_bytetrack",
+        "position": [
+          -5.050000190734863,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_concurrency",
+        "position": [
+          1.0499999523162842,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_cv-category",
+        "position": [
+          -6,
+          1.7000000476837158,
+          -0.05000000074505806
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_dl-category",
+        "position": [
+          -2,
+          1.7000000476837158,
+          -0.05000000074505806
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_fast-scnn",
+        "position": [
+          -5.050000190734863,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_flutter",
+        "position": [
+          6.949999809265137,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_git",
+        "position": [
+          6.949999809265137,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_kmeans",
+        "position": [
+          -1.0499999523162842,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_lang-category",
+        "position": [
+          6,
+          1.7000000476837158,
+          -0.05000000074505806
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_ml-kit",
+        "position": [
+          -2.950000047683716,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_nextjs",
+        "position": [
+          5.050000190734863,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_opencv",
+        "position": [
+          -6.949999809265137,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_pandas",
+        "position": [
+          2.950000047683716,
+          -2.950000047683716,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_playwright",
+        "position": [
+          1.0499999523162842,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_python",
+        "position": [
+          5.050000190734863,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_pytorch",
+        "position": [
+          -2.950000047683716,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_skills_root",
+        "position": [
+          0,
+          5.099999904632568,
+          -0.30000001192092896
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_sqlite",
+        "position": [
+          2.950000047683716,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_systems-category",
+        "position": [
+          2,
+          1.7000000476837158,
+          -0.05000000074505806
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_tensorflow",
+        "position": [
+          -1.0499999523162842,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_yolov8",
+        "position": [
+          -6.949999809265137,
+          -1.0499999523162842,
+          -0.019999999552965164
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.03960000135898589,
+          0.165600009584427,
+          0.14760000457763667
+        ],
+        "name": "NeuralConnection",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.14000000059604645,
+            0.1599999964237213,
+            0.18000000715255737,
+            1
+          ],
+          "metallicFactor": 0.4000000059604645,
+          "roughnessFactor": 0.5
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.23913042914889945,
+          1,
+          0.8913043238828227
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.944000097274781
+          }
+        },
+        "name": "NeuralCore",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.032999999821186066,
+            0.1379999965429306,
+            0.12300000339746475,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.25
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.026399999266862872,
+          0.11039999953508373,
+          0.09839999694228174
+        ],
+        "name": "NeuralNode",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.029999999329447746,
+            0.03500000014901161,
+            0.05000000074505806,
+            1
+          ],
+          "metallicFactor": 0.75,
+          "roughnessFactor": 0.3499999940395355
+        }
+      }
+    ],
+    "clips": [
+      {
+        "name": "cv-category->bytetrackAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.2916666666666665
+      },
+      {
+        "name": "cv-category->fast-scnnAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.375
+      },
+      {
+        "name": "cv-category->opencvAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.4583333333333335
+      },
+      {
+        "name": "cv-category->yolov8Action",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.5416666666666665
+      },
+      {
+        "name": "dl-category->kmeansAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.625
+      },
+      {
+        "name": "dl-category->ml-kitAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.7083333333333335
+      },
+      {
+        "name": "dl-category->pytorchAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.7916666666666665
+      },
+      {
+        "name": "dl-category->tensorflowAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.875
+      },
+      {
+        "name": "lang-category->flutterAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.9583333333333335
+      },
+      {
+        "name": "lang-category->gitAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.0416666666666665
+      },
+      {
+        "name": "lang-category->nextjsAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.125
+      },
+      {
+        "name": "lang-category->pythonAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.2083333333333335
+      },
+      {
+        "name": "Node_bytetrackAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.9166666666666665
+      },
+      {
+        "name": "Node_concurrencyAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4
+      },
+      {
+        "name": "Node_cv-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.5416666666666667
+      },
+      {
+        "name": "Node_dl-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.625
+      },
+      {
+        "name": "Node_fast-scnnAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.083333333333333
+      },
+      {
+        "name": "Node_flutterAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.166666666666667
+      },
+      {
+        "name": "Node_gitAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.25
+      },
+      {
+        "name": "Node_kmeansAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.333333333333333
+      },
+      {
+        "name": "Node_lang-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.7083333333333333
+      },
+      {
+        "name": "Node_ml-kitAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.416666666666667
+      },
+      {
+        "name": "Node_nextjsAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.5
+      },
+      {
+        "name": "Node_opencvAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.583333333333333
+      },
+      {
+        "name": "Node_pandasAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.666666666666667
+      },
+      {
+        "name": "Node_playwrightAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.75
+      },
+      {
+        "name": "Node_pythonAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.833333333333333
+      },
+      {
+        "name": "Node_pytorchAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 4.916666666666667
+      },
+      {
+        "name": "Node_skills_rootAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.4166666666666667
+      },
+      {
+        "name": "Node_sqliteAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 5
+      },
+      {
+        "name": "Node_systems-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.7916666666666667
+      },
+      {
+        "name": "Node_tensorflowAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 5.083333333333333
+      },
+      {
+        "name": "Node_yolov8Action",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 5.166666666666667
+      },
+      {
+        "name": "skills_root->cv-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.9166666666666666
+      },
+      {
+        "name": "skills_root->dl-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1
+      },
+      {
+        "name": "skills_root->lang-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.0833333333333333
+      },
+      {
+        "name": "skills_root->systems-categoryAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.1666666666666667
+      },
+      {
+        "name": "systems-category->concurrencyAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.2916666666666665
+      },
+      {
+        "name": "systems-category->pandasAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.375
+      },
+      {
+        "name": "systems-category->playwrightAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.4583333333333335
+      },
+      {
+        "name": "systems-category->sqliteAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 3.5416666666666665
+      }
+    ]
+  },
+  "experience": {
+    "bytes": 412636,
+    "groups": [
+      {
+        "name": "Node_experience_root",
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_forcrux-exp",
+        "position": [
+          -10.800000190734863,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_kaatchi-exp",
+        "position": [
+          -3.5999999046325684,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_msme-exp",
+        "position": [
+          3.5999999046325684,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_quality-exp",
+        "position": [
+          10.800000190734863,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.03960000135898589,
+          0.165600009584427,
+          0.14760000457763667
+        ],
+        "name": "NeuralConnection",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.14000000059604645,
+            0.1599999964237213,
+            0.18000000715255737,
+            1
+          ],
+          "metallicFactor": 0.4000000059604645,
+          "roughnessFactor": 0.5
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.8673469462229876,
+          1,
+          0.9693877240708852
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 1.0780000443458562
+          }
+        },
+        "name": "NeuralLabel",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.8500000238418579,
+            0.949999988079071,
+            0.9300000071525574,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.4000000059604645
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.23913042914889945,
+          1,
+          0.8913043238828227
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.944000097274781
+          }
+        },
+        "name": "NeuralCore",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.032999999821186066,
+            0.1379999965429306,
+            0.12300000339746475,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.25
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.026399999266862872,
+          0.11039999953508373,
+          0.09839999694228174
+        ],
+        "name": "NeuralNode",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.029999999329447746,
+            0.03500000014901161,
+            0.05000000074505806,
+            1
+          ],
+          "metallicFactor": 0.75,
+          "roughnessFactor": 0.3499999940395355
+        }
+      }
+    ],
+    "clips": [
+      {
+        "name": "experience_root->forcrux-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.0416666666666667
+      },
+      {
+        "name": "experience_root->kaatchi-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.2083333333333333
+      },
+      {
+        "name": "experience_root->msme-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.375
+      },
+      {
+        "name": "experience_root->quality-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.5416666666666667
+      },
+      {
+        "name": "experience_root_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 0.7916666666666666
+      },
+      {
+        "name": "forcrux-exp_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.2916666666666665
+      },
+      {
+        "name": "kaatchi-exp_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.4583333333333335
+      },
+      {
+        "name": "msme-exp_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.625
+      },
+      {
+        "name": "Node_experience_rootAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.4583333333333333
+      },
+      {
+        "name": "Node_forcrux-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.9583333333333333
+      },
+      {
+        "name": "Node_kaatchi-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.125
+      },
+      {
+        "name": "Node_msme-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.2916666666666665
+      },
+      {
+        "name": "Node_quality-expAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.4583333333333335
+      },
+      {
+        "name": "quality-exp_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.7916666666666665
+      }
+    ]
+  },
+  "education": {
+    "bytes": 333068,
+    "groups": [
+      {
+        "name": "Node_education_root",
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_sa_engineering_college",
+        "position": [
+          0,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.03960000135898589,
+          0.165600009584427,
+          0.14760000457763667
+        ],
+        "name": "NeuralConnection",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.14000000059604645,
+            0.1599999964237213,
+            0.18000000715255737,
+            1
+          ],
+          "metallicFactor": 0.4000000059604645,
+          "roughnessFactor": 0.5
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.8673469462229876,
+          1,
+          0.9693877240708852
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 1.0780000443458562
+          }
+        },
+        "name": "NeuralLabel",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.8500000238418579,
+            0.949999988079071,
+            0.9300000071525574,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.4000000059604645
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.23913042914889945,
+          1,
+          0.8913043238828227
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.944000097274781
+          }
+        },
+        "name": "NeuralCore",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.032999999821186066,
+            0.1379999965429306,
+            0.12300000339746475,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.25
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.07699999827146531,
+          0.32200000035762777,
+          0.2869999926090241
+        ],
+        "name": "NeuralCategory",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.04500000178813934,
+            0.05999999865889549,
+            0.07999999821186066,
+            1
+          ],
+          "metallicFactor": 0.6000000238418579,
+          "roughnessFactor": 0.2800000011920929
+        }
+      }
+    ],
+    "clips": [
+      {
+        "name": "education_root->sa_engineering_collegeAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.1666666666666667
+      },
+      {
+        "name": "education_root_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 0.9166666666666666
+      },
+      {
+        "name": "Node_education_rootAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.5416666666666666
+      },
+      {
+        "name": "Node_sa_engineering_collegeAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.6666666666666667
+      },
+      {
+        "name": "sa_engineering_college_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.0416666666666665
+      }
+    ]
+  },
+  "contact": {
+    "bytes": 279956,
+    "groups": [
+      {
+        "name": "Node_contact_email",
+        "position": [
+          -3.5999999046325684,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_contact_github",
+        "position": [
+          1.2000000476837158,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_contact_linkedin",
+        "position": [
+          -1.2000000476837158,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_contact_resume",
+        "position": [
+          3.5999999046325684,
+          -3.200000047683716,
+          0
+        ],
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Node_contact_root",
+        "scale": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.8673469462229876,
+          1,
+          0.9693877240708852
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 1.0780000443458562
+          }
+        },
+        "name": "NeuralLabel",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.8500000238418579,
+            0.949999988079071,
+            0.9300000071525574,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.4000000059604645
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.03960000135898589,
+          0.165600009584427,
+          0.14760000457763667
+        ],
+        "name": "NeuralConnection",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.14000000059604645,
+            0.1599999964237213,
+            0.18000000715255737,
+            1
+          ],
+          "metallicFactor": 0.4000000059604645,
+          "roughnessFactor": 0.5
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.23913042914889945,
+          1,
+          0.8913043238828227
+        ],
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.944000097274781
+          }
+        },
+        "name": "NeuralCore",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.032999999821186066,
+            0.1379999965429306,
+            0.12300000339746475,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 0.25
+        }
+      },
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          0.026399999266862872,
+          0.11039999953508373,
+          0.09839999694228174
+        ],
+        "name": "NeuralNode",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            0.029999999329447746,
+            0.03500000014901161,
+            0.05000000074505806,
+            1
+          ],
+          "metallicFactor": 0.75,
+          "roughnessFactor": 0.3499999940395355
+        }
+      }
+    ],
+    "clips": [
+      {
+        "name": "contact_email_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.5416666666666665
+      },
+      {
+        "name": "contact_github_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.7083333333333335
+      },
+      {
+        "name": "contact_linkedin_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 2.875
+      },
+      {
+        "name": "contact_resume_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 3.0416666666666665
+      },
+      {
+        "name": "contact_root->contact_emailAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.1666666666666667
+      },
+      {
+        "name": "contact_root->contact_githubAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.3333333333333333
+      },
+      {
+        "name": "contact_root->contact_linkedinAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.5
+      },
+      {
+        "name": "contact_root->contact_resumeAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 1.6666666666666667
+      },
+      {
+        "name": "contact_root_labelAction",
+        "channels": 2,
+        "paths": [
+          "rotation",
+          "scale"
+        ],
+        "end": 0.9166666666666666
+      },
+      {
+        "name": "Node_contact_emailAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.1666666666666665
+      },
+      {
+        "name": "Node_contact_githubAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.3333333333333335
+      },
+      {
+        "name": "Node_contact_linkedinAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.5
+      },
+      {
+        "name": "Node_contact_resumeAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 2.6666666666666665
+      },
+      {
+        "name": "Node_contact_rootAction",
+        "channels": 1,
+        "paths": [
+          "scale"
+        ],
+        "end": 0.5416666666666666
+      }
+    ]
+  }
+}

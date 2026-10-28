@@ -1,43 +1,69 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { assetManager } from './three/AssetManager.js';
+import { sceneController } from './three/SceneController.js';
+import {
+  BASE_URL,
+  MAIN_NODES_MOBILE_POSITIONS,
+  MAIN_NODES,
+  COMBINED_ABOUT_DATA,
+  SUBNET_DEFINITIONS,
+} from './data/portfolioData.js';
+
+// Internal compatibility aliases
+const combinedAboutData = COMBINED_ABOUT_DATA;
+const subnetDefinitions = SUBNET_DEFINITIONS;
+const mainNodesMobilePositions = MAIN_NODES_MOBILE_POSITIONS;
+const mainNodes = MAIN_NODES;
 
 /*
  * ============================================================
  * DEEPAK R V — INSIDE MY NEURAL NETWORK
- * SPRINT — RESTORE THE ORIGINAL RANDOM 3D BURST + RECONSTRUCT + SQUARE AMBIENT APP ICONS
+ * SPRINT 1 — GLB ASSET INTEGRATION FOUNDATION
  * ============================================================
  */
 
 /* ============================================================
-   NEURAL INITIALIZATION SCREEN HANDLER
+   NEURAL INITIALIZATION SCREEN HANDLER & GLB PRELOADER
    ============================================================ */
 
 const loaderEl = document.getElementById('neuralLoader');
 const loaderStatusEl = document.getElementById('loaderStatus');
 const loaderBarFillEl = document.getElementById('loaderBarFill');
 
-let loadProgress = 0;
-const loadInterval = setInterval(() => {
-  loadProgress += 15;
-  if (loaderBarFillEl) loaderBarFillEl.style.width = `${Math.min(loadProgress, 90)}%`;
-
-  if (loadProgress === 30 && loaderStatusEl) {
-    loaderStatusEl.textContent = 'CONSTRUCTING COMPUTATIONAL GRAPH...';
-  } else if (loadProgress === 60 && loaderStatusEl) {
-    loaderStatusEl.textContent = 'CONNECTING NEURAL NODES...';
-  } else if (loadProgress >= 90 && loaderStatusEl) {
-    loaderStatusEl.textContent = 'SYSTEM ONLINE';
+assetManager.loadAll((ratio, statusText, assetId) => {
+  const percent = Math.min(Math.round(ratio * 100), 100);
+  if (loaderBarFillEl) loaderBarFillEl.style.width = `${percent}%`;
+  if (loaderStatusEl) loaderStatusEl.textContent = statusText;
+  if (assetId) {
+    console.log(`[ASSET COMPLETE] ${assetId} (${percent}%)`);
   }
+}).then(() => {
+  console.log('[ALL ASSETS COMPLETE] Initializing 3D scenes...');
+  try {
+    sceneController.initHomeScene(scene, assetManager.getAsset('home'), camera, controls);
+    sceneController.initProjectsScene(scene, assetManager.getAsset('projects'), camera);
+    sceneController.initSkillsScene(scene, assetManager.getAsset('skills'), camera);
+    sceneController.initExperienceScene(scene, assetManager.getAsset('experience'), camera);
+    sceneController.initEducationScene(scene, assetManager.getAsset('education'), camera);
+    sceneController.initContactScene(scene, assetManager.getAsset('contact'), camera);
 
-  if (loadProgress >= 100) {
-    clearInterval(loadInterval);
+    // Explicitly guarantee activeWorld = 'home' on first load
+    sceneController.setActiveWorld('home');
+
+    // Resolve initial route after 3D scenes are fully ready
+    initRouteFromUrl();
+  } catch (err) {
+    console.error('[3D Scene Init Error]', err);
+  } finally {
     if (loaderBarFillEl) loaderBarFillEl.style.width = '100%';
+    if (loaderStatusEl) loaderStatusEl.textContent = 'SYSTEM ONLINE — 3D GRAPH READY';
     setTimeout(() => {
       if (loaderEl) loaderEl.classList.add('hidden');
-    }, 280);
+    }, 350);
   }
-}, 45);
+});
 
 /* ============================================================
    SCENE & RENDERER SETUP
@@ -52,7 +78,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   300
 );
-camera.position.set(0, 1.2, 30);
+camera.position.set(0, 0.5, 24.0); // Matched to home world camera preset for no jump on first load
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -67,22 +93,36 @@ document.body.appendChild(renderer.domElement);
    ENVIRONMENTAL ATMOSPHERE & LIGHTING (Rich 3D Laboratory Scene)
    ============================================================ */
 
+// Primary neon green ambient — sets the overall neural network mood
 const ambientLight = new THREE.AmbientLight(0x00ff88, 0.35);
 scene.add(ambientLight);
 
-const dirLight = new THREE.DirectionalLight(0x00ff88, 0.85);
+// Directional key light (neon green)
+const dirLight = new THREE.DirectionalLight(0x00ff88, 0.75);
 dirLight.position.set(10, 20, 15);
 scene.add(dirLight);
 
-const pointLight = new THREE.PointLight(0x00ff88, 1.6, 60);
+// Neutral white fill — ensures label text geometry is legible
+// (GLB text meshes use MeshStandardMaterial and need diffuse illumination)
+const fillLight = new THREE.DirectionalLight(0xffffff, 0.50);
+fillLight.position.set(-8, 5, 10);
+scene.add(fillLight);
+
+// Soft back-light for depth
+const backLight = new THREE.DirectionalLight(0x004422, 0.35);
+backLight.position.set(0, -10, -15);
+scene.add(backLight);
+
+// Central point glow (reduced intensity — was too bright)
+const pointLight = new THREE.PointLight(0x00ff88, 1.0, 55);
 pointLight.position.set(0, 0, 0);
 scene.add(pointLight);
 
 /* Subdued 3D Perspective Floor Grid */
 const floorGrid = new THREE.PolarGridHelper(32, 16, 8, 64, 0x00ff88, 0x004422);
-floorGrid.position.set(0, -11.5, 0);
+floorGrid.position.set(0, -7.5, 0);
 floorGrid.material.transparent = true;
-floorGrid.material.opacity = 0.22; // Subdued grounding floor
+floorGrid.material.opacity = 0.15;
 scene.add(floorGrid);
 
 /* Volumetric 3D Particle Cloud */
@@ -121,11 +161,11 @@ controls.rotateSpeed = 0.48;
 controls.zoomSpeed = 0.72;
 controls.minAzimuthAngle = -Infinity;
 controls.maxAzimuthAngle = Infinity;
-controls.minPolarAngle = THREE.MathUtils.degToRad(8);
-controls.maxPolarAngle = THREE.MathUtils.degToRad(172);
-controls.minDistance = 6;
-controls.maxDistance = 75;
-controls.target.set(0, 0, 0);
+controls.minPolarAngle = THREE.MathUtils.degToRad(15);  // No extreme top-down view
+controls.maxPolarAngle = THREE.MathUtils.degToRad(155); // No extreme bottom-up view
+controls.minDistance = 7;     // Cannot enter geometry
+controls.maxDistance = 55;    // Cannot zoom so far network disappears
+controls.target.set(0, -0.5, 0); // Orbit around network midpoint (hero at Y=0.7, dest at Y=-2.5, mid≈-0.9, target slightly above for upper-center composition)
 
 /* ============================================================
    COLOR SYSTEM
@@ -446,18 +486,44 @@ function showSkillContextPanel(skillData) {
 
   skillUsedListEl.innerHTML = '';
   if (Array.isArray(skillData.usedIn)) {
-    for (const proj of skillData.usedIn) {
+    for (const projName of skillData.usedIn) {
       const itemEl = document.createElement('div');
       itemEl.className = 'skill-used-item';
+
+      const leftEl = document.createElement('div');
+      leftEl.style.display = 'flex';
+      leftEl.style.alignItems = 'center';
+      leftEl.style.gap = '8px';
 
       const dot = document.createElement('span');
       dot.className = 'skill-used-dot';
 
       const text = document.createElement('span');
-      text.textContent = proj;
+      text.textContent = projName;
 
-      itemEl.appendChild(dot);
-      itemEl.appendChild(text);
+      leftEl.appendChild(dot);
+      leftEl.appendChild(text);
+      itemEl.appendChild(leftEl);
+
+      // Match project in SUBNET_DEFINITIONS.projects.categories
+      const matchedProj = SUBNET_DEFINITIONS.projects?.categories?.find(p =>
+        p.label?.toLowerCase().includes(projName.toLowerCase()) ||
+        p.title?.toLowerCase().includes(projName.toLowerCase()) ||
+        projName.toLowerCase().includes(p.label?.toLowerCase())
+      );
+
+      if (matchedProj) {
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'skill-view-proj-btn';
+        viewBtn.textContent = 'VIEW PROJECT ↗';
+        viewBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          hideSkillContextPanel();
+          showDetailPresentation(matchedProj);
+        });
+        itemEl.appendChild(viewBtn);
+      }
+
       skillUsedListEl.appendChild(itemEl);
     }
   }
@@ -632,22 +698,9 @@ function isMobileViewport() {
   return window.innerWidth < 768;
 }
 
-const mainNodesMobilePositions = {
-  'core':       [0.0,  1.8, 0.0],
-  'about':      [0.0,  6.2, 0.5],
-  'skills':     [-3.6, -1.8, 0.0],
-  'projects':   [0.0, -1.8, 0.0],
-  'experience': [3.6, -1.8, 0.0],
-  'contact':    [0.0, -5.8, 0.5],
-};
-
-const mainNodes = [
-  { id: 'about', label: 'ABOUT', type: 'primary', position: [0.0, 7.8, 1.8] },
-  { id: 'skills', label: 'SKILLS', type: 'primary', position: [-9.2, 3.8, -1.2] },
-  { id: 'experience', label: 'EXPERIENCE', type: 'primary', position: [9.2, 3.8, 1.2] },
-  { id: 'projects', label: 'PROJECTS', type: 'primary', position: [-6.8, -5.2, -1.8] },
-  { id: 'contact', label: 'CONTACT', type: 'primary', position: [6.8, -5.2, 0.8] },
-];
+/* ============================================================
+   MAIN NODE & POSITION DATA IMPORTED FROM PORTFOLIODATA.JS
+   ============================================================ */
 
 const mainNodeMap = new Map();
 const mainNodeObjects = [];
@@ -909,7 +962,6 @@ function createLogoTexture(type, imgElement = null) {
   return texture;
 }
 
-const BASE_URL = import.meta.env.BASE_URL || '/';
 
 const logoDataList = [
   {
@@ -1193,508 +1245,8 @@ connectMain('contact', 'experience', 0.32);
 connectMain('experience', 'about', 0.32);
 
 /* ============================================================
-   ONE COMBINED ABOUT PRESENTATION DATA (RESUME PDF CTA HERE ONLY)
+   DATA MODELS IMPORTED FROM PORTFOLIODATA.JS
    ============================================================ */
-
-const combinedAboutData = {
-  kicker: 'PROFILE & CAPABILITIES',
-  title: 'DEEPAK R V',
-  subtitle: 'AI / ML ENGINEER & SOFTWARE DEVELOPER',
-  sections: [
-    {
-      heading: 'PROFESSIONAL SUMMARY',
-      content: 'B.E. Computer Science & Engineering (AIML Specialization) graduate specializing in real-time Computer Vision, Deep Learning, spatial decision reasoning, automated lead data engineering, and full-stack web platforms. Proven experience designing object detection and tracking pipelines (YOLOv8, ByteTrack), spatial navigation systems (SightMate), production data harvesting platforms (Google Maps Lead Intelligence), and design-system-driven web applications (FORCRUX, Kaatchi Media).',
-    },
-    {
-      heading: 'CORE TECHNICAL FOCUS',
-      bullets: [
-        'Computer Vision & Tracking — YOLOv8, ByteTrack, OpenCV, Fast-SCNN, Optical Flow, K-Means Clustering',
-        'Deep Learning & Edge AI — TensorFlow Lite, PyTorch, Google ML Kit OCR, Model Quantization, Spatial Decision Fusion',
-        'Data Engineering & Automation — Python, Playwright, SQLite Master DB, ThreadPoolExecutor Concurrency, Pandas',
-        'Full-Stack & Web Engineering — Next.js, React, TypeScript, GSAP Motion Design, Responsive CSS3/HTML5, Payload CMS',
-      ],
-    },
-    {
-      heading: 'CAREER MILESTONES',
-      bullets: [
-        'Lead Frontend Engineer & Design Systems — FORCRUX Studio Platform',
-        'Software Developer Intern / Frontend Developer — Kaatchi Media (kaatchimedia.com)',
-        'Embedded Systems Intern — MSME Technology Development Centre (MSME TDC)',
-        'Digital Media Contributor — Quality Threads',
-      ],
-    },
-    {
-      heading: 'EDUCATION & QUALIFICATIONS',
-      content: 'Bachelor of Engineering (B.E.) in Computer Science and Engineering (AI/ML Specialization) — S.A. Engineering College, Chennai (2022–2026) | CGPA: 8.1 / 10.',
-    },
-    {
-      heading: 'CONTACT & SOCIAL CHANNELS',
-      bullets: [
-        'Email: deepakvetrivelan@gmail.com',
-        'LinkedIn: linkedin.com/in/deepakrv07/',
-        'GitHub: github.com/DEEPAKRV07',
-      ],
-    },
-  ],
-  tags: ['AI/ML Engineer', 'Computer Vision', 'B.E. CSE (AIML)', 'YOLOv8', 'Playwright', 'Next.js', 'PyTorch', 'SQLite'],
-  actions: [
-    { label: 'VIEW RESUME PDF', type: 'primary', url: `${BASE_URL}my_resume.pdf` },
-  ],
-};
-
-/* ============================================================
-   SUBNETWORK DEFINITIONS (DETERMINISTIC 3D LAYOUT FOR SKILLS)
-   ============================================================ */
-
-const subnetDefinitions = {
-  skills: {
-    id: 'skills',
-    title: 'SKILLS & TECHNOLOGIES',
-    subtitle: 'COMPUTATIONAL KNOWLEDGE GRAPH',
-    categories: [
-      {
-        id: 'cv-category',
-        label: 'COMPUTER VISION',
-        position: [-6.8, 3.8, 1.8],
-        skills: [
-          { id: 'yolov8', label: 'YOLOv8', position: [-9.8, 5.5, 2.5], name: 'YOLOv8', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System'], tags: ['Object Detection', 'Real-Time Vision'] },
-          { id: 'bytetrack', label: 'ByteTrack', position: [-9.2, 2.2, 0.8], name: 'ByteTrack', category: 'Computer Vision', usedIn: ['Football Analysis System'], tags: ['Multi-Object Tracking', 'Re-ID'] },
-          { id: 'opencv', label: 'OpenCV', position: [-5.2, 6.2, 3.2], name: 'OpenCV', category: 'Computer Vision', usedIn: ['SightMate', 'Football Analysis System', 'MSME Center'], tags: ['Image Geometry', 'Frame Processing'] },
-          { id: 'fast-scnn', label: 'Fast-SCNN', position: [-10.5, 3.6, -1.0], name: 'Fast-SCNN', category: 'Computer Vision', usedIn: ['SightMate'], tags: ['Semantic Segmentation', 'Real-Time'] },
-        ],
-      },
-      {
-        id: 'dl-category',
-        label: 'DEEP LEARNING & AI',
-        position: [6.8, 3.8, -1.8],
-        skills: [
-          { id: 'pytorch', label: 'PyTorch', position: [5.2, 6.2, -3.2], name: 'PyTorch', category: 'Deep Learning & AI', usedIn: ['Football Analysis System', 'Custom Vision Models'], tags: ['Model Training', 'Neural Networks'] },
-          { id: 'tensorflow', label: 'TensorFlow', position: [9.8, 5.5, -2.5], name: 'TensorFlow Lite', category: 'Deep Learning & AI', usedIn: ['SightMate (TFLite)'], tags: ['On-Device Inference', 'TFLite'] },
-          { id: 'ml-kit', label: 'ML Kit', position: [4.2, 2.0, 2.2], name: 'Google ML Kit', category: 'Deep Learning & AI', usedIn: ['SightMate (OCR & Translation)'], tags: ['Text Recognition', 'On-Device AI'] },
-          { id: 'kmeans', label: 'K-Means', position: [9.2, 2.2, -0.8], name: 'K-Means Clustering', category: 'Deep Learning & AI', usedIn: ['Football Analysis System'], tags: ['Color Clustering', 'Team Assignment'] },
-        ],
-      },
-      {
-        id: 'systems-category',
-        label: 'SYSTEMS & DEPLOYMENT',
-        position: [-6.8, -3.8, -1.8],
-        skills: [
-          { id: 'playwright', label: 'Playwright', position: [-9.8, -5.5, -2.5], name: 'Playwright & Chromium', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform'], tags: ['Browser Automation', 'Scraping'] },
-          { id: 'sqlite', label: 'SQLite', position: [-9.2, -2.2, -0.8], name: 'SQLite Master DB', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform', 'FORCRUX'], tags: ['Stateful Queue', 'Item Checkpoints'] },
-          { id: 'concurrency', label: 'Concurrency', position: [-5.2, -6.2, -3.2], name: 'ThreadPoolExecutor', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform'], tags: ['Multithreading', 'Parallel Crawling'] },
-          { id: 'pandas', label: 'Pandas', position: [-4.2, -2.0, 2.2], name: 'Pandas & Data Pipelines', category: 'Systems & Deployment', usedIn: ['Google Maps Lead Platform', 'Football Analysis'], tags: ['Data Processing', 'Analytics'] },
-        ],
-      },
-      {
-        id: 'lang-category',
-        label: 'LANGUAGES & TOOLS',
-        position: [6.8, -3.8, 1.8],
-        skills: [
-          { id: 'python', label: 'Python', position: [9.8, -5.5, 2.5], name: 'Python', category: 'Languages & Tools', usedIn: ['Google Maps Platform', 'SightMate', 'Football Analysis'], tags: ['Core Language', 'AI/ML Engineering'] },
-          { id: 'flutter', label: 'Flutter / Dart', position: [5.2, -6.2, 3.2], name: 'Flutter / Dart', category: 'Languages & Tools', usedIn: ['SightMate Mobile App'], tags: ['Cross-Platform UI', 'Mobile Apps'] },
-          { id: 'nextjs', label: 'Next.js / TS', position: [9.2, -2.2, 0.8], name: 'Next.js, React & TS', category: 'Languages & Tools', usedIn: ['FORCRUX Studio Platform'], tags: ['Frontend Engineering', 'GSAP'] },
-          { id: 'git', label: 'Git & GitHub', position: [4.2, -2.0, -2.2], name: 'Git & GitHub', category: 'Languages & Tools', usedIn: ['All Projects & Workflows'], tags: ['Version Control', 'DevOps'] },
-        ],
-      },
-    ],
-  },
-
-  projects: {
-    id: 'projects',
-    title: 'ENGINEERING PROJECTS',
-    subtitle: 'APPLIED AI, VISION & DATA SYSTEMS',
-    categories: [
-      {
-        id: 'forcrux',
-        label: 'FORCRUX',
-        position: [-7.5, 3.8, 1.2],
-        kicker: 'PRIVATE PROJECT / CASE STUDY',
-        title: 'FORCRUX',
-        subtitle: 'Premium Digital Engineering & Technology Studio Platform',
-        sections: [
-          {
-            heading: 'OVERVIEW',
-            content: 'FORCRUX is a premium digital engineering and technology studio platform designed to present the company’s software services, team, portfolio, case studies, and client conversion pipelines through an interactive digital web experience.',
-          },
-          {
-            heading: 'MY ROLE & RESPONSIBILITIES',
-            content: 'Lead Frontend Engineer & Design Systems Contributor. Engineered the component-based Next.js architecture, responsive virtual-camera composition, centralized GSAP motion design engine, video streaming optimization, and administrative Control OS direction.',
-          },
-          {
-            heading: 'TECHNICAL ARCHITECTURE',
-            content: 'Full-stack platform built with Next.js App Router, React, TypeScript, Payload CMS v3, and PostgreSQL. Features CMS-decoupled section providers, custom GSAP motion tokens, responsive viewport-specific video framing, and integer-pixel GPU compositing.',
-          },
-          {
-            heading: 'KEY CONTRIBUTIONS & METRICS',
-            bullets: [
-              'Centralized GSAP Motion Engine with performance budgets & ScrollTrigger reveals',
-              'Hero Video Payload Optimization: 7.43 MB → 1.98 MB WebM (73% reduction) & 3.50 MB MP4 fallback with faststart streaming',
-              'Virtual Camera Composition: Responsive framing across 8 viewport classes from mobile to ultrawide',
-              'Testimonial System: Seamless infinite circular carousel with touch-swipe, keyboard controls, and IntersectionObserver navigation visibility',
-            ],
-          },
-          {
-            heading: 'TECHNOLOGY STACK',
-            bullets: [
-              'Next.js & React — Component Architecture & App Router',
-              'TypeScript — Strict Type Safety & System Interfaces',
-              'GSAP & ScrollTrigger — Centralized Motion Design System',
-              'Payload CMS v3 & PostgreSQL — Content & Data Management',
-              'WebM / MP4 / WebP — GPU-Accelerated Responsive Streaming',
-            ],
-          },
-        ],
-        tags: ['Next.js', 'React', 'TypeScript', 'GSAP', 'Payload CMS', 'PostgreSQL', 'Design Systems', 'Private Case Study'],
-        actions: [],
-      },
-
-      {
-        id: 'google-maps',
-        label: 'GOOGLE MAPS PLATFORM',
-        position: [7.5, 3.8, -1.2],
-        kicker: 'DATA ENGINEERING & AUTOMATION',
-        title: 'Google Maps Lead Intelligence Platform',
-        subtitle: 'Production-Grade Automated Discovery & Contact Enrichment Pipeline',
-        sections: [
-          {
-            heading: 'OVERVIEW',
-            content: 'A production-grade Python/Playwright platform that automates multi-category, multi-location business discovery from Google Maps, enriches leads through concurrent website crawling, validates data, persists state in SQLite, and ranks prospects using contactability scoring.',
-          },
-          {
-            heading: 'SYSTEM ARCHITECTURE',
-            content: 'Multi-stage data pipeline: Round-robin multi-category scheduler → Playwright Google Maps harvesting → SQLite master database & item-level queue engine → ThreadPoolExecutor multithreaded website contact crawler → Data validation & normalization → Lead scoring (A+ to D) → FORCRUX AI digital-gap analyzer → HTML/Excel dashboards & CRM exporters.',
-          },
-          {
-            heading: 'MEASURED VALIDATION METRICS & RESULTS',
-            bullets: [
-              '50 Scheduled Search Tasks across 10 Categories & 5 Geographic Locations',
-              '242 Harvested Leads with 97.5% Phone, 82.2% Website & 54.1% Email Coverage',
-              '2.51× Measured Website-Enrichment Speedup via ThreadPoolExecutor parallel workers',
-              '0 Extraction Failures with SQLite item-level resume state recovery',
-            ],
-          },
-          {
-            heading: 'KEY FEATURES & CAPABILITIES',
-            bullets: [
-              'Multi-Category Interleaved Round-Robin Scheduler',
-              'SQLite Item-Level Resume System (Category → Location → Business Index)',
-              'Persistent Work Queues & Duplicate URL Filtering',
-              'Multithreaded Email, Social (FB, IG, LinkedIn, WhatsApp) & Form Crawling',
-              'Contactability Lead Prioritization Scoring (A+ to D)',
-              'FORCRUX AI Website Digital-Gap & Sales Pitch Analysis',
-              'Standalone Dark HTML & Excel Dashboards + HubSpot/Zoho/Salesforce CSV Exporters',
-            ],
-          },
-          {
-            heading: 'TECHNOLOGY STACK',
-            bullets: [
-              'Python — Pipeline Automation & Business Logic',
-              'Playwright & Chromium — Headless Browser Automation',
-              'SQLite — Persistent Master Database & Stateful Work Queue',
-              'ThreadPoolExecutor — Parallel Concurrent Website Enrichment',
-              'Pandas — Data Processing & Multi-Format Reporting',
-              'AI Engine — Digital Gap Analysis & Pitch Recommendation',
-            ],
-          },
-        ],
-        tags: ['Python', 'Playwright', 'SQLite', 'Pandas', 'ThreadPoolExecutor', 'Data Engineering', 'Lead Generation', 'CRM Automation'],
-        actions: [
-          { label: 'VIEW GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Google-Maps-Lead-Generator' },
-        ],
-      },
-
-      {
-        id: 'sightmate',
-        label: 'SIGHTMATE',
-        position: [-6.2, -4.5, -1.2],
-        kicker: 'AI ASSISTIVE VISION PLATFORM',
-        title: 'SightMate — AI Navigation Assistant',
-        subtitle: 'Mobile Vision, Spatial Reasoning & Spoken Accessibility System',
-        sections: [
-          {
-            heading: 'OVERVIEW',
-            content: 'SightMate is an AI-powered mobile assistive application built in Flutter to help visually impaired users perceive their surroundings through real-time camera-based vision, spatial danger fusion, OCR text reading, voice commands, and spoken guidance.',
-          },
-          {
-            heading: 'SYSTEM ARCHITECTURE',
-            content: 'On-device mobile processing pipeline using TensorFlow Lite. Camera frames are processed concurrently by YOLOv8 for bounding-box object detection and Fast-SCNN for semantic scene segmentation. The Navigation Fusion Service evaluates Left/Center/Right danger regions to produce actionable guidance.',
-          },
-          {
-            heading: 'KEY FEATURES & CAPABILITIES',
-            bullets: [
-              'On-Device YOLOv8 Object Detection & Bounding-Box Identification',
-              'Fast-SCNN Semantic Scene & Traversable Path Segmentation',
-              'Navigation Decision Fusion Engine (Move Left / Move Right / Path Clear / Obstacle Ahead)',
-              'Google ML Kit OCR Spoken Text Reader with Duplicate Suppression',
-              'Voice Command Controller for Hands-Free Navigation',
-              'Touch-Based 6-Dot Braille Input Keyboard',
-              'Google ML Kit Speech Translation Module',
-              'Spoken Battery, Time, Date & Location Telemetry Feedback',
-            ],
-          },
-          {
-            heading: 'TECHNOLOGY STACK',
-            bullets: [
-              'Flutter & Dart — Cross-Platform Mobile Application Framework',
-              'YOLOv8 & TensorFlow Lite — On-Device Object Detection Inference',
-              'Fast-SCNN — Real-Time Semantic Scene Segmentation',
-              'Google ML Kit — OCR Text Recognition & Language Translation',
-              'Speech-to-Text & Text-to-Speech — Voice Control & Audio Guidance',
-            ],
-          },
-        ],
-        tags: ['Flutter', 'Dart', 'YOLOv8', 'TensorFlow Lite', 'Fast-SCNN', 'Google ML Kit', 'Computer Vision', 'Accessibility'],
-        actions: [
-          { label: 'VIEW GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/SightMate-AI-Assistant' },
-        ],
-      },
-
-      {
-        id: 'football',
-        label: 'FOOTBALL ANALYSIS',
-        position: [6.2, -4.5, 1.2],
-        kicker: 'COMPUTER VISION & SPORTS ANALYTICS',
-        title: 'Football Match Video Analysis System',
-        subtitle: 'End-to-End Deep Learning & Spatial Video Analytics Pipeline',
-        sections: [
-          {
-            heading: 'OVERVIEW',
-            content: 'Computer vision pipeline for automated football match video analysis, identifying players, referees, and the ball, maintaining tracking IDs across frames, compensating for camera motion, classifying team jersey colors, and calculating spatial match metrics.',
-          },
-          {
-            heading: 'SYSTEM PIPELINE ARCHITECTURE',
-            content: 'Video Frames → YOLOv8 Object Detection → ByteTrack Multi-Object Tracking → Optical Flow Camera Motion Compensation → Planar Homography View Transformation → Ball Position Interpolation → K-Means Team Jersey Classification → Speed, Distance & Possession Analytics → OpenCV Overlay Video Generation.',
-          },
-          {
-            heading: 'DOCUMENTED MODEL PERFORMANCE METRICS',
-            bullets: [
-              'Precision: 0.95 (95% detection accuracy)',
-              'Recall: 0.75 (75% object retrieval)',
-              'mAP@50: 0.81 (Mean Average Precision at 0.5 IoU threshold)',
-              'mAP@50-95: 0.58 (Mean Average Precision across IoU thresholds)',
-              '4 Trained Football Classes: Ball, Player, Goalkeeper, Referee',
-            ],
-          },
-          {
-            heading: 'KEY FEATURES & CAPABILITIES',
-            bullets: [
-              'YOLOv8 & ByteTrack Multi-Object Player & Ball Tracking',
-              'Optical Flow Camera-Motion Compensation for True Movement Metrics',
-              'Planar Homography View Transformation to Top-Down 2D Pitch Representation',
-              'Linear Ball Trajectory Interpolation for Missing Detection Handling',
-              'K-Means Color Clustering for Automatic Team Jersey Assignment',
-              'Player Speed Estimation & Total Distance Travelled Metrics',
-              'Player-Ball Assignment & Team Possession Percentage Calculation',
-              'OpenCV Video Output with Visual Radar Overlays & Player Statistics',
-            ],
-          },
-          {
-            heading: 'TECHNOLOGY STACK',
-            bullets: [
-              'Python — Pipeline Logic & Analytics Engine',
-              'YOLOv8 — Deep Learning Object Detection',
-              'ByteTrack — Persistent Multi-Object Tracking',
-              'OpenCV — Optical Flow, Homography & Video Annotation',
-              'K-Means & Scikit-Learn — Jersey Color Team Classification',
-              'Pandas & NumPy — Spatial Positional & Trajectory Analytics',
-            ],
-          },
-        ],
-        tags: ['Python', 'YOLOv8', 'ByteTrack', 'OpenCV', 'K-Means', 'Optical Flow', 'Pandas', 'Sports Analytics'],
-        actions: [
-          { label: 'VIEW GITHUB REPO', type: 'primary', url: 'https://github.com/DEEPAKRV07/Football-Analysis-System' },
-        ],
-      },
-
-      {
-        id: 'kaatchi',
-        label: 'KAATCHI MEDIA',
-        position: [0.0, 6.8, 0.5],
-        kicker: 'MEDIA PORTFOLIO & WEB ENGINEERING',
-        title: 'Kaatchi Media',
-        subtitle: 'Official Media & Photography Portfolio Platform',
-        sections: [
-          {
-            heading: 'OVERVIEW',
-            content: 'Official digital media portfolio platform for Kaatchi Media (kaatchimedia.com), presenting professional photography collections, media production capabilities, client testimonials, and contact lead workflows through a cinematic dark visual interface.',
-          },
-          {
-            heading: 'MY ROLE & RESPONSIBILITIES',
-            content: 'Software Developer Intern / Frontend Web Developer. Engineered the modular JavaScript architecture, responsive UI design across desktop/mobile viewports, photography gallery system, fullscreen lightbox presentation, portfolio filtering, and Web3Forms contact integration.',
-          },
-          {
-            heading: 'KEY FEATURES & IMPLEMENTATION',
-            bullets: [
-              'Modular ES JavaScript Architecture (navigation, galleries, lightbox, filtering, contact)',
-              'Responsive Photography Collections (Professionals, Behind the Scenes, My Favorites)',
-              'Interactive Portfolio Category Filtering',
-              'Fullscreen Image Lightbox with Touch & Keyboard Navigation',
-              'IntersectionObserver Reveal Animations & Photography Page Entrance Transitions',
-              'Responsive Testimonial Carousel with Desktop Arrows & Mobile Touch Swipe',
-              'Web3Forms Asynchronous Client Contact & Lead Submission Integration',
-            ],
-          },
-          {
-            heading: 'TECHNOLOGY STACK',
-            bullets: [
-              'HTML5 & CSS3 — Responsive Layouts, CSS Grid & Flexbox',
-              'JavaScript ES6+ — Modular ES Architecture & DOM APIs',
-              'IntersectionObserver — Reveal Animations & Navigation Visibility',
-              'Web3Forms — Asynchronous Form Validation & Lead Capture',
-              'Git & GitHub — Feature Branch Workflow & Production Deployment',
-            ],
-          },
-        ],
-        tags: ['HTML5', 'CSS3', 'JavaScript ES6+', 'Responsive UX', 'Web3Forms', 'Photography Galleries', 'Live Site'],
-        actions: [
-          { label: 'VISIT LIVE WEBSITE', type: 'primary', url: 'https://kaatchimedia.com/' },
-        ],
-      },
-    ],
-  },
-
-  experience: {
-    id: 'experience',
-    title: 'EXPERIENCE & CAREER',
-    subtitle: 'ENGINEERING MEMORY PATH',
-    categories: [
-      {
-        id: 'forcrux-exp',
-        label: 'FORCRUX',
-        position: [-5.2, 2.8, 2.5],
-        kicker: 'CAREER MILESTONE',
-        title: 'Lead Frontend Engineer & Design Systems',
-        subtitle: 'FORCRUX Technology Studio Platform',
-        sections: [
-          {
-            heading: 'ROLE & RESPONSIBILITIES',
-            content: 'Led the frontend component architecture, responsive virtual-camera framing system, GSAP motion design engine, video payload compression, and administrative Control OS direction.',
-          },
-          {
-            heading: 'ENGINEERING CONTRIBUTIONS',
-            bullets: [
-              'Built component-based Next.js App Router architecture with Payload CMS v3 & PostgreSQL',
-              'Created centralized GSAP Motion Design System with ScrollTrigger reveals & performance budgets',
-              'Reduced hero video payload from 7.43 MB to 1.98 MB WebM (73% reduction) & 3.50 MB MP4 fallback',
-              'Engineered virtual camera framing across 8 viewport classes from mobile to ultrawide',
-            ],
-          },
-        ],
-        tags: ['Next.js', 'React', 'TypeScript', 'GSAP', 'Payload CMS', 'PostgreSQL', 'Design Systems'],
-        actions: [],
-      },
-      {
-        id: 'kaatchi-exp',
-        label: 'KAATCHI MEDIA',
-        position: [-1.4, 5.2, -2.5],
-        kicker: 'CAREER MILESTONE',
-        title: 'Software Developer Intern / Frontend Developer',
-        subtitle: 'Kaatchi Media (kaatchimedia.com)',
-        sections: [
-          {
-            heading: 'ROLE & RESPONSIBILITIES',
-            content: 'Developed and productionized the official Kaatchi Media digital portfolio website (kaatchimedia.com), building a modular JavaScript architecture, responsive UI design across desktop/mobile viewports, photography gallery systems, and contact workflows.',
-          },
-          {
-            heading: 'ENGINEERING CONTRIBUTIONS',
-            bullets: [
-              'Modularized frontend architecture with ES JavaScript modules & reusable component loaders',
-              'Engineered responsive photography galleries (Professionals, BTS, My Favorites) with fullscreen lightbox',
-              'Built responsive testimonial carousel supporting desktop controls & mobile touch swipe',
-              'Integrated Web3Forms for client-side form validation and asynchronous lead submission',
-            ],
-          },
-        ],
-        tags: ['HTML5', 'CSS3', 'JavaScript ES6+', 'Responsive UX', 'Web3Forms', 'Git Workflow'],
-        actions: [
-          { label: 'VISIT LIVE WEBSITE', type: 'primary', url: 'https://kaatchimedia.com/' },
-        ],
-      },
-      {
-        id: 'msme-exp',
-        label: 'MSME CENTER',
-        position: [3.8, 3.0, 2.2],
-        kicker: 'CAREER MILESTONE',
-        title: 'Embedded Systems Intern',
-        subtitle: 'MSME Technology Development Centre (Aug 2024 – Sep 2024)',
-        sections: [
-          {
-            heading: 'ROLE & RESPONSIBILITIES',
-            content: 'Embedded Systems Intern at MSME Technology Development Centre (MSME TDC), Guindy, Chennai (Aug 2024 – Sep 2024). Prototyped, configured, and benchmarked embedded hardware circuits, microcontrollers, sensor interfaces, and IoT telemetry architectures using Arduino and Raspberry Pi platform systems.',
-          },
-          {
-            heading: 'ENGINEERING CONTRIBUTIONS',
-            bullets: [
-              'Embedded system hardware prototyping & sensor interfacing using Arduino & Raspberry Pi',
-              'IoT telemetry data acquisition, wireless sensor integration & microcontroller circuit design',
-              'Real-time sensor signal processing, hardware I/O debugging & firmware scripting',
-              'Hardware-level latency measurement, circuit testing & power optimization',
-            ],
-          },
-        ],
-        tags: ['Embedded Systems', 'Arduino', 'Raspberry Pi', 'Sensors', 'IoT', 'Microcontrollers'],
-        actions: [],
-      },
-      {
-        id: 'quality-exp',
-        label: 'QUALITY THREADS',
-        position: [6.2, -2.2, -2.2],
-        kicker: 'CAREER MILESTONE',
-        title: 'Digital Media Collaboration',
-        subtitle: 'Quality Threads',
-        sections: [
-          {
-            heading: 'OVERVIEW',
-            content: 'Worked with a team on two small school-clothing deals, handling the digital media and social-media side of the work.',
-          },
-          {
-            heading: 'MY CONTRIBUTION',
-            bullets: [
-              'Small business collaboration on two school-clothing deals',
-              'Handled digital media assets & social-media promotion',
-              'Created visual content for clothing presentation',
-              'Supported digital channel communication',
-            ],
-          },
-        ],
-        tags: ['Digital Media', 'Social Media', 'Content Creation', 'Small Business Collaboration'],
-        actions: [],
-      },
-    ],
-  },
-
-  contact: {
-    id: 'contact',
-    title: 'CONTACT & CONNECT',
-    subtitle: 'NETWORK TRANSMISSION GATEWAY',
-    categories: [
-      {
-        id: 'email',
-        label: 'EMAIL',
-        position: [-5.2, 2.5, 2.0],
-        actionUrl: 'mailto:deepakvetrivelan@gmail.com',
-      },
-      {
-        id: 'github',
-        label: 'GITHUB',
-        position: [-1.4, 4.8, -2.0],
-        actionUrl: 'https://github.com/DEEPAKRV07',
-      },
-      {
-        id: 'linkedin',
-        label: 'LINKEDIN',
-        position: [2.8, 3.2, 2.0],
-        actionUrl: 'https://www.linkedin.com/in/deepakrv07/',
-      },
-      {
-        id: 'resume',
-        label: 'RESUME',
-        position: [6.2, -2.0, -2.0],
-        actionUrl: `${BASE_URL}my_resume.pdf`,
-      },
-    ],
-  },
-};
 
 /* ============================================================
    SUBNETWORK WORLDS BUILDER
@@ -2137,11 +1689,11 @@ function setLayerVisibility(layerName) {
   currentLayer = layerName;
 
   if (layerName === 'MAIN') {
-    setWorldVisibility(mainGraph, true);
-    setWorldOpacity(mainGraph, 1.0);
-    setWorldOpacity(core, 1.0);
+    setWorldVisibility(mainGraph, false);
+    setWorldOpacity(mainGraph, 0.0);
+    setWorldOpacity(core, 0.0);
 
-    /* 5 AMBIENT 3D FLOATING LOGOS EXIST ONLY ON HOME! */
+    sceneController.setActiveWorld('home');
     ambientLogosGroup.visible = true;
 
     for (const world of subnetWorlds.values()) {
@@ -2152,46 +1704,111 @@ function setLayerVisibility(layerName) {
     setLabelMode('main');
     showCoreBeacon(false);
   } else if (layerName === 'SUBNET') {
-    /* STRICT ACTIVE-LAYER ISOLATION: Hide Home network completely in subnets! */
     setWorldVisibility(mainGraph, false);
     setWorldOpacity(mainGraph, 0.0);
     setWorldOpacity(core, 0.0);
 
     ambientLogosGroup.visible = false;
 
+    // Ensure active GLB world visibility (projects vs skills)
+    if (sceneController.activeWorld === 'home') {
+      sceneController.setActiveWorld('projects');
+    }
+
+    // Hide all old procedural subnetWorlds
     for (const world of subnetWorlds.values()) {
-      const isCurrent = world === activeSubnet;
-      setWorldVisibility(world.group, isCurrent);
-      setWorldOpacity(world.group, isCurrent ? 1.0 : 0.0);
+      setWorldVisibility(world.group, false);
+      setWorldOpacity(world.group, 0.0);
     }
 
     setLabelMode('subnet');
-    showCoreBeacon(false); // Remove redundant MAIN CORE floating node in subnets!
+    showCoreBeacon(false);
   }
 }
 
 function enterSubnet(subnetId, isPush = true) {
-  const world = subnetWorlds.get(subnetId);
-  if (!world) return;
-
-  activeSubnet = world;
   hideDetailPresentation();
   hideSkillContextPanel();
 
-  setLayerVisibility('SUBNET');
+  if (subnetId === 'projects') {
+    sceneController.setActiveWorld('projects');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('ENGINEERING PROJECTS');
+    setLayerPath('NEURAL NETWORK / PROJECTS WORLD');
 
-  document.body.classList.add('project-mode');
-  document.body.classList.remove('detail-mode');
+    startTransition(new THREE.Vector3(0, -0.8, 17.5), new THREE.Vector3(0, -0.5, 0), 850);
+    sceneController.playWorldAnimation('projects');
+    updateBrowserRoute('projects', isPush);
+    return;
+  }
 
-  setMode(world.definition.title);
-  setLayerPath(`NEURAL NETWORK / ${world.definition.title}`);
-  const subnetZ = isMobileViewport() ? 24.5 : 18.5;
-  const subnetY = isMobileViewport() ? 0.8 : 1.2;
-  startTransition(new THREE.Vector3(0, subnetY, subnetZ), new THREE.Vector3(0, 0, 0), 850);
-  updateBrowserRoute(subnetId, isPush);
+  if (subnetId === 'skills') {
+    sceneController.setActiveWorld('skills');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('SKILLS & TECHNOLOGIES');
+    setLayerPath('NEURAL NETWORK / SKILLS WORLD');
+
+    // Skills camera: pulled back to z=25, looking at center so network fits centered with root above navbar
+    startTransition(new THREE.Vector3(0, 0.5, 25.0), new THREE.Vector3(0, 0, 0), 850);
+    sceneController.playWorldAnimation('skills');
+    updateBrowserRoute('skills', isPush);
+    return;
+  }
+
+  if (subnetId === 'experience') {
+    sceneController.setActiveWorld('experience');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('WORK EXPERIENCE');
+    setLayerPath('NEURAL NETWORK / EXPERIENCE WORLD');
+
+    startTransition(new THREE.Vector3(0, 0, 20.0), new THREE.Vector3(0, 0, 0), 850);
+    sceneController.playWorldAnimation('experience');
+    updateBrowserRoute('experience', isPush);
+    return;
+  }
+
+  if (subnetId === 'education') {
+    sceneController.setActiveWorld('education');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('EDUCATION');
+    setLayerPath('NEURAL NETWORK / EDUCATION WORLD');
+
+    startTransition(new THREE.Vector3(0, -0.5, 14.0), new THREE.Vector3(0, -0.5, 0), 850);
+    sceneController.playWorldAnimation('education');
+    updateBrowserRoute('education', isPush);
+    return;
+  }
+
+  if (subnetId === 'contact') {
+    sceneController.setActiveWorld('contact');
+    activeSubnet = null;
+    setLayerVisibility('SUBNET');
+    document.body.classList.add('project-mode');
+    document.body.classList.remove('detail-mode');
+    setMode('CONTACT');
+    setLayerPath('NEURAL NETWORK / CONTACT WORLD');
+
+    startTransition(new THREE.Vector3(0, -0.5, 15.0), new THREE.Vector3(0, -0.5, 0), 850);
+    sceneController.playWorldAnimation('contact');
+    updateBrowserRoute('contact', isPush);
+    return;
+  }
 }
 
 function returnToCore(isPush = true) {
+  sceneController.setActiveWorld('home');
   activeSubnet = null;
   hideDetailPresentation();
   hideSkillContextPanel();
@@ -2203,11 +1820,10 @@ function returnToCore(isPush = true) {
 
   setMode('OVERVIEW');
   setLayerPath('NEURAL NETWORK / OVERVIEW');
-  updateCounters(mainNodeObjects.length + 1, mainEdges.length);
 
-  const homeZ = isMobileViewport() ? 34.0 : 30.0;
-  const homeY = isMobileViewport() ? 0.8 : 1.2;
-  startTransition(new THREE.Vector3(0, homeY, homeZ), new THREE.Vector3(0, 0, 0), 900);
+  // Home camera: pulled back to z=24 so all 5 nodes + root fit cleanly in viewport with no clipping
+  startTransition(new THREE.Vector3(0, 0.5, 24.0), new THREE.Vector3(0, 0, 0), 850);
+  sceneController.playWorldAnimation('home');
   updateBrowserRoute('home', isPush);
 }
 
@@ -2223,112 +1839,6 @@ function exitLayer() {
 
   if (currentLayer === 'SUBNET') {
     returnToCore();
-  }
-}
-
-/* ============================================================
-   CANONICAL GLOBAL 3D BURST & RECONSTRUCT ENGINE
-   ============================================================ */
-
-let isBurstActive = false;
-const burstVelocities = new Map();
-
-const burstBtn = document.getElementById('burstBtn');
-const reconstructBtn = document.getElementById('reconstructBtn');
-
-function getActiveNetworkNodes() {
-  const activeNodes = [];
-
-  if (currentLayer === 'MAIN') {
-    for (const item of mainNodeObjects) {
-      if (item.group) activeNodes.push(item.group);
-    }
-  } else if (currentLayer === 'SUBNET' && activeSubnet) {
-    activeSubnet.group.traverse(child => {
-      if (child.isGroup && child.parent === activeSubnet.group) {
-        activeNodes.push(child);
-      }
-    });
-  }
-
-  return activeNodes;
-}
-
-function triggerBurstNetwork() {
-  if (isBurstActive) return;
-  if (document.body.classList.contains('detail-panel-open')) return;
-
-  isBurstActive = true;
-  burstVelocities.clear();
-
-  const targets = getActiveNetworkNodes();
-  for (const nodeGroup of targets) {
-    // Generate organic 3D random velocity vector (X, Y, Z) across broad environment
-    const velocity = new THREE.Vector3(
-      (Math.random() - 0.5) * 0.42,
-      (Math.random() - 0.5) * 0.42,
-      (Math.random() - 0.5) * 0.42
-    );
-    const rotVelocity = new THREE.Vector3(
-      (Math.random() - 0.5) * 0.08,
-      (Math.random() - 0.5) * 0.08,
-      (Math.random() - 0.5) * 0.08
-    );
-
-    burstVelocities.set(nodeGroup, {
-      velocity,
-      rotVelocity,
-      startPos: nodeGroup.position.clone(),
-      startRot: nodeGroup.rotation.clone(),
-    });
-  }
-
-  setMode('NETWORK BURST');
-}
-
-function triggerReconstructNetwork() {
-  if (!isBurstActive && burstVelocities.size === 0) return;
-  isBurstActive = false;
-}
-
-if (burstBtn) burstBtn.addEventListener('click', triggerBurstNetwork);
-if (reconstructBtn) reconstructBtn.addEventListener('click', triggerReconstructNetwork);
-
-function animateBurstState() {
-  if (isBurstActive) {
-    // Continuous random 3D travel through environment during burst state
-    for (const [obj, data] of burstVelocities.entries()) {
-      obj.position.add(data.velocity);
-      obj.rotation.x += data.rotVelocity.x;
-      obj.rotation.y += data.rotVelocity.y;
-    }
-  } else if (burstVelocities.size > 0) {
-    // Reconstruct state: Smoothly lerp scattered nodes back to original positions
-    let allRestored = true;
-    for (const [obj, data] of burstVelocities.entries()) {
-      obj.position.lerp(data.startPos, 0.12);
-      obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, data.startRot.x, 0.12);
-      obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, data.startRot.y, 0.12);
-      obj.rotation.z = THREE.MathUtils.lerp(obj.rotation.z, data.startRot.z, 0.12);
-
-      if (obj.position.distanceTo(data.startPos) > 0.05) {
-        allRestored = false;
-      }
-    }
-
-    if (allRestored) {
-      for (const [obj, data] of burstVelocities.entries()) {
-        obj.position.copy(data.startPos);
-        obj.rotation.copy(data.startRot);
-      }
-      burstVelocities.clear();
-
-      if (currentLayer === 'MAIN') {
-        setMode('OVERVIEW');
-      } else if (activeSubnet) {
-        setMode(activeSubnet.definition.title);
-      }
-    }
   }
 }
 
@@ -2413,17 +1923,16 @@ function getPointerObject() {
     }
   }
 
-  /* 5. Main Homepage Layer (5 Primary Destination Nodes) */
-  if (currentLayer === 'MAIN') {
-    const mainTargets = [];
-    for (const node of mainNodeObjects) {
-      if (node.hitboxMesh) mainTargets.push(node.hitboxMesh);
-      if (node.mesh) mainTargets.push(node.mesh);
-    }
-    const hits = raycaster.intersectObjects(mainTargets, false);
+  /* 5. Authored GLB Scene Raycast Target (Works across ALL 6 GLB worlds) */
+  const glbTargets = sceneController.getRaycastTargets();
+  if (glbTargets && glbTargets.length) {
+    const hits = raycaster.intersectObjects(glbTargets, false);
     if (hits.length) {
-      const targetObj = hits[0].object.userData.targetMesh || hits[0].object;
-      return { type: 'main', object: targetObj };
+      const hitObj = hits[0].object;
+      const destId = hitObj.userData.destId || hitObj.userData.id;
+      if (destId) {
+        return { type: 'glb-home-node', object: hitObj, destId };
+      }
     }
   }
 
@@ -2468,15 +1977,124 @@ renderer.domElement.addEventListener('click', event => {
     return;
   }
 
-  if (hit.type === 'main') {
-    const node = mainNodeObjects.find(item => item.mesh === hit.object || item.hitboxMesh === hit.object || (item.mesh && item.mesh.userData && hit.object.userData && item.mesh.userData.id === hit.object.userData.id));
-    if (node) {
-      if (node.id === 'about') {
-        showDetailPresentation(combinedAboutData);
-        updateBrowserRoute('about', true);
-      } else {
-        enterSubnet(node.id);
+  if (hit.type === 'glb-home-node') {
+    const destId = hit.destId;
+    const worldKey = hit.object.userData.world || sceneController.activeWorld;
+
+    // 1. Central Root Node Click -> Return Home (ONLY central root nodes return home; contact child nodes perform external actions)
+    const isExactCentralRootNode = (
+      destId === 'projects_root' ||
+      destId === 'skills_root' ||
+      destId === 'experience_root' ||
+      destId === 'education_root' ||
+      destId === 'contact_root' ||
+      destId === 'hero' ||
+      destId === 'core' ||
+      destId === 'hero_core'
+    );
+
+    if (isExactCentralRootNode) {
+      returnToCore();
+      return;
+    }
+
+    // 1. Skills World Node Click
+    if (worldKey === 'skills') {
+      // Parent category nodes (cv-category, dl-category, systems-category, lang-category) are NON-INTERACTIVE anchors
+      const categories = ['cv-category', 'dl-category', 'systems-category', 'lang-category'];
+      if (categories.includes(destId)) {
+        return; // Ignore clicks on structural category parent nodes
       }
+
+      let foundSkillData = null;
+      if (SUBNET_DEFINITIONS.skills?.categories) {
+        for (const cat of SUBNET_DEFINITIONS.skills.categories) {
+          if (cat.skills) {
+            const match = cat.skills.find(s => s.id === destId || s.id.includes(destId) || s.name.toLowerCase().includes(destId.toLowerCase()));
+            if (match) { foundSkillData = match; break; }
+          }
+        }
+      }
+      if (foundSkillData) {
+        showSkillContextPanel(foundSkillData);
+      }
+      return;
+    }
+
+    // 2. Projects World Node Click -> Open V1 Case Study Presentation Card
+    if (worldKey === 'projects') {
+      const projectCategory = SUBNET_DEFINITIONS.projects?.categories?.find(c => c.id === destId || c.id.includes(destId) || destId.includes(c.id));
+      if (projectCategory) {
+        showDetailPresentation(projectCategory);
+      } else {
+        const fallbackObj = SUBNET_DEFINITIONS.projects?.categories?.[0];
+        if (fallbackObj) showDetailPresentation(fallbackObj);
+      }
+      return;
+    }
+
+    // 3. Experience World Node Click -> Open V1 Experience Career Presentation Card
+    if (worldKey === 'experience') {
+      const expCategory = SUBNET_DEFINITIONS.experience?.categories?.find(c => c.id === destId || destId.includes(c.id) || c.id.includes(destId));
+      if (expCategory) {
+        showDetailPresentation(expCategory);
+      } else {
+        const fallbackExp = SUBNET_DEFINITIONS.experience?.categories?.[0];
+        if (fallbackExp) showDetailPresentation(fallbackExp);
+      }
+      return;
+    }
+
+    // 4. Education World Node Click -> Open V1 Education Degree Presentation Card
+    if (worldKey === 'education') {
+      const eduCategory = {
+        kicker: 'ACADEMIC EDUCATION',
+        title: 'B.E. Computer Science & Engineering',
+        subtitle: 'S.A. Engineering College (AIML Specialization)',
+        sections: [
+          {
+            heading: 'DEGREE & SPECIALIZATION',
+            content: 'Bachelor of Engineering in Computer Science & Engineering with specialization in Artificial Intelligence and Machine Learning (AIML). Graduated with expertise in real-time Computer Vision, spatial reasoning systems, neural network optimization, and full-stack software development.',
+          },
+          {
+            heading: 'KEY ACADEMIC HIGHLIGHTS',
+            bullets: [
+              'Specialized in AI/ML model architecture, OpenCV, PyTorch, and TensorFlow Lite pipelines',
+              'Engineered SightMate real-time spatial navigation assistant for visually impaired users',
+              'Developed Google Maps Lead Intelligence automated data harvesting and geocoding platform',
+              'Built Football Analysis multi-object player tracking system with YOLOv8 & ByteTrack',
+            ],
+          },
+        ],
+        tags: ['B.E. CSE', 'AIML', 'Computer Vision', 'Deep Learning', 'Spatial Computing', 'Full Stack'],
+        actions: [],
+      };
+      showDetailPresentation(eduCategory);
+      return;
+    }
+
+    // 5. Contact World Child Nodes -> Trigger Email / LinkedIn / GitHub / Resume PDF Actions (Does NOT return Home)
+    if (worldKey === 'contact' || destId.includes('email') || destId.includes('linkedin') || destId.includes('github') || destId.includes('resume')) {
+      if (destId.includes('email')) {
+        window.open('mailto:deepakvetrivelan@gmail.com', '_self');
+      } else if (destId.includes('linkedin')) {
+        window.open('https://www.linkedin.com/in/deepakrv07/', '_blank');
+      } else if (destId.includes('github')) {
+        window.open('https://github.com/DEEPAKRV07', '_blank');
+      } else if (destId.includes('resume')) {
+        window.open(`${BASE_URL}DEEPAK_R_V_deepakvetrivelan_gmail_com_.pdf`, '_blank');
+      }
+      return;
+    }
+
+    // 6. Home World Node Click -> Navigate to Subnet or Open About Card
+    if (destId === 'about') {
+      showDetailPresentation(combinedAboutData);
+      updateBrowserRoute('about', true);
+    } else if (destId === 'core') {
+      returnToCore();
+    } else {
+      enterSubnet(destId);
     }
     return;
   }
@@ -2517,11 +2135,6 @@ const tempScale = new THREE.Vector3();
 let currentHoveredMesh = null;
 
 function updateHover() {
-  if (isBurstActive) {
-    currentHoveredMesh = null;
-    renderer.domElement.style.cursor = 'grab';
-    return;
-  }
 
   const hit = getPointerObject();
   currentHoveredMesh = hit ? hit.object : null;
@@ -2544,11 +2157,12 @@ function updateHover() {
     }
   }
 
-  if (coreBeacon.visible) {
-    const beaconActive = hit?.type === 'core';
-    const beaconScale = beaconActive ? 1.18 : 1.0;
-    tempScale.set(beaconScale, beaconScale, beaconScale);
-    coreBeacon.scale.lerp(tempScale, 0.16);
+  if (currentLayer === 'MAIN' && hit?.type === 'glb-home-node') {
+    sceneController.setHoveredNode(hit.destId);
+    updateNavChipsState(currentLayer === 'MAIN' ? 'core' : (activeSubnet?.subnetId || 'core'), hit.destId);
+  } else {
+    sceneController.setHoveredNode(null);
+    updateNavChipsState(currentLayer === 'MAIN' ? 'core' : (activeSubnet?.subnetId || 'core'), null);
   }
 
   renderer.domElement.style.cursor = hit ? 'pointer' : 'grab';
@@ -2565,7 +2179,7 @@ prefersReducedMotionQuery.addEventListener('change', event => {
 });
 
 function animateAmbientDepthAndBreathing(currentTime) {
-  if (isBurstActive || burstVelocities.size > 0) return;
+  // (Burst engine disabled)
 
   const t = currentTime * 0.001;
   const isReduced = prefersReducedMotion;
@@ -2739,7 +2353,8 @@ window.addEventListener('keydown', event => {
 
   if (event.key === 'c' || event.key === 'C') {
     // CAMERA RESET KEY 'C'
-    startTransition(new THREE.Vector3(0, 1.2, 30), new THREE.Vector3(0, 0, 0), 850);
+    // Camera reset key 'C'
+    startTransition(new THREE.Vector3(0, 0.5, 24.0), new THREE.Vector3(0, 0, 0), 850);
     return;
   }
 
@@ -2802,9 +2417,15 @@ function updateSignals() {
 
 let frameCount = 0;
 let fpsTimer = performance.now();
+const mainClock = new THREE.Clock();
 
 function animate(currentTime) {
   requestAnimationFrame(animate);
+
+  const delta = mainClock.getDelta();
+  assetManager.update(delta);
+  // Pass camera so SceneController can billboard labels toward it each frame
+  sceneController.updateIdleMotion(currentTime, delta, camera);
 
   if (isMobileViewport()) {
     renderer.domElement.style.display = 'none';
@@ -2844,7 +2465,6 @@ function animate(currentTime) {
   }
 
   animateAmbientDepthAndBreathing(currentTime);
-  animateBurstState();
   updateCameraTransition();
   controls.update();
 
@@ -2939,8 +2559,8 @@ function renderMobileExperience() {
             ${sec.bullets ? `<ul class="m-list">${sec.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
           `).join('')}
 
-          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">
-            ${(p.tags || []).map(t => `<span class="m-skill-badge" style="font-size:10px;">${t}</span>`).join('')}
+          <div class="m-proj-tags-container">
+            ${(p.tags || []).map(t => `<span class="m-skill-badge">${t}</span>`).join('')}
           </div>
           ${actionBtn}
         </article>
@@ -3077,35 +2697,32 @@ window.addEventListener('popstate', () => {
   }
 });
 
+// Glassmorphic Top Navbar Click Listeners
+document.querySelectorAll('.top-action-bar .nav-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const route = btn.dataset.nodeRoute;
+    if (route === 'core' || route === 'home') {
+      returnToCore();
+    } else if (route === 'about') {
+      showDetailPresentation(combinedAboutData);
+    } else {
+      enterSubnet(route);
+    }
+  });
+});
+
 function initRouteFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const redirectedPath = params.get('p');
-  let path = window.location.pathname;
+  // Whenever user reloads/refreshes the site, ALWAYS return to HOME
+  sceneController.setActiveWorld('home');
+  setLayerVisibility('MAIN');
+  setMode('OVERVIEW');
+  setLayerPath('NEURAL NETWORK / OVERVIEW');
+  updateCounters(mainNodeObjects.length + 1, mainEdges.length);
+  returnToCore(false);
 
-  if (redirectedPath) {
-    path = `/portfolio-website-dedicated/${redirectedPath}`.replace(/\/+/g, '/');
-    history.replaceState(null, '', path);
-  }
-
-  const normalizedPath = path.toLowerCase().replace(/\/$/, '');
-
-  if (normalizedPath.endsWith('/about')) {
-    showDetailPresentation(combinedAboutData);
-    updateBrowserRoute('about', false);
-  } else if (normalizedPath.endsWith('/skills')) {
-    enterSubnet('skills', false);
-  } else if (normalizedPath.endsWith('/projects')) {
-    enterSubnet('projects', false);
-  } else if (normalizedPath.endsWith('/experience')) {
-    enterSubnet('experience', false);
-  } else if (normalizedPath.endsWith('/contact')) {
-    enterSubnet('contact', false);
-  } else {
-    setLayerVisibility('MAIN');
-    setMode('OVERVIEW');
-    setLayerPath('NEURAL NETWORK / OVERVIEW');
-    updateCounters(mainNodeObjects.length + 1, mainEdges.length);
-    updateBrowserRoute('home', false);
+  if (window.location.pathname !== BASE_URL && window.location.pathname !== '/portfolio-website-dedicated/') {
+    history.replaceState({ routeKey: 'home' }, 'DEEPAK R V — Neural Network', BASE_URL);
   }
 }
 
@@ -3132,3 +2749,53 @@ window.addEventListener('resize', () => {
 
 // Run initial layout check
 requestAnimationFrame(animate);
+/* ============================================================
+   CONSOLIDATED NETWORK CONTROL & QUICK NAVIGATION LISTENERS
+   ============================================================ */
+
+const navChips = document.querySelectorAll('.nav-chip[data-node-route]');
+
+function updateNavChipsState(activeRoute, hoveredRoute = null) {
+  navChips.forEach(chip => {
+    const route = chip.dataset.nodeRoute;
+    if (activeRoute && (route === activeRoute || (activeRoute === 'MAIN' && route === 'core'))) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+    if (hoveredRoute && (route === hoveredRoute || (hoveredRoute === 'core' && route === 'core'))) {
+      chip.classList.add('node-hovered');
+    } else {
+      chip.classList.remove('node-hovered');
+    }
+  });
+}
+
+navChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    const route = chip.dataset.nodeRoute;
+    if (route === 'core' || route === 'home') {
+      returnToCore();
+    } else if (route === 'about') {
+      showDetailPresentation(combinedAboutData);
+      updateBrowserRoute('about', true);
+    } else {
+      enterSubnet(route);
+    }
+  });
+
+  chip.addEventListener('mouseenter', () => {
+    const route = chip.dataset.nodeRoute;
+    sceneController.setHoveredNode(route);
+  });
+
+  chip.addEventListener('mouseleave', () => {
+    sceneController.setHoveredNode(null);
+  });
+});
+
+window.sceneController = sceneController;
+window.camera = camera;
+window.THREE = THREE;
+
+

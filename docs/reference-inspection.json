@@ -1,0 +1,25 @@
+[
+  {
+    "name": "funtech",
+    "url": "https://experience2026.funtech.inc/",
+    "status": 200,
+    "canvas": 1,
+    "initial": "FUNTECH OS 26.09  ·  TTY1  ·  (C) 2026 FUNTECH INC.\n\nCLOCK 174 BPM  ·  GPU WEBGPU OK  ·  MEM 65536M OK\n\nloading models ................   16/24    [######    ]   4.4 MB\n\nloading textures ..............   13/49    [###       ]   3.5 MB\n\nloading audio .................   62/68    [######    ]   1.1 MB\n\nloading fonts .................    5/7     [          ]     0 KB\n\nloading data ..................    8/13    [######### ]   0.6 MB\n\ndecoding audio ................   24/24  \n\ncompiling shaders .............   24/31  \n\nwarming BOOT ..................          \n\nwarming VOLT ..................          \n\nwarming MUSEUM ................          \n\nwarming MONUMENT ..............          \n\n> \n\nF1 HELP   F2 PASSES   F10 RENDER\n\n00:00:04:18\n\nLoading 4%\n\nENTER\nto boot",
+    "afterWheel": "FUNTECH OS 26.09  ·  TTY1  ·  (C) 2026 FUNTECH INC.\n\nCLOCK 174 BPM  ·  GPU WEBGPU OK  ·  MEM 65536M OK\n\nloading models ................   23/24    [######### ]   6.9 MB\n\nloading textures ..............   45/49    [######### ]   8.9 MB\n\nloading audio .................   66/68    [########  ]   1.6 MB\n\nloading fonts .................    5/7     [          ]     0 KB\n\nloading data ..................   10/13    [######### ]   0.6 MB\n\ndecoding audio ................   25/25  \n\ncompiling shaders .............   29/40  \n\nwarming BOOT ..................          \n\nwarming VOLT ..................          \n\nwarming MUSEUM ................          \n\nwarming MONUMENT ..............          \n\n> \n\nF1 HELP   F2 PASSES   F10 RENDER\n\n00:00:06:18\n\nLoading 4%\n\nENTER\nto boot",
+    "buttons": [
+      "ENTERto boot"
+    ]
+  },
+  {
+    "name": "bruno",
+    "url": "https://bruno-simon.com/",
+    "status": 200,
+    "canvas": 1,
+    "initial": " \n \n ",
+    "afterWheel": " \n \n ",
+    "buttons": [
+      "\n            \n                \n                    \n                        \n                        \n                        \n                    \n                \n            \n        ",
+      "\n            \n                \n                    \n                \n            \n        "
+    ]
+  }
+]

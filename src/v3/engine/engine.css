@@ -1,0 +1,31 @@
+.v3-scene-host{position:relative;isolation:isolate;overflow:hidden;min-height:280px;touch-action:pan-y}
+.v3-scene-canvas{display:block;width:100%;height:100%;outline:none;touch-action:none;cursor:grab}
+.v3-scene-canvas:active{cursor:grabbing}
+.v3-scene-canvas:focus-visible{outline:1px solid #b5f9d4;outline-offset:-3px}
+.v3-scene-labels{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.v3-scene-label{position:absolute;left:0;top:0;max-width:154px;border:1px solid #77b89c36;border-radius:3px;background:#091713de;color:#d8ece1;padding:7px 9px;font:500 10px/1.3 var(--font-mono,ui-monospace,SFMono-Regular,Consolas,monospace);letter-spacing:.065em;white-space:normal;text-align:center;overflow-wrap:anywhere;pointer-events:auto;cursor:pointer;box-shadow:0 3px 15px #0005;transition:color .18s,border-color .18s,background .18s;will-change:transform}
+.v3-scene-label::before{content:"";display:inline-block;vertical-align:middle;width:4px;height:4px;margin-right:6px;background:#79caac;border-radius:1px}
+.v3-scene-label:hover,.v3-scene-label:focus-visible,.v3-scene-label.is-selected{color:#effff5;background:#17352beF;border-color:#b0f6d3;outline:none;z-index:5}
+.v3-scene-label.is-selected::before{background:#d9ffe9;box-shadow:0 0 7px #abffce}
+.v3-scene-label.is-core{border-color:#7acfac6b;font-size:9px;letter-spacing:.16em;background:#0b201aeb}
+.v3-scene-label.is-occluded{opacity:0;pointer-events:none}
+.v3-scene-label.is-occluded:focus-visible{opacity:1;pointer-events:auto}
+.v3-scene-legend{position:absolute;bottom:13px;left:16px;z-index:2;color:#8eab9d;font:9px/1.5 var(--font-mono,ui-monospace,monospace);letter-spacing:.08em;pointer-events:none;max-width:80%;text-transform:uppercase}
+.v3-scene-legend b{display:inline-block;color:#b7d7c6;font-weight:400;margin-right:9px}
+.v3-scene-fallback{position:absolute;inset:0;padding:32px;display:flex;flex-direction:column;justify-content:center;color:#aecbbb;background:radial-gradient(ellipse at 70% 40%,#173428,#07110e 70%);font:13px/1.6 var(--font-mono,monospace)}
+.v3-scene-fallback p{max-width:400px}
+.v3-scene-host.is-fallback .v3-scene-labels{position:absolute;top:46%;inset-inline:24px;bottom:24px;display:flex;align-content:start;align-items:start;justify-content:center;gap:8px;flex-wrap:wrap;overflow:auto;pointer-events:auto}
+.v3-scene-host.is-fallback .v3-scene-label{position:relative;transform:none!important;max-width:100%;opacity:1}
+@media(max-width:600px){.v3-scene-label{font-size:9px;padding:6px 7px;max-width:125px}.v3-scene-legend{font-size:8px;bottom:10px;left:12px}}
+@media(prefers-reduced-motion:reduce){.v3-scene-label{transition:none}}
+.v3-scene-label{min-height:36px;background:#06130ecc;border-color:#2c5e45;color:#daf3e4;font-size:10px;letter-spacing:.045em;touch-action:manipulation}
+.v3-scene-label.is-core{font-size:11px;border-color:#59b786;letter-spacing:.07em}
+.v3-scene-label.is-entering{opacity:0;pointer-events:none}
+.v3-scene-label.is-entering:focus-visible{opacity:1;pointer-events:auto}
+.v3-label-leaders{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden}.v3-label-leaders line{stroke:#6cc29b;stroke-width:.75;opacity:.45}.v3-scene-label.is-related{border-color:#478a67;color:#c5ffe1}
+.v3-scene-label.is-subdued:not(.is-occluded){opacity:.4}
+/* Engine-owned controls must also work in Studio and standalone harnesses. */
+.v3-scene-host .v3-navigation-toggle{position:absolute;z-index:5;left:auto;right:3.8%;top:76px;font:10px Arial,sans-serif;min-height:36px;padding:8px 12px;background:var(--panel,#08130f);border:1px solid var(--line,#234538);color:var(--ink,#e5f0eb);border-radius:4px}
+.v3-scene-host .v3-navigation-toggle[aria-pressed=true]{border-color:var(--mint,#75e5b7);color:var(--mint,#75e5b7)}
+.v3-layer-guide{position:absolute;transform:translateX(-50%);font:9px/1.5 ui-monospace,monospace;letter-spacing:.09em;color:var(--muted,#a8b9b2);padding:4px 7px;background:var(--background,#030907);border-top:1px solid var(--line,#234538);white-space:nowrap;pointer-events:none}
+@media(max-width:600px){.v3-layer-guide{font-size:8px}}
