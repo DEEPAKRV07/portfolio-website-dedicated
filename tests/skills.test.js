@@ -34,3 +34,10 @@ test('Studio category changes and explicit project links synchronize the same gr
  skill.relatedIds=[];syncSkillRelationships(d);assert.ok(!d.edges.some(e=>e.source==='python'&&e.relationship==='applied-in'));
  assert.equal(validateSnapshot(d).valid,true);
 });
+
+test('owner-added skill domains have distinct automatic positions beyond the original six',()=>{
+ const d=createSeed(),nodes=d.nodes.filter(n=>n.world==='skills');
+ nodes.push({...structuredClone(nodes.find(n=>n.graphRole==='domain')),id:'owner-new-domain',contentId:'owner-new-category',branchOrder:6});
+ const positions=skillPositions(nodes,d.edges,null,false),domains=nodes.filter(n=>n.graphRole==='domain');
+ for(let i=0;i<domains.length;i++)for(let j=i+1;j<domains.length;j++)assert.ok(Math.hypot(...positions.get(domains[i].id).map((v,k)=>v-positions.get(domains[j].id)[k]))>3,`${domains[i].id} overlaps ${domains[j].id}`);
+});

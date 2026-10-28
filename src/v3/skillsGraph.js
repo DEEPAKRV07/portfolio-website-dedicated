@@ -68,8 +68,9 @@ export function skillPositions(nodes,edges,branchId,compact){
   const sorted=(list)=>list.slice().sort((a,b)=>(a.branchOrder??0)-(b.branchOrder??0)||a.id.localeCompare(b.id));
   if(!branchId){
     positions.set(root.id,[0,0,0]);
-    sorted(nodes.filter(n=>n.graphRole==='domain')).forEach((domain,index)=>{
-      const angle=Math.PI/2-index*Math.PI/3,radial=7.5;
+    const domains=sorted(nodes.filter(n=>n.graphRole==='domain'));
+    domains.forEach((domain,index)=>{
+      const angle=Math.PI/2-index*Math.PI/(domains.length/2),radial=7.5;
       positions.set(domain.id,[Math.cos(angle)*radial,Math.sin(angle)*radial,0]);
       const children=sorted(nodes.filter(n=>n.parentId===domain.id));
       children.forEach((child,i)=>{const a=angle+(i-(children.length-1)/2)*.12;positions.set(child.id,[Math.cos(a)*11.8,Math.sin(a)*11.8,.1]);});

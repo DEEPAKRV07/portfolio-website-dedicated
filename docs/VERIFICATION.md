@@ -26,7 +26,7 @@ A separate workflow creates a technology in Computer Vision, explicitly relates 
 
 | Command / workflow | Result and scope |
 | --- | --- |
-| `npm test` | 34 tests pass: schema/import safety, publishing filters, local history, mocked remote authorization, layouts, endpoints and semantic Skills relationships. |
+| `npm test` | 35 tests pass: schema/import safety, publishing filters, local history, mocked remote authorization, layouts, endpoints, semantic Skills relationships and owner-added domain spacing. |
 | `npm run test:e2e` | 26/26 browser tests pass in the complete 28 October rerun, including immediate Home navigation, delayed renderer loading and low-frame-rate entrances. The release CI reruns the complete suite on Linux Chromium. |
 | `npm run build` | Pass. Vite reports the retained shared Three.js/GLTF chunk above 500 kB (788.08 kB, 201.40 kB gzip); warning is retained, not suppressed. |
 | `npm audit --audit-level=high` | Zero reported vulnerabilities at verification time. |
@@ -40,6 +40,8 @@ Failure injection deliberately produces a WebGL creation error to test fallback.
 The final public-control pass also verified quality choices, keyboard orbit/reset and restoring motion. One local Studio run was interrupted while source formatting triggered a development reload; its clean rerun passed all four Studio tests with no source changes. No retries are configured to conceal CI failures.
 
 The first Linux CI runs exposed two real races: Home used the prior rendered route before `hashchange`, and a same-world branch route could render a generic category dialog while the renderer import was pending. Both were reproduced locally by immediate key dispatch and delayed module loading, then corrected with current-URL navigation and shared scene initialization. Camera/GLB timing also now follows elapsed wall time rather than a capped simulation delta, with a slow-frame regression test. These bring the complete browser suite to 26 scenarios. Verification runs on pull requests; main deployment also runs the suite, without duplicate push/PR jobs for the same feature commit.
+
+The automatic Skills overview now derives angular spacing from the actual domain count instead of assuming six. A seventh owner-created domain no longer overlaps the first; the original six-domain composition is unchanged. The added layout test and both complete desktop/phone Skills journeys pass.
 
 ## E. Visual inspection
 
