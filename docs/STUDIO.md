@@ -20,3 +20,13 @@ The default presets are neural-core, neural-node, neural-cluster and neural-chip
 For Skills, choose the real **Category/domain** in Details, then create a scene node. Its parent edge is added automatically. Add documented project associations in Relations & scene; corresponding project nodes and directed application edges are synchronized automatically. Select a domain or a technology in the scene picker to preview its focused branch. Removing a required parent edge is refused; change the domain instead. A new domain is a Category record with a scene node connected to the professional identity. Existing record IDs are retained even where their historical names differ from their displayed titles.
 
 The public domain overview intentionally prioritizes domain labels. Its technology geometry remains connected; selecting a domain reveals the labeled hierarchy and its supporting projects. Desktop and phone layouts use the same records and relationships. The Home/root control, All domains link, and accessible content cards provide predictable exits.
+
+## Layered Home and navigation controls (28 October correction)
+
+The bundled Home graph now uses **Education / Experience / Skills → Deepak R V → About / Projects / Contact**. These are the same seven stable identities and destinations. The former decorative cross-links are replaced by six named directional connections: inputs inform the professional profile; the profile leads to its portfolio destinations. This deliberate change follows the latest input–hidden–output requirement. It is a visual model, not trained inference.
+
+For Home nodes, **Network layer** and **Order within layer** are editable in the node inspector. Manual XYZ overrides remain exact. Existing saved owner documents are preserved; a saved older graph can be adapted through these fields and its connection editor without resetting content or media. The published bundled seed already includes the new layer metadata. Changing a layer does not silently rewrite owner-authored connections.
+
+Public interaction: ordinary wheel and touch swipes scroll the page. Mouse dragging orbits; Alt + wheel and the +/− buttons zoom. **Enable 3D gestures** activates touch orbit/pinch and wheel zoom; **Exit 3D gestures** restores normal scrolling. Navigation and opening a card exit gesture mode. Every card has a persistent header and an independently scrollable content region; keyboard Home/End inside a card controls that region instead of changing worlds.
+
+The [resume explorer](RESUME_EXPLORER.md) uses the same engine, but its temporary imported graph never replaces Studio content.

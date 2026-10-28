@@ -7,6 +7,8 @@ import { LegacyNeuralAssets } from './LegacyNeuralAssets.js';
 import { calculateLayout, layoutBounds } from './layout.js';
 import { createConnection } from './connections.js';
 import { relationshipPath, skillPositions } from '../skillsGraph.js';
+import { computationPositions, computationPath, isLayered } from '../computationGraph.js';
+import { THEME } from '../theme.js';
 import './engine.css';
 
 const EMPTY = { nodes: [], edges: [], records: [], settings: {} };
@@ -54,12 +56,21 @@ export class SceneEngine {
     this.labelLeaders = document.createElementNS('http://www.w3.org/2000/svg','svg');
     this.labelLeaders.setAttribute('class','v3-label-leaders');this.labelLeaders.setAttribute('aria-hidden','true');
     this.labelLayer.append(this.labelLeaders);
+    this.layerGuides=['01 INPUT','02 HIDDEN / SYNTHESIS','03 OUTPUT'].map(text=>{const guide=document.createElement('span');guide.className='v3-layer-guide';guide.textContent=text;guide.hidden=true;this.labelLayer.append(guide);return guide;});
     this.labelLayer.setAttribute('role', 'group');
     this.labelLayer.setAttribute('aria-label', editable ? 'Scene nodes. Select a node or drag geometry to move it.' : 'Explore portfolio scene');
     this.legend = document.createElement('div');
     this.legend.className = 'v3-scene-legend';
     this.legend.innerHTML = editable ? '<b>Scene editor</b> Drag node · orbit empty space · scroll to zoom' : '<b>Live environment</b> Drag to orbit · select a node';
     this.container.append(this.labelLayer, this.legend);
+    this.navigationActive = editable;
+    this.navigationButton = document.createElement('button');
+    this.navigationButton.className = 'v3-navigation-toggle';
+    this.navigationButton.type = 'button';
+    this.navigationButton.textContent = editable ? 'Exit 3D gestures' : 'Enable 3D gestures';
+    this.navigationButton.setAttribute('aria-pressed', String(editable));
+    this.navigationButton.addEventListener('click', () => this.setNavigation(!this.navigationActive));
+    this.container.append(this.navigationButton);
     try {
       this.initializeRenderer();
     } catch {
@@ -73,6 +84,7 @@ export class SceneEngine {
       this.renderer?.dispose();
       this.renderer?.domElement.remove();
       this.renderer = null;
+      this.navigationButton.disabled=true;
       this.status({ state: 'fallback', message: 'WebGL unavailable. Accessible portfolio navigation remains available.' });
     }
     this.onVisibility = () => { if (document.hidden) this.stop(); else { this.lastFrameTime = 0; this.invalidate(); } };
@@ -103,7 +115,7 @@ export class SceneEngine {
 
   initializeRenderer() {
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2('#08120f', 0.016);
+    this.scene.fog = new THREE.FogExp2(THEME.background, 0.016);
     this.camera = new THREE.PerspectiveCamera(39, 1, 0.1, 180);
     this.camera.position.set(9, 12, 22);
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
@@ -113,11 +125,15 @@ export class SceneEngine {
     this.renderer.toneMappingExposure = 1.13;
     const canvas = this.renderer.domElement;
     canvas.className = 'v3-scene-canvas';
-    canvas.setAttribute('aria-label', 'Interactive 3D portfolio. Drag to rotate, scroll to zoom. Use the labeled buttons to open content.');
+    canvas.setAttribute('aria-label', 'Interactive 3D portfolio. Mouse drag to orbit; Alt + wheel to zoom. Enable 3D gestures for touch orbit and pinch. Otherwise swipe or scroll the page.');
     canvas.setAttribute('role', 'img');
     canvas.tabIndex = 0;
     this.container.prepend(canvas);
     this.controls = new OrbitControls(this.camera, canvas);
+    this.setNavigation(this.navigationActive);
+    // OrbitControls prevents wheel defaults only when zoom is enabled. Gate it
+    // before its bubble handler; ordinary wheel events retain native scrolling.
+    this.listen(canvas, 'wheel', event => { this.controls.enableZoom = this.navigationActive || event.altKey; }, { capture: true, passive: true });
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
     this.controls.rotateSpeed = 0.48;
@@ -180,6 +196,7 @@ export class SceneEngine {
     // A navigation focus is transient; never restore it as a world's overview.
     if (this.camera && this.controls && !this.selectedId) this.cameraStates.set(this.world, { position: this.camera.position.clone(), target: this.controls.target.clone() });
     this.world = world;
+    if(!this.editable)this.setNavigation(false);
     this.branchId=null;
     this.selectedId = null;
     this.hoveredId = null;
@@ -203,6 +220,8 @@ export class SceneEngine {
     const edges = (this.snapshot.edges || []).filter((edge) => ids.has(edge.source) && ids.has(edge.target));
     const strategy = this.snapshot.settings?.layouts?.[this.world] || (['experience', 'education'].includes(this.world) ? 'timeline' : 'radial');
     const positions = calculateLayout(visibleNodes, edges, strategy);
+    this.layered = isLayered(visibleNodes) && strategy === 'network';
+    if(this.layered)for(const [id,position] of computationPositions(visibleNodes,this.width<600))positions.set(id,position);
     if(this.world==='skills'&&strategy==='network')for(const [id,position]of skillPositions(visibleNodes,edges,this.branchId,this.width<600))positions.set(id,position);
     const firstBuild = !this.nodes.size;
     const changed = new Set();
@@ -223,7 +242,7 @@ export class SceneEngine {
         entry?.dispose?.();
         entry = this.renderer ? this.factory.createNode(node, record) : { radius: 1, labelHeight: 1.5, size: 1 };
         entry.node = node; entry.record = record; entry.fingerprint = fingerprint;
-        entry.created = this.clock; entry.introComplete = false;
+        entry.created = this.clock + (this.layered ? (node.networkLayer || 0) * .35 : 0); entry.introComplete = false;
         if (entry.group) this.graphGroup.add(entry.group);
         this.nodes.set(node.id, entry); changed.add(node.id);
         if (node.appearance?.assetId) this.applyAsset(node.id, node.appearance.assetId, entry);
@@ -232,6 +251,7 @@ export class SceneEngine {
       if (!samePosition(this.positions.get(node.id), positions.get(node.id))) changed.add(node.id);
       entry.position = positions.get(node.id);
       entry.compactBranch=this.world==='skills'&&Boolean(this.branchId)&&this.width<600;
+      entry.layeredCompact=this.layered&&this.width<600;
       entry.group?.position.fromArray(entry.position);
       this.ensureLabel(node, record, entry);
     }
@@ -252,7 +272,7 @@ export class SceneEngine {
     if (!label) {
       label = document.createElement('button');
       label.type = 'button';
-      label.className = 'v3-scene-label';
+      label.className = this.renderer ? 'v3-scene-label is-entering' : 'v3-scene-label';
       label._leader=document.createElementNS('http://www.w3.org/2000/svg','line');this.labelLeaders.append(label._leader);
       label.dataset.nodeId = node.id;
       label.addEventListener('click', (event) => { event.stopPropagation(); this.activate(node.id); });
@@ -327,7 +347,7 @@ export class SceneEngine {
 
   select(id) {
     this.selectedId = this.nodes.has(id) ? id : null;
-    this.relatedNodes=relationshipPath(this.visibleNodes||[],[...this.edges.values()].map(e=>e.edge),this.selectedId);
+    this.relatedNodes=this.layered?computationPath([...this.edges.values()].map(e=>e.edge),this.selectedId):relationshipPath(this.visibleNodes||[],[...this.edges.values()].map(e=>e.edge),this.selectedId);
     for (const [nodeId, entry] of this.nodes) {
       if (entry.selection) entry.selection.visible = nodeId === this.selectedId;
       const label = this.labels.get(nodeId);
@@ -373,12 +393,13 @@ export class SceneEngine {
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.pointer.set((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1);
     this.raycaster.setFromCamera(this.pointer, this.camera);
-    const objects = [...this.nodes.values()].map((entry) => entry.group);
+    const objects = [...this.nodes.values()].filter(entry=>entry.introComplete&&!entry.assetPending&&entry.group.visible).map((entry) => entry.group);
     return this.raycaster.intersectObjects(objects, true).find((intersection) => intersection.object.visible && intersection.object.userData.nodeId)?.object.userData.nodeId || null;
   }
 
   pointerDown(event) {
     if (event.button !== 0) return;
+    this.controls.enabled = event.pointerType !== 'touch' || this.navigationActive;
     this.pointerStart = { x: event.clientX, y: event.clientY, id: this.hit(event), pointerId: event.pointerId };
     this.cameraTransition = null;
     if (this.editable && this.pointerStart.id) {
@@ -432,6 +453,7 @@ export class SceneEngine {
   }
 
   keyDown(event) {
+    if (event.key === 'Escape') this.setNavigation(false);
     if (event.key.toLowerCase() === 'c' || event.key.toLowerCase() === 'r') { event.preventDefault(); this.resetCamera(); }
     if (event.key === 'Escape') { this.cancelDrag(); this.select(null); }
     const direction = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
@@ -451,7 +473,9 @@ export class SceneEngine {
   }
 
   resetCamera(immediate = false) {
-    if (!this.renderer) return;
+    // A hidden mount has no usable aspect ratio. Frame when ResizeObserver
+    // reports its real size instead of creating an enormous 1px-view camera.
+    if (!this.renderer || this.width<=1 || this.height<=1) return;
     const bounds = layoutBounds(this.positions, this.visibleNodes || []);
     // Connection curves are part of the scene bounds, including mobile's
     // outside routing lanes. Node centers alone clipped their control arcs.
@@ -506,6 +530,14 @@ export class SceneEngine {
   }
 
   setDetailOpen(open){if(this.detailOpen===open)return;this.detailOpen=open;if(this.world==='skills')this.resetCamera();}
+
+  setNavigation(active) {
+    this.navigationActive = Boolean(active);
+    this.navigationButton?.setAttribute('aria-pressed', String(this.navigationActive));
+    if(this.navigationButton)this.navigationButton.textContent = this.navigationActive ? 'Exit 3D gestures' : 'Enable 3D gestures';
+    if(this.controls){this.controls.enabled=true;this.controls.enableZoom=this.navigationActive;}
+    if(this.renderer)this.renderer.domElement.style.touchAction=this.navigationActive?'none':'pan-y';
+  }
 
   zoom(factor) {
     if(!this.renderer)return;
@@ -562,7 +594,7 @@ export class SceneEngine {
       this.camera.updateProjectionMatrix();
       this.applyQuality();
       this.renderer.setSize(this.width, this.height, false);
-      if(this.world==='skills'&&oldWidth&&((oldWidth<600)!==(this.width<600)))this.reconcile();
+      if((this.world==='skills'||this.layered)&&oldWidth&&((oldWidth<600)!==(this.width<600)))this.reconcile();
       if (this.positions.size && (Math.abs(oldWidth - this.width) > 40 || Math.abs(oldHeight - this.height) > 40)) { this.cameraStates.clear(); this.resetCamera(true); }
     }
     this.invalidate();
@@ -580,7 +612,7 @@ export class SceneEngine {
 
   render(time) {
     this.frame = null;
-    if (this.disposed || document.hidden || !this.visible || this.contextLost) return;
+    if (this.disposed || document.hidden || !this.visible || this.contextLost || this.width<=1 || this.height<=1) return;
     const elapsed = this.lastFrameTime ? (time - this.lastFrameTime) / 1000 : 1 / 60;
     const delta = Math.min(0.06, elapsed);
     // Entrance and camera durations are wall time, even on a slow GPU.
@@ -598,7 +630,7 @@ export class SceneEngine {
     for (const [id, entry] of this.nodes) {
       const animation = entry.node.animation || {};
       const duration = THREE.MathUtils.clamp(Number(animation.duration) || 0.8, 0.1, 3);
-      const progress = !this.motion || animation.entrance === 'none' ? 1 : Math.min(1, (this.clock - entry.created) / duration);
+      const progress = !this.motion || animation.entrance === 'none' ? 1 : Math.max(0,Math.min(1, (this.clock - entry.created) / duration));
       const entrance = ease(progress);
       const selected = id === this.selectedId || id === this.hoveredId;
       const lift = selected && animation.hover === 'lift' ? 0.12 : 0;
@@ -607,6 +639,7 @@ export class SceneEngine {
       entry.group.position.y += lift;
       const reveal = progress < 1 && animation.entrance !== 'rise' ? 0.78 + 0.22 * entrance : 1;
       entry.group.scale.setScalar(entry.size * reveal);
+      entry.group.visible = !this.layered || progress > 0;
       if (progress < 1) animating = true;
       entry.introComplete = progress === 1;
       if(entry.authored){
@@ -620,8 +653,12 @@ export class SceneEngine {
       for (const edge of this.edges.values()) if (edge.pulse.visible) edge.curve.getPoint((this.clock * 0.16 - edge.flowLevel*.22 + 1) % 1, edge.pulse.position);
       this.environment.particles.rotation.y += delta * 0.006;
     }
+    for(const edge of this.edges.values())edge.group.visible=!this.layered||(!this.nodes.get(edge.edge.source)?.assetPending&&this.nodes.get(edge.edge.target)?.group.visible);
     this.controls.update();
     this.scene.updateMatrixWorld();
+    // The camera is not a child of scene. Project DOM labels with the same
+    // current matrix the renderer will use, including a single reduced frame.
+    this.camera.updateMatrixWorld();
     this.updateLabels();
     this.renderer.render(this.scene, this.camera);
     if (this.quality === 'auto' && this.motion && elapsed < 0.25) {
@@ -638,8 +675,19 @@ export class SceneEngine {
 
   updateLabels() {
     const occupied = [];
+    this.layerGuides.forEach((guide,layer)=>{
+      const entries=[...this.nodes.values()].filter(e=>e.node.networkLayer===layer);
+      guide.hidden=!this.layered||!entries.length;
+      if(guide.hidden)return;
+      const x=entries.reduce((sum,e)=>sum+e.position[0],0)/entries.length;
+      const y=Math.max(...entries.map(e=>e.position[1]+e.radius));
+      this.vector.set(x,y,0).project(this.camera);
+      const px=(this.vector.x+1)*this.width/2,py=(1-this.vector.y)*this.height/2-30;
+      guide.style.left=`${Math.max(78,Math.min(this.width-78,px))}px`;
+      guide.style.top=`${Math.max(44,py)}px`;
+    });
     const skillsOverview=this.world==='skills'&&!this.branchId;
-    if(!this.editable)this.legend.textContent=this.world==='skills'?(this.branchId?'Identity → domain → technologies → applied projects':'Select a domain to trace technologies and projects'):'Live environment · drag to orbit · select a node';
+    if(!this.editable)this.legend.textContent=this.navigationActive?'3D gestures on · drag / pinch · exit to scroll':this.layered?'Input → hidden synthesis → output · select to explore':this.world==='skills'?(this.branchId?'Identity → domain → technologies → applied projects':'Select a domain to trace technologies and projects'):'Drag with mouse · Alt + wheel to zoom · swipe to scroll';
     const entries = [...this.nodes.entries()].sort(([a], [b]) => {
       // Pointer/focus state must never reorder layout: moving a button beneath
       // the pointer creates an enter/leave loop and makes tapping unreliable.
@@ -767,7 +815,7 @@ export class SceneEngine {
       this.renderer.forceContextLoss();
       this.renderer.domElement.remove();
     }
-    this.labelLayer.remove(); this.legend.remove(); this.fallback?.remove();
+    this.labelLayer.remove(); this.legend.remove(); this.navigationButton.remove(); this.fallback?.remove();
     this.container.classList.remove('v3-scene-host', 'is-fallback');
     this.cameraStates.clear(); this.positions.clear();
   }

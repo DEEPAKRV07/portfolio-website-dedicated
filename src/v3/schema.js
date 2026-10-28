@@ -221,6 +221,8 @@ export function validateSnapshot(snapshot) {
       parent = byNode.get(parent).parentId;
     }
     if (!['auto', 'manual'].includes(node.layout?.mode)) fail(`${at}: invalid layout mode.`);
+    if(node.networkLayer!==undefined&&![0,1,2].includes(node.networkLayer))fail(`${at}: network layer must be 0 (input), 1 (hidden) or 2 (output).`);
+    if(node.networkOrder!==undefined&&(!Number.isInteger(node.networkOrder)||node.networkOrder<0||node.networkOrder>999))fail(`${at}: network order must be an integer from 0 to 999.`);
     const position = node.layout?.position;
     if (position !== null && position !== undefined && (!Array.isArray(position) || position.length !== 3 || position.some(value => !Number.isFinite(value) || Math.abs(value) > 1000))) fail(`${at}: position must contain three finite coordinates within ±1000.`);
     if (node.layout?.mode === 'manual' && !Array.isArray(position)) fail(`${at}: manual layout requires a position.`);

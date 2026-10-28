@@ -1,5 +1,6 @@
 import { BASE_URL, SUBNET_DEFINITIONS } from '../data/portfolioData.js';
 import { normalize } from './schema.js';
+import { structureHome } from './computationGraph.js';
 
 const summary = 'Computer Science graduate specializing in Artificial Intelligence and Machine Learning, with hands-on experience in computer vision, AI systems, XR integration, software development, and experiment-driven R&D.';
 const technicalExposure = [
@@ -249,6 +250,7 @@ export function createSeed() {
   }
   preserveNeuralGraph(records, nodes, edges);
   structureSkills(records,nodes,edges);
+  structureHome(nodes,edges);
   return normalize({
     schemaVersion: 3,
     profile: {

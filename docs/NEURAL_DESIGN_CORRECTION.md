@@ -47,3 +47,11 @@ Pulses follow each rendered edge in source-to-target order with phase delays by 
 ## Verification requirements after this correction
 
 Retest all Home section nodes, section roots, contact destinations, skill selection, GLB load/animation/label order, node focus, repeated-world cleanup, keyboard/touch orbit and reset, responsive layouts, WebGL fallback, reduced motion and Studio publishing. Prior observatory screenshots and measurements are historical evidence only; final results must identify the corrected build.
+
+## Latest direction correction
+
+The latest supplied screenshot is used only as a **color and typography reference**. The actual Deltha OTF is bundled from `src/assets/fonts/Deltha.otf`; identity, display headings and navigation use it, while body text and technical labels stay readable. `theme.js` coordinates near-black, restrained emerald/mint/cyan, off-white and subdued border/connection tokens across DOM and rendering. No screenshot is used as scene geometry.
+
+Home now presents aligned input, synthesis and output layers using `computationGraph.js`, retaining root/section IDs and their destinations. Desktop lays layers left-to-right; mobile stacks the same graph. Actual node dimensions, sampled curves and viewport bounds determine framing; layer annotations are projected from node bounds. The introductory copy occupies a separate band below the graph to avoid collisions.
+
+The local resume feature is described in [RESUME_EXPLORER.md](RESUME_EXPLORER.md). Page-scrolling and shared card overflow fixes apply to every world, not just Education.

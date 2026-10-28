@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { THEME } from '../theme.js';
 
 /** Endpoints stop at the nodes' bounding silhouettes, not their centers. */
 export function connectionPoints(source, target, sourceRadius = 1, targetRadius = 1) {
@@ -21,13 +22,20 @@ export function createConnection(edge, source, target, factory) {
   const points = connectionPoints(source.group.position.toArray(), target.group.position.toArray(), source.radius, target.radius);
   if (!points) return null;
   let curve = new THREE.QuadraticBezierCurve3(points.start, points.middle, points.end);
-  if(edge.relationship&&!source.compactBranch&&source.group.position.x<target.group.position.x){
+  if(edge.relationship&&!source.compactBranch&&!source.layeredCompact&&source.group.position.x<target.group.position.x){
     // Horizontal departure/arrival keeps a layered branch's transmission
     // paths clear of the labels directly underneath each node.
     points.start.copy(source.group.position).add(new THREE.Vector3(source.radius,0,0));
     points.end.copy(target.group.position).add(new THREE.Vector3(-target.radius,0,0));
     const middleX=(points.start.x+points.end.x)/2;
     curve=new THREE.CubicBezierCurve3(points.start,new THREE.Vector3(middleX,points.start.y,points.start.z),new THREE.Vector3(middleX,points.end.y,points.end.z),points.end);
+  }
+  if(source.layeredCompact&&edge.relationship){
+    const side=Math.sign(target.group.position.x-source.group.position.x)||1;
+    points.start.copy(source.group.position).add(new THREE.Vector3(side*source.radius,0,0));
+    points.end.copy(target.group.position).add(new THREE.Vector3(0,target.radius,0));
+    const middleY=(points.start.y+points.end.y)/2;
+    curve=new THREE.CubicBezierCurve3(points.start,new THREE.Vector3(points.start.x+side*3.5,points.start.y,points.start.z),new THREE.Vector3(points.end.x,middleY,points.end.z),points.end);
   }
   if(source.compactBranch&&edge.relationship){
     // Route vertically stacked branches around the node/label columns. Ports
@@ -48,7 +56,7 @@ export function createConnection(edge, source, target, factory) {
   }
   const group = new THREE.Group();
   group.name = `edge:${edge.id}`;
-  const color = /^#[a-f0-9]{6}$/i.test(edge.color) ? edge.color : edge.relationship==='applied-in'?'#53aab1':'#5aab8c';
+  const color = /^#[a-f0-9]{6}$/i.test(edge.color) ? edge.color : edge.relationship==='applied-in'?THEME.cyan:THEME.connection;
   let geometry, material, line;
   if (edge.style === 'tube' || edge.style === 'ribbon') {
     geometry = new THREE.TubeGeometry(curve, 24, edge.style === 'ribbon' ? 0.048 : 0.024, edge.style === 'ribbon' ? 3 : 5, false);
@@ -77,8 +85,8 @@ export function createConnection(edge, source, target, factory) {
     group.add(arrow);
   }
   return {
-    group, curve, pulse, edge, line, material, flowLevel:({identity:0,domain:1,technology:2}[source.node.graphRole]||0),
-    highlight(active,subdued=false) { material.color.set(active ? '#9efbd7' : color); material.opacity = subdued?.12:active?.95:.72; pulse.visible = !subdued&&(active || idleSignal); pulse.scale.setScalar(active?1:.65); },
+    group, curve, pulse, edge, line, material, flowLevel:source.node.networkLayer ?? ({identity:0,domain:1,technology:2}[source.node.graphRole]||0),
+    highlight(active,subdued=false) { material.color.set(active ? THEME.mint : color); material.opacity = subdued?.12:active?.95:.55; pulse.visible = !subdued&&(active || idleSignal); pulse.scale.setScalar(active?1:.65); },
     dispose() { geometry.dispose(); material.dispose(); group.removeFromParent(); },
   };
 }

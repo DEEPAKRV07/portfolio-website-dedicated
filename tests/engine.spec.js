@@ -11,13 +11,13 @@ test('camera and authored entrances finish on time after a slow frame',async({pa
   const gap=Math.max(3,...[...engine.nodes.values()].map(e=>e.authored?.duration||0))+1;
   engine.render(1000+gap*1000);engine.stop();
   return{complete:[...engine.nodes.values()].every(e=>e.introComplete),cameraDone:engine.cameraTransition===null,position:engine.camera.position.toArray(),expected:position.toArray()};
- });expect(result.complete).toBeTruthy();expect(result.cameraDone).toBeTruthy();expect(result.position).toEqual(result.expected);
+ });expect(result.complete).toBeTruthy();expect(result.cameraDone).toBeTruthy();result.position.forEach((value,i)=>expect(value).toBeCloseTo(result.expected[i],10));
 });
 
 test('renderer, retained GLBs, camera, connections and cleanup',async({page})=>{
  test.setTimeout(90000);const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./tests/fixtures/engine.html');await page.waitForFunction(()=>window.ready);
  await page.waitForFunction(()=>[...engine.nodes.values()].every(e=>!e.assetPending&&e.introComplete));
- const home=await page.evaluate(()=>engine.stats());expect(home.webgl).toBeTruthy();expect(home.edges).toBe(13);
+ const home=await page.evaluate(()=>engine.stats());expect(home.webgl).toBeTruthy();expect(home.edges).toBe(6);
  const assetCount=await page.evaluate(()=>[...engine.nodes.values()].filter(e=>e.authored).length);expect(assetCount).toBe(6);
  await page.evaluate(()=>{window.activations=[];engine.onSelect=id=>activations.push(id)});
  const point=await page.evaluate(()=>{const p=engine.nodes.get('projects').group.position.clone().project(engine.camera);return{x:(p.x+1)*innerWidth/2,y:(1-p.y)*innerHeight/2}});
@@ -57,4 +57,17 @@ test('Skills branch highlights documented paths and pulses follow rendered direc
   const outside=await page.evaluate(id=>{engine.setBranch(id);engine.resetCamera(true);engine.camera.updateMatrixWorld();return [...engine.edges.values()].flatMap(e=>e.curve.getPoints(40)).filter(p=>{p.project(engine.camera);return Math.abs(p.x)>.95||Math.abs(p.y)>.95||Math.abs(p.z)>1}).length},branch);
   expect(outside,`${branch} connection bounds on phone`).toBe(0);
  }
+});
+
+test('real wheel zoom, pointer pan and touch pinch follow the explicit input policy',async({page,browser})=>{
+ await page.goto('./tests/fixtures/engine.html');await page.waitForFunction(()=>window.ready&&[...engine.nodes.values()].every(e=>!e.assetPending&&e.introComplete));await page.evaluate(()=>{engine.setMotion(false);window.activations=[];engine.onSelect=id=>activations.push(id)});
+ const hiddenHit=await page.evaluate(()=>{const entry=engine.nodes.get('projects'),p=entry.group.position.clone().project(engine.camera),event={clientX:(p.x+1)*innerWidth/2,clientY:(1-p.y)*innerHeight/2};entry.group.visible=false;const hidden=engine.hit(event);entry.group.visible=true;entry.introComplete=false;const entering=engine.hit(event);entry.introComplete=true;return{hidden,entering};});expect(hiddenHit).toEqual({hidden:null,entering:null});
+ const distance=()=>page.evaluate(()=>engine.camera.position.distanceTo(engine.controls.target));const before=await distance();await page.mouse.move(300,300);await page.mouse.wheel(0,-200);expect(await distance()).toBeCloseTo(before,8);
+ await page.keyboard.down('Alt');await page.mouse.wheel(0,-200);await page.keyboard.up('Alt');await expect.poll(distance).toBeLessThan(before-1);
+ const target=await page.evaluate(()=>engine.controls.target.toArray());await page.mouse.down({button:'right'});await page.mouse.move(380,330,{steps:6});await page.mouse.up({button:'right'});expect(await page.evaluate(()=>engine.controls.target.toArray())).not.toEqual(target);expect(await page.evaluate(()=>activations)).toEqual([]);
+ const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}),phone=await context.newPage();await phone.goto((process.env.TEST_BASE_URL||'http://127.0.0.1:5173/portfolio-website-dedicated/')+'tests/fixtures/engine.html');await phone.waitForFunction(()=>window.ready);await phone.getByRole('button',{name:'Enable 3D gestures',exact:true}).tap();
+ const initial=await phone.evaluate(()=>engine.camera.position.distanceTo(engine.controls.target)),cdp=await context.newCDPSession(phone);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:160,y:420,id:1},{x:230,y:420,id:2}]});
+ for(let step=1;step<=6;step++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:160-step*8,y:420,id:1},{x:230+step*8,y:420,id:2}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ await expect.poll(()=>phone.evaluate(()=>engine.camera.position.distanceTo(engine.controls.target))).toBeLessThan(initial-1);await context.close();
 });

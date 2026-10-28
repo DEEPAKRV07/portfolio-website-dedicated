@@ -34,3 +34,5 @@ Without Supabase, the public production build reads the bundled resume-backed co
 The original V2 source and GLBs remain untouched apart from allowing the central data import in Node tests. `legacy.html` runs the prior app locally. Checkpoint directories and Git history provide recovery; they are not the V3 runtime.
 
 See [implementation audit](docs/PORTFOLIO_V3_IMPLEMENTATION.md), [Studio guide](docs/STUDIO.md), [deployment](docs/DEPLOYMENT.md), and [verification report](docs/VERIFICATION.md) for exact status and limitations.
+
+The optional [local resume explorer](docs/RESUME_EXPLORER.md) accepts PDF/DOCX and builds a temporary source-backed graph in the same renderer. No resume is uploaded, saved, or published. Home uses deterministic input → identity synthesis → output layers; owner layer/order settings are available in Studio.

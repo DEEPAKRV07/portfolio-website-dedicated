@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildNeuralNode, neuralEnvironment } from './neuralGeometry.js';
+import { THEME } from '../theme.js';
 
 export const GEOMETRY_PRESETS = ['neural-core', 'neural-node', 'neural-cluster', 'neural-chip', 'core', 'portal', 'monolith', 'chip', 'tower', 'archive', 'beacon'];
 export const MATERIAL_PRESETS = ['titanium', 'glass', 'emissive'];
@@ -48,7 +49,7 @@ export class GeometryFactory {
       clearcoat: 1, side: THREE.DoubleSide, depthWrite: false,
     });
     else material = new THREE.MeshStandardMaterial({
-      color: role === 'dark' ? '#0c1918' : role === 'warm' ? '#9b795b' : '#3b514d',
+      color: role === 'dark' ? THEME.dark : role === 'warm' ? '#9b795b' : THEME.metal,
       metalness: 0.88, roughness: role === 'dark' ? 0.4 : 0.22,
       emissive: preset === 'emissive' ? color : '#000000',
       emissiveIntensity: preset === 'emissive' ? 0.18 : 0,

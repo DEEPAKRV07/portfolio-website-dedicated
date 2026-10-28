@@ -13,7 +13,7 @@ export function buildNeuralNode(factory, group, materials, node, rotors, record 
   factory.mesh(nucleus,factory.geometry('neural-energy',()=>new THREE.IcosahedronGeometry(.41,1)),materials.energy);
   const frame = new THREE.Group(); body.add(frame);
   const variant = node.contentId || node.id;
-  const signature = ['about','projects','skills','experience','education','contact'].includes(variant) ? variant : ({project:'projects',skill:'skills',category:'skills',experience:'experience',education:'education',contact:'contact',about:'about'}[record.type]||'about');
+  const signature = node.world==='resume'&&node.networkLayer===0?'education':node.world==='resume'&&node.networkLayer===1?'skills':['about','projects','skills','experience','education','contact'].includes(variant) ? variant : ({project:'projects',skill:'skills',category:'skills',experience:'experience',education:'education',contact:'contact',about:'about'}[record.type]||'about');
   const rounded = factory.geometry('neural-bevel',()=>new RoundedBoxGeometry(1,1,1,2,.12));
   const count=core?12:chip?4:cluster?8:6;
   const transforms=new THREE.Object3D();

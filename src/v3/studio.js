@@ -299,6 +299,7 @@ export async function mountStudio(container, { store, snapshot, onExit = () => {
       ${field('Content record', 'contentId', item.contentId, { scope: 'node', options: data.records.map((r) => [r.id, r.title]) })}
       <div class="studio-fields">${field('World', 'world', item.world, { scope: 'node', options: worlds() })}${field('Parent node', 'parentId', item.parentId || '', { scope: 'node', options: [['', 'No parent'], ...peerNodes.map((n) => [n.id, `${n.world} · ${n.label}`])] })}</div>
       <h3>Position</h3>
+      ${item.world==='home'?`<div class="studio-fields">${field('Network layer', 'networkLayer', item.networkLayer??2, {scope:'node',options:[['0','Input'],['1','Hidden / synthesis'],['2','Output']]})}${field('Order within layer','networkOrder',item.networkOrder??0,{scope:'node',type:'number',min:0,max:999,step:1})}</div><p class="studio-hint">Automatic Home positions follow these layers. Connections and destinations remain editable below.</p>`:''}
       ${field('Placement', 'layout.mode', item.layout?.mode || 'auto', { scope: 'node', options: [['auto', 'Automatic layout'], ['manual', 'Manual override']] })}
       <div class="studio-coordinates">${['X', 'Y', 'Z'].map((axis, i) => field(axis, `position.${i}`, positions[i], { scope: 'node', type: 'number', min: -100, max: 100, step: 0.1 })).join('')}</div><p class="studio-hint">${item.layout?.mode === 'manual' ? 'Manual coordinates override automatic layout.' : 'Automatic layout controls placement. Editing coordinates creates an override.'}</p>
       <h3>Appearance</h3><div class="studio-fields">${field('Geometry', 'appearance.geometry', item.appearance?.geometry || 'monolith', { scope: 'node', options: GEOMETRIES })}${field('Material', 'appearance.material', item.appearance?.material || 'titanium', { scope: 'node', options: MATERIALS })}${field('Accent color', 'appearance.color', item.appearance?.color || '#76f4ca', { scope: 'node', type: 'color' })}${field('Scale', 'appearance.size', item.appearance?.size || 1, { scope: 'node', type: 'number', min: 0.3, max: 4, step: 0.1 })}${field('Show label', 'appearance.labelVisible', item.appearance?.labelVisible !== false, { scope: 'node', type: 'checkbox' })}${field('Visible in scene', 'visible', item.visible !== false, { scope: 'node', type: 'checkbox' })}${field('Label position', 'appearance.labelPosition', item.appearance?.labelPosition || 'above', { scope: 'node', options: ['above', 'below'] })}</div>
@@ -361,6 +362,7 @@ export async function mountStudio(container, { store, snapshot, onExit = () => {
     const scope = target.dataset.scope || 'record';
     const index = Number(target.dataset.index);
     let value = target.type === 'checkbox' ? target.checked : target.type === 'number' ? Number(target.value) : target.value;
+    if(key==='networkLayer')value=Number(value);
     if ((key === 'url' || key === 'resumeUrl' || key === 'githubUrl' || key === 'linkedinUrl' || key === 'poster') && value && !safeUrl(value, { media: scope === 'media' })) {
       target.setCustomValidity('Use an https URL, a valid contact link, or a safe local asset path.');
       target.reportValidity();

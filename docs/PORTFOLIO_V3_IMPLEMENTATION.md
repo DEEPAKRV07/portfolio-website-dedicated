@@ -41,6 +41,9 @@ Reference URLs: https://experience2026.funtech.inc/ ; https://bruno-simon.com/ ;
 - [x] Functional local Studio, real scene editing and media workflows.
 - [x] Public home, projects, skills, experience, education, about and contact.
 - [x] Shared mobile/tablet/desktop 3D, reduced motion and readable fallback.
+- [x] Reference palette and exact existing Deltha font; deterministic input/hidden/output layers preserving the seven portfolio identities.
+- [x] Ordinary page scrolling, explicit gesture mode, independent detail-card scrolling and rapid Home/camera regression fixes.
+- [x] Real, private PDF/DOCX-to-network exploration using the existing engine, safe text extraction and temporary in-memory data.
 - [x] Local drafts, publication and version recovery; remote adapter mock tests.
 - [ ] Live Supabase authentication/RLS/storage/publication: owner requested setup documentation because no project exists.
 - [x] Automated unit/integration/browser tests and screenshot capture; see current results in VERIFICATION.md.

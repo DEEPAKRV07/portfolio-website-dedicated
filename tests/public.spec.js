@@ -5,6 +5,14 @@ test('Home interrupts navigation before the next hashchange render',async({page}
  await page.evaluate(()=>{location.hash='#/about';document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));});
  await expect(page).toHaveURL(/#\/home$/);await expect(page.locator('.hero')).toHaveAttribute('data-world','home');
 });
+test('Home restores the overview after interrupting a focused node selection',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});await page.goto('./#/home');
+ await expect(page.getByRole('button',{name:'Explore About',exact:true})).not.toHaveClass(/is-entering/);
+ await page.evaluate(()=>{document.querySelector('[data-node-id="about"]').click();document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));});
+ await expect(page).toHaveURL(/#\/home$/);
+ await expect(page.getByRole('button',{name:'Explore Projects',exact:true})).not.toHaveClass(/is-occluded|is-entering/);
+ await page.getByRole('button',{name:'Explore Projects',exact:true}).click();await expect(page).toHaveURL(/#\/projects$/);
+});
 test('a branch deep link waits for a delayed scene module',async({page})=>{
  await page.route('**/src/v3/engine/SceneEngine.js',async route=>{await new Promise(resolve=>setTimeout(resolve,1500));await route.continue();});
  await page.goto('./#/skills',{waitUntil:'commit'});await expect(page.locator('.scene-loading')).toBeVisible();
@@ -19,7 +27,7 @@ for (const [name,width,height] of [['desktop',1440,960],['laptop',1280,800],['ta
   await expect(page.locator('canvas')).toBeVisible();await expect(page.getByRole('heading',{name:/Intelligence.*Connected/})).toBeVisible();
   await page.getByRole('button',{name:'Reduce motion',exact:true}).click();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
-  await page.screenshot({path:`docs/screenshots/home-${name}.png`,fullPage:name==='mobile'});
+  await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`docs/screenshots/home-${name}.png`,fullPage:name==='mobile'});
   await page.getByRole('button',{name:'Explore Projects',exact:true}).click();
   await expect(page).toHaveURL(/#\/projects$/);await expect(page.locator('canvas')).toBeVisible();
   await page.getByRole('link',{name:'SightMate — AI Navigation Assistant',exact:true}).click();
@@ -59,15 +67,16 @@ test('touch phone: orbit, scene selection and navigation menu', async ({ browser
   await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:5173/portfolio-website-dedicated/') + '#/home');
   await expect(page.locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: 'Reduce motion', exact: true }).tap();
+  await page.getByRole('button', { name: 'Enable 3D gestures', exact: true }).tap();
   await page.locator('canvas').scrollIntoViewIfNeeded();
-  const before = await page.getByRole('button', { name: 'Explore Projects', exact: true }).boundingBox();
+  const before = await page.getByRole('button', { name: 'Explore About', exact: true }).boundingBox();
   const canvas = await page.locator('canvas').boundingBox();
   const cdp = await context.newCDPSession(page);
   const {x,y} = await page.locator('canvas').evaluate(canvas=>{const r=canvas.getBoundingClientRect();for(const fy of [.25,.35,.5,.7])for(const fx of [.12,.25,.45]){const x=r.x+r.width*fx,y=r.y+r.height*fy;if([0,30,60,90].every(dx=>document.elementFromPoint(x+dx,y)===canvas))return{x,y};}throw new Error('No clear touch-drag area');});
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
   for (let step = 1; step <= 6; step++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + step * 15, y }] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await expect.poll(async () => { const after = await page.getByRole('button', { name: 'Explore Projects', exact: true }).boundingBox(); return Math.abs(after.x - before.x) + Math.abs(after.y - before.y); }).toBeGreaterThan(3);
+  await expect.poll(async () => { const after = await page.getByRole('button', { name: 'Explore About', exact: true }).boundingBox(); return Math.abs(after.x - before.x) + Math.abs(after.y - before.y); }).toBeGreaterThan(3);
   await page.getByRole('button', { name: 'Explore Projects', exact: true }).tap();
   await expect(page).toHaveURL(/#\/projects$/);
   await page.getByRole('button', { name: 'Open navigation' }).tap();

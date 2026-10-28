@@ -251,11 +251,11 @@ test('import/export round trip and unsupported uploads fail clearly', async () =
 });
 
 
-test('original neural topology and authored node keys survive the enhancement',()=>{
+test('original section identities and authored keys survive the directed layer correction',()=>{
  const seed=createSeed();const home=seed.nodes.filter(n=>n.world==='home');
  assert.deepEqual(home.map(n=>n.id).sort(),['about','contact','core','education','experience','projects','skills']);
- for(const id of ['about','projects','skills','experience','education','contact'])assert.ok(seed.edges.some(e=>e.source==='core'&&e.target===id));
- for(const [a,b] of [['about','skills'],['skills','projects'],['projects','contact'],['contact','experience'],['experience','about']])assert.ok(seed.edges.some(e=>e.source===a&&e.target===b));
+ for(const id of ['education','experience','skills'])assert.ok(seed.edges.some(e=>e.source===id&&e.target==='core'&&e.directed));
+ for(const id of ['about','projects','contact'])assert.ok(seed.edges.some(e=>e.source==='core'&&e.target===id&&e.directed));
  for(const world of ['projects','skills','experience','education','contact'])assert.ok(seed.nodes.some(n=>n.id===`${world}_root`&&n.world===world));
  assert.ok(seed.nodes.some(n=>n.id==='contact_email'&&n.appearance.legacyNode==='contact_email'));
  assert.ok(seed.nodes.some(n=>n.id==='yolov8'&&n.parentId==='cv-category'));

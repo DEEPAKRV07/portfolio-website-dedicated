@@ -5,6 +5,9 @@ import { safeUrl } from './schema.js';
 import { el, safeStorage } from './dom.js';
 import { WORLDS, TYPE_WORLD, parseRoute, routeHref, recordHref } from './router.js';
 import { mediaGallery } from './media.js';
+import { applyTheme } from './theme.js';
+import { resumeUpload } from './resumeUpload.js';
+applyTheme();
 
 const TITLES = { home: 'Inside my neural network.', projects: 'Built to solve.', skills: 'A connected toolkit.', experience: 'Learning. Building. Evolving.', education: 'The foundations.', about: 'Curiosity, in practice.', contact: 'Let’s make a connection.', section: 'More to explore.' };
 const DESCRIPTIONS = {
@@ -22,11 +25,13 @@ let snapshot = createSeed();
 let engine, studioCleanup, publicShell, sceneStage, content, dialog, route, sceneControls, branchContext;
 let renderToken = 0, sceneToken = 0, lastWorld = null, pendingNode = null, lastFocus;
 let sceneLoad = null;
+let resumeResult=null, resumeCleanup=null;
+const sceneSnapshot=()=>route?.world==='resume' ? (resumeResult?.graph || {nodes:[],edges:[],records:[],settings:{}}) : snapshot;
 let navigationToken = 0;
 let motion = safeStorage('portfolio.motion') !== 'off' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let reading = false;
 let quality = safeStorage('portfolio.quality') || 'auto';
-const visibleRecords = () => snapshot.records.filter(r => r.status === 'published');
+const visibleRecords = () => (sceneSnapshot().records || []).filter(r => r.status === 'published');
 const recordById = id => visibleRecords().find(r => r.id === id);
 function link(label, href, className = '') { return el('a', { href, class: className }, label); }
 function externalLink(item) {
@@ -38,7 +43,7 @@ function go(world, slug) { location.hash = routeHref(world, slug); }
 
 function makeShell() {
   const nav = el('nav', { class: 'primary-nav', id: 'main-navigation', 'aria-label': 'Main navigation' },
-    ...WORLDS.map(world => link(world === 'home' ? 'Index' : world[0].toUpperCase() + world.slice(1), routeHref(world), `nav-link nav-${world}`)));
+    ...WORLDS.map(world => link(world[0].toUpperCase() + world.slice(1), routeHref(world), `nav-link nav-${world}`)));
   const menu = el('button', { class: 'menu-toggle', 'aria-label': 'Open navigation', 'aria-expanded': 'false', 'aria-controls': 'main-navigation', onClick: () => {
     const open = nav.classList.toggle('nav-open'); menu.setAttribute('aria-expanded', String(open)); menu.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
   } }, 'Menu', el('span', { 'aria-hidden': 'true' }, '☰'));
@@ -57,12 +62,13 @@ function makeShell() {
     if (reading) { engine?.dispose(); engine = null; sceneToken++; } else startScene().then(renderRoute).catch(showFailure);
   } }, 'Reading mode');
   sceneControls = el('div', { class: 'scene-toolbar', 'aria-label': 'Scene controls' },
-    el('span', { class: 'scene-hint' }, el('span', { class: 'status-dot', 'aria-hidden': 'true' }), 'Drag to orbit · Select to explore'),
+    el('span', { class: 'scene-hint' }, el('span', { class: 'status-dot', 'aria-hidden': 'true' }), 'Scroll the page · Alt + wheel to zoom'),
     el('div', { class: 'toolbar-actions' }, el('button', { onClick: () => engine?.zoom(.8), 'aria-label': 'Zoom in' }, '+'), el('button', { onClick: () => engine?.zoom(1.25), 'aria-label': 'Zoom out' }, '−'), el('button', { onClick: () => engine?.resetCamera() }, 'Reset view'), motionButton, readButton, qualitySelect));
   const footer = el('footer', { class: 'site-footer' }, el('p', {}, snapshot.profile.name.toUpperCase(), el('span', {}, 'Ideas become systems.')),
-    el('div', {}, link('GitHub ↗', safeUrl(snapshot.profile.githubUrl)), link('Resume ↗', safeUrl(snapshot.profile.resumeUrl) || `${import.meta.env.BASE_URL}my_resume.pdf`), link('Portfolio Studio', '#/admin')),
+    el('div', {}, link('GitHub ↗', safeUrl(snapshot.profile.githubUrl)), link('Resume ↗', safeUrl(snapshot.profile.resumeUrl) || `${import.meta.env.BASE_URL}my_resume.pdf`), link('Resume explorer','#/resume'),link('Portfolio Studio', '#/admin')),
     el('small', {}, '© 2026 · Made with curiosity & Three.js'));
   dialog = el('dialog', { class: 'detail-dialog', 'aria-labelledby': 'detail-title', onCancel: e => { e.preventDefault(); closeDetail(); }, onClick: e => { if (e.target === dialog) closeDetail(); } });
+  dialog.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){e.preventDefault();closeDetail();}});
   publicShell = el('div', { class: 'public-shell' }, link('Skip to content', '#main-content', 'skip-link'), header, content,
     el('p', { id: 'app-status', role: 'status', class: 'app-status' }), footer, dialog);
   publicShell.querySelector('.skip-link').addEventListener('click', e => { e.preventDefault(); content.focus(); content.scrollIntoView(); });
@@ -75,7 +81,7 @@ function makeHero(world) {
     `${number} / ${world === 'home' ? 'AI / ML ENGINEER & SOFTWARE DEVELOPER' : world.toUpperCase()}`));
   if (world === 'home') {
     intro.append(el('h1', {}, 'Intelligence.', el('br'), el('span', { class: 'outline-type' }, 'Connected.')),
-      el('p', { class: 'hero-description' }, 'Explore projects, skills and experience through my living 3D neural network.'),
+      el('p', { class: 'hero-description' }, 'Education, experience and skills come together in the work I build. Follow a path to explore.'),
       el('div', { class: 'hero-cta' }, link('Explore my work', '#/projects', 'button-primary'), link('About me ↗', '#/about', 'text-link')),
       el('div', { class: 'hero-footnote' }, el('span', {}, (snapshot.profile.location || '').toUpperCase()), el('span', {}, 'A PORTFOLIO IN THREE DIMENSIONS')));
   } else {
@@ -91,6 +97,8 @@ function makeHero(world) {
   return hero;
 }
 function renderCards(world) {
+  if(world==='resume')return el('section',{class:'content-section','aria-label':'Extracted resume content'},el('h2',{},'Explore the extracted evidence'),
+    el('div',{class:'record-grid'},...(resumeResult?.graph.records||[]).filter(r=>r.id!=='resume').map(r=>el('article',{class:'record-card'},el('h3',{},link(r.title,routeHref('resume',r.slug))),el('p',{},r.summary),el('div',{class:'tags'},...r.tags.map(t=>el('span',{},t))),link('View extracted text ↗',routeHref('resume',r.slug),'card-link')))));
   const records = visibleRecords().filter(r => ((TYPE_WORLD[r.type] || 'section') === world || snapshot.nodes.some(n => n.world === world && n.contentId === r.id)) && r.type !== 'category' && !(r.type === 'section' && WORLDS.includes(r.id)) && (world!=='skills'||r.type==='skill')).sort((a, b) => (a.order || 0) - (b.order || 0));
   if (world === 'home') {
     const chapters = [
@@ -103,7 +111,8 @@ function renderCards(world) {
       el('div', { class: 'section-heading' }, el('div', {}, el('p', { class: 'eyebrow' }, 'FIND YOUR WAY'), el('h2', { id: 'index-title' }, 'Every connection tells a story.')), el('p', {}, 'Follow a node above, or start here.')),
       el('div', { class: 'chapter-list' }, ...chapters.map(([id, title, sub], i) =>
         el('a', { href: routeHref(id), class: 'chapter-link' }, el('span', {}, el('span', { class: 'chapter-no' }, `0${i + 1}`),
-          el('span', { class: 'chapter-text' }, el('strong', {}, title), el('small', {}, sub))), el('span', { class: 'chapter-arrow', 'aria-hidden': 'true' }, '↗')))));
+          el('span', { class: 'chapter-text' }, el('strong', {}, title), el('small', {}, sub))), el('span', { class: 'chapter-arrow', 'aria-hidden': 'true' }, '↗')))),
+      el('div',{class:'resume-invite'},el('div',{},el('h2',{},'Bring your own connections.'),el('p',{},'Explore a resume as a private, local network.')),link('Build my network from a resume','#/resume','button-primary')));
   }
   const body = el('div', { class: `record-grid ${world === 'experience' ? 'timeline-grid' : ''}` });
   const count = el('span', { class: 'record-count' });
@@ -171,16 +180,17 @@ function openDetail(record) {
   }
   dialog.replaceChildren(el('div', { class: 'detail-topbar' }, el('span', { class: 'eyebrow' }, `${record.type.toUpperCase()} / ${record.category || 'THE DETAILS'}`),
     el('button', { class: 'close-detail', 'aria-label': 'Close details', onClick: closeDetail }, 'Close ×')),
-    el('div', { class: 'detail-body' }, el('p', { class: 'eyebrow' }, record.subtitle || ''), el('h2', { id: 'detail-title' }, record.title),
+    el('div', { class: 'detail-body', tabIndex:0, 'aria-label':'Scrollable details' }, el('p', { class: 'eyebrow' }, record.subtitle || ''), el('h2', { id: 'detail-title' }, record.title),
       el('p', { class: 'detail-lead' }, record.summary || ''), el('div', { class: 'tags' }, ...(record.tags || []).map(t => el('span', {}, t))),
       fields.length ? el('dl', { class: 'record-facts' }, ...fields.map(([k, v]) => el('div', {}, el('dt', {}, k), el('dd', {}, v)))) : null,
       links.length ? el('div', { class: 'detail-links' }, ...links) : null, mediaGallery(record.media),
       ...sections.map(s => el('section', { class: 'detail-section' }, el('h3', {}, s.heading), s.content ? el('p', {}, s.content) : null,
         s.bullets?.length ? el('ul', {}, ...s.bullets.map(b => el('li', {}, b))) : null)),
-      related.length ? el('section', { class: 'detail-section' }, el('h3', {}, 'Connected work & technologies'), el('div', { class: 'related-links' }, ...related.map(r => link(r.title + ' ↗', recordHref(r))))) : null));
+      related.length ? el('section', { class: 'detail-section' }, el('h3', {}, route.world==='resume'?'Connected source evidence':'Connected work & technologies'), el('div', { class: 'related-links' }, ...related.map(r => link(r.title + ' ↗', route.world==='resume'?routeHref('resume',r.slug):recordHref(r))))) : null));
   if (!dialog.open) { if(innerWidth<=800)dialog.showModal();else dialog.show(); }
-  dialog.scrollTop = 0;
-  const selectedNode=snapshot.nodes.find(n => n.contentId === record.id && n.world === route.world)?.id;
+  dialog.querySelector('.detail-body').scrollTop = 0;
+  engine?.setNavigation(false);
+  const selectedNode=sceneSnapshot().nodes.find(n => n.contentId === record.id && n.world === route.world)?.id;
   if(selectedNode)engine?.focus(selectedNode);
   document.title = `${record.title} — Deepak R V`;
 }
@@ -200,6 +210,12 @@ async function loadScene(token) {
     engine = new SceneEngine({ container: sceneStage,
       onSelect: async (id, node) => {
         const selection = ++navigationToken;
+        if(route.world==='resume'){
+          engine?.focus(id);
+          if(motion)await new Promise(resolve=>setTimeout(resolve,480));
+          if(selection===navigationToken)go('resume',node.contentId);
+          return;
+        }
         if(id==='core'||id.endsWith('_root')) { if(route.world==='home'){engine?.select(null);engine?.resetCamera();}else go('home');return; }
         const selectedRecord=recordById(node?.contentId);
         if(route.world==='contact'&&selectedRecord?.type==='contact'){
@@ -220,7 +236,7 @@ async function loadScene(token) {
       },
       onStatus: ({ state, message }) => { if (state === 'error' || state === 'fallback') notify(message || '3D is unavailable. All portfolio content remains available below.'); }
     });
-    engine.setData(snapshot); engine.setQuality(quality); engine.setMotion(motion); engine.setWorld(route.world);
+    engine.setData(sceneSnapshot()); engine.setQuality(quality); engine.setMotion(motion); engine.setWorld(route.world);
     if (pendingNode) engine.select(pendingNode);
   } catch {
     if(token!==sceneToken)return;
@@ -233,6 +249,7 @@ async function renderRoute() {
   const token = ++renderToken;
   const previous = route;
   route = parseRoute();
+  if(previous?.world==='resume'&&route.world!=='resume'){resumeCleanup?.();resumeCleanup=null;resumeResult=null;engine?.setData(snapshot);}
   if (route.world === 'admin') {
     publicShell?.querySelectorAll('.media-gallery').forEach(g => g.disposeMedia?.());
     sceneToken++; engine?.dispose(); engine = null;
@@ -254,7 +271,7 @@ async function renderRoute() {
   dialog.querySelectorAll('.media-gallery').forEach(gallery => gallery.disposeMedia?.());
   if (dialog.open) { dialog.close(); lastFocus?.focus?.(); }engine?.setDetailOpen(false);
   const customSection = visibleRecords().find(r => r.type === 'section' && (r.id === route.world || r.slug === route.world));
-  const validWorld = WORLDS.includes(route.world) || route.world === 'section' || Boolean(customSection);
+  const validWorld = WORLDS.includes(route.world) || ['section','resume'].includes(route.world) || Boolean(customSection);
   if (!validWorld) {
     content.replaceChildren(el('section', { class: 'not-found' }, el('p', { class: 'eyebrow' }, '404 / CONNECTION NOT FOUND'), el('h1', {}, 'A little off the map.'),
       el('p', {}, 'This connection does not exist or has not been published.'), link('Back to the network', '#/home', 'button-primary')));
@@ -264,6 +281,13 @@ async function renderRoute() {
   if (lastWorld !== route.world) {
     content.querySelectorAll('.media-gallery').forEach(g => g.disposeMedia?.());
     content.replaceChildren(makeHero(route.world), sceneControls, renderCards(route.world));
+    if(route.world==='resume'){
+      resumeCleanup?.();
+      const upload=resumeUpload({result:resumeResult,onReady:result=>{resumeResult=result;engine?.setData(result.graph);lastWorld=null;if(route.slug)go('resume');else renderRoute().catch(showFailure);},onClear:()=>{resumeResult=null;engine?.setData(sceneSnapshot());lastWorld=null;go('resume');renderRoute().catch(showFailure);}});
+      resumeCleanup=upload.dispose;content.prepend(upload.element);
+      content.classList.toggle('resume-empty',!resumeResult);
+      if(resumeResult){content.querySelector('.hero h1').textContent='Your extracted network.';content.querySelector('.hero-description').textContent='Select a node to inspect its source text. This graph is private and temporary.';}
+    }else content.classList.remove('resume-empty');
     publicShell.classList.toggle('on-home', route.world === 'home'); publicShell.classList.toggle('reading-mode', reading);
     for (const a of publicShell.querySelectorAll('.nav-link')) {
       if (a.hash === routeHref(route.world)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
@@ -279,10 +303,19 @@ async function renderRoute() {
   if (token !== renderToken) return;
   document.title = `${route.world === 'home' ? snapshot.profile.title : route.world[0].toUpperCase() + route.world.slice(1)} — ${snapshot.profile.name}`;
   if (route.slug) {
-    const record = visibleRecords().find(r => (r.slug === route.slug || r.id === route.slug) && (TYPE_WORLD[r.type] || 'section') === route.world);
+    const record = visibleRecords().find(r => (r.slug === route.slug || r.id === route.slug) && (route.world==='resume'||(TYPE_WORLD[r.type] || 'section') === route.world));
     if (record) { pendingNode = snapshot.nodes.find(n => n.contentId === record.id && n.world === route.world)?.id; openDetail(record); }
     else { notify('This entry is unavailable or has not been published.'); content.append(el('div', { class: 'route-error', role: 'alert' }, 'Entry not found. Explore the published entries above.')); }
-  } else { pendingNode = null; engine?.select(null);engine?.setBranch(null);if(branchContext)branchContext.hidden=true;content.querySelector('.hero')?.classList.remove('branch-active','branch-compact'); if(previous?.slug && previous.world===route.world){engine?.resetCamera();window.scrollTo({top:0,behavior:'instant'});} }
+  } else {
+    pendingNode = null;
+    // A user can return Home before the destination's hashchange is rendered.
+    // Clear the transient camera focus even when the rendered world never changed.
+    const wasFocused=Boolean(engine?.selectedId);
+    engine?.select(null);engine?.setBranch(null);
+    if(branchContext)branchContext.hidden=true;
+    content.querySelector('.hero')?.classList.remove('branch-active','branch-compact');
+    if(wasFocused||(previous?.slug&&previous.world===route.world)){engine?.resetCamera();window.scrollTo({top:0,behavior:'instant'});}
+  }
 }
 window.addEventListener('keydown', event => {
   const current=parseRoute();
