@@ -21,6 +21,7 @@ const store = new ContentStore();
 let snapshot = createSeed();
 let engine, studioCleanup, publicShell, sceneStage, content, dialog, route, sceneControls, branchContext;
 let renderToken = 0, sceneToken = 0, lastWorld = null, pendingNode = null, lastFocus;
+let sceneLoad = null;
 let navigationToken = 0;
 let motion = safeStorage('portfolio.motion') !== 'off' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let reading = false;
@@ -53,7 +54,7 @@ function makeShell() {
   } }, motion ? 'Reduce motion' : 'Enable motion');
   const readButton = el('button', { 'aria-pressed': 'false', onClick: () => {
     reading = !reading; publicShell.classList.toggle('reading-mode', reading); readButton.setAttribute('aria-pressed', String(reading)); readButton.textContent = reading ? 'Show 3D' : 'Reading mode';
-    if (reading) { engine?.dispose(); engine = null; sceneToken++; } else startScene();
+    if (reading) { engine?.dispose(); engine = null; sceneToken++; } else startScene().then(renderRoute).catch(showFailure);
   } }, 'Reading mode');
   sceneControls = el('div', { class: 'scene-toolbar', 'aria-label': 'Scene controls' },
     el('span', { class: 'scene-hint' }, el('span', { class: 'status-dot', 'aria-hidden': 'true' }), 'Drag to orbit · Select to explore'),
@@ -183,9 +184,14 @@ function openDetail(record) {
   if(selectedNode)engine?.focus(selectedNode);
   document.title = `${record.title} — Deepak R V`;
 }
-async function startScene() {
-  if (reading || route?.world === 'admin') return;
+function startScene() {
+  if (reading || route?.world === 'admin' || engine) return Promise.resolve();
+  if(sceneLoad?.token===sceneToken)return sceneLoad.promise;
   const token = ++sceneToken;
+  const promise=loadScene(token).finally(()=>{if(sceneLoad?.token===token)sceneLoad=null;});
+  sceneLoad={token,promise};return promise;
+}
+async function loadScene(token) {
   sceneStage.replaceChildren(el('div', { class: 'scene-loading', role: 'status' }, 'Connecting the neural network…'));
   try {
     const { SceneEngine } = await import('./engine/SceneEngine.js');
@@ -217,6 +223,7 @@ async function startScene() {
     engine.setData(snapshot); engine.setQuality(quality); engine.setMotion(motion); engine.setWorld(route.world);
     if (pendingNode) engine.select(pendingNode);
   } catch {
+    if(token!==sceneToken)return;
     sceneStage.replaceChildren(el('div', { class: 'scene-fallback' }, el('span', { 'aria-hidden': 'true' }, '◇'), el('h2', {}, 'The ideas are still here.'),
       el('p', {}, '3D could not start in this browser. Explore every project and connection below.'), el('button', { onClick: startScene }, 'Retry 3D')));
     notify('3D unavailable. The complete portfolio is available in the content below.');
@@ -265,8 +272,10 @@ async function renderRoute() {
     publicShell.querySelector('.menu-toggle').setAttribute('aria-expanded', 'false');
     engine?.setWorld(route.world); lastWorld = route.world;
     if (previous) window.scrollTo({ top: 0, behavior: 'instant' });
-    if (!engine) await startScene();
   }
+  // A second route may arrive while the first is importing the renderer.
+  // Every route awaits the same initialization before choosing branch/dialog UI.
+  if (!engine) await startScene();
   if (token !== renderToken) return;
   document.title = `${route.world === 'home' ? snapshot.profile.title : route.world[0].toUpperCase() + route.world.slice(1)} — ${snapshot.profile.name}`;
   if (route.slug) {
@@ -276,9 +285,10 @@ async function renderRoute() {
   } else { pendingNode = null; engine?.select(null);engine?.setBranch(null);if(branchContext)branchContext.hidden=true;content.querySelector('.hero')?.classList.remove('branch-active','branch-compact'); if(previous?.slug && previous.world===route.world){engine?.resetCamera();window.scrollTo({top:0,behavior:'instant'});} }
 }
 window.addEventListener('keydown', event => {
-  if(event.target.matches('input,textarea,select,[contenteditable]')||route?.world==='admin')return;
-  if(event.key==='Escape'){navigationToken++;if(dialog?.open)closeDetail();else if(route?.world!=='home')go('home');else engine?.resetCamera();}
-  if(event.key==='Home'){event.preventDefault();navigationToken++;if(route?.world==='home')engine?.resetCamera();else go('home');}
+  const current=parseRoute();
+  if(event.target.closest?.('input,textarea,select,[contenteditable]')||current.world==='admin')return;
+  if(event.key==='Escape'){navigationToken++;if(dialog?.open)closeDetail();else if(current.world!=='home')go('home');else engine?.resetCamera();}
+  if(event.key==='Home'){event.preventDefault();navigationToken++;if(current.world==='home'&&!current.slug)engine?.resetCamera();else go('home');}
 });
 window.addEventListener('hashchange', () => { navigationToken++;renderRoute().catch(showFailure); });
 window.addEventListener('popstate', () => { if (!location.hash) renderRoute().catch(showFailure); });

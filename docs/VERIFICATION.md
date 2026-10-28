@@ -1,4 +1,4 @@
-# Portfolio V3 verification — 27 October 2026
+# Portfolio V3 verification — 28 October 2026
 
 ## A. Completion status
 
@@ -27,7 +27,7 @@ A separate workflow creates a technology in Computer Vision, explicitly relates 
 | Command / workflow | Result and scope |
 | --- | --- |
 | `npm test` | 34 tests pass: schema/import safety, publishing filters, local history, mocked remote authorization, layouts, endpoints and semantic Skills relationships. |
-| `npm run test:e2e` | 23 browser tests pass. Subsequent camera/branch refinements passed all 10 affected engine/Skills/world tests; the final Contact spacing and branch-height refinement passed all eight Skills/world tests. The release CI reruns the complete suite. |
+| `npm run test:e2e` | 26/26 browser tests pass in the complete 28 October rerun, including immediate Home navigation, delayed renderer loading and low-frame-rate entrances. The release CI reruns the complete suite on Linux Chromium. |
 | `npm run build` | Pass. Vite reports the retained shared Three.js/GLTF chunk above 500 kB (788.08 kB, 201.40 kB gzip); warning is retained, not suppressed. |
 | `npm audit --audit-level=high` | Zero reported vulnerabilities at verification time. |
 | `node tests/deployment.mjs` | Final production-preview checks pass: renderer, deep-link reload, locked unconfigured Studio, latest resume, phone overflow, GLBs and no unexpected console/HTTP errors. Live deployment evidence is recorded separately after release. |
@@ -38,6 +38,8 @@ Renderer evidence is in [engine-measurements.json](engine-measurements.json). Be
 Failure injection deliberately produces a WebGL creation error to test fallback. Edge's GPU compiler emits X4122 precision warnings on this host; those are distinguished from application errors. Normal world journeys assert no unexpected errors or failed HTTP assets.
 
 The final public-control pass also verified quality choices, keyboard orbit/reset and restoring motion. One local Studio run was interrupted while source formatting triggered a development reload; its clean rerun passed all four Studio tests with no source changes. No retries are configured to conceal CI failures.
+
+The first Linux CI runs exposed two real races: Home used the prior rendered route before `hashchange`, and a same-world branch route could render a generic category dialog while the renderer import was pending. Both were reproduced locally by immediate key dispatch and delayed module loading, then corrected with current-URL navigation and shared scene initialization. Camera/GLB timing also now follows elapsed wall time rather than a capped simulation delta, with a slow-frame regression test. These bring the complete browser suite to 26 scenarios. Verification runs on pull requests; main deployment also runs the suite, without duplicate push/PR jobs for the same feature commit.
 
 ## E. Visual inspection
 

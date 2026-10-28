@@ -2,8 +2,6 @@ name: Verify Portfolio V3
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: ['codex/**']
 permissions:
   contents: read
 jobs:

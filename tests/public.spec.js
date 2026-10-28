@@ -1,5 +1,17 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+test('Home interrupts navigation before the next hashchange render',async({page})=>{
+ await page.goto('./#/home');await expect(page.locator('canvas')).toBeVisible();
+ await page.evaluate(()=>{location.hash='#/about';document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));});
+ await expect(page).toHaveURL(/#\/home$/);await expect(page.locator('.hero')).toHaveAttribute('data-world','home');
+});
+test('a branch deep link waits for a delayed scene module',async({page})=>{
+ await page.route('**/src/v3/engine/SceneEngine.js',async route=>{await new Promise(resolve=>setTimeout(resolve,1500));await route.continue();});
+ await page.goto('./#/skills',{waitUntil:'commit'});await expect(page.locator('.scene-loading')).toBeVisible();
+ await page.evaluate(()=>{location.hash='#/skills/vision-geometry'});
+ await expect(page.locator('.network-context h2')).toHaveText('Computer Vision');await expect(page.getByRole('dialog')).not.toBeVisible();
+ await expect(page.getByRole('button',{name:'Explore Camera Calibration',exact:true})).not.toHaveClass(/is-occluded|is-entering/);
+});
 const errorsFor = page => { const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});return errors; };
 for (const [name,width,height] of [['desktop',1440,960],['laptop',1280,800],['tablet',768,1024],['mobile',390,844],['small-mobile',320,720],['landscape',844,390]]) {
  test(`${name}: real 3D, navigation and readable content`,async({page})=>{

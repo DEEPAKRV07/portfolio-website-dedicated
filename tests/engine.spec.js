@@ -1,6 +1,19 @@
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs/promises';
 
+test('camera and authored entrances finish on time after a slow frame',async({page})=>{
+ await page.goto('./tests/fixtures/engine.html');await page.waitForFunction(()=>window.ready&&[...engine.nodes.values()].every(e=>!e.assetPending));
+ const result=await page.evaluate(()=>{
+  engine.stop();engine.motion=true;
+  for(const e of engine.nodes.values()){e.created=engine.clock;e.authored?.mixer.setTime(0);}
+  const target=engine.controls.target.clone().add(new THREE.Vector3(1,0,0)),position=engine.camera.position.clone().add(new THREE.Vector3(1,0,0));
+  engine.moveCamera(position,target);engine.stop();engine.lastFrameTime=1000;
+  const gap=Math.max(3,...[...engine.nodes.values()].map(e=>e.authored?.duration||0))+1;
+  engine.render(1000+gap*1000);engine.stop();
+  return{complete:[...engine.nodes.values()].every(e=>e.introComplete),cameraDone:engine.cameraTransition===null,position:engine.camera.position.toArray(),expected:position.toArray()};
+ });expect(result.complete).toBeTruthy();expect(result.cameraDone).toBeTruthy();expect(result.position).toEqual(result.expected);
+});
+
 test('renderer, retained GLBs, camera, connections and cleanup',async({page})=>{
  test.setTimeout(90000);const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./tests/fixtures/engine.html');await page.waitForFunction(()=>window.ready);
  await page.waitForFunction(()=>[...engine.nodes.values()].every(e=>!e.assetPending&&e.introComplete));

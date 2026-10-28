@@ -583,7 +583,9 @@ export class SceneEngine {
     if (this.disposed || document.hidden || !this.visible || this.contextLost) return;
     const elapsed = this.lastFrameTime ? (time - this.lastFrameTime) / 1000 : 1 / 60;
     const delta = Math.min(0.06, elapsed);
-    this.lastFrameTime = time; this.clock += delta; this.frameCount += 1;
+    // Entrance and camera durations are wall time, even on a slow GPU.
+    // Keep only continuous rotation increments capped to avoid abrupt spins.
+    this.lastFrameTime = time; this.clock += elapsed; this.frameCount += 1;
     let animating = false;
     if (this.cameraTransition) {
       const transition = this.cameraTransition;
@@ -609,7 +611,7 @@ export class SceneEngine {
       entry.introComplete = progress === 1;
       if(entry.authored){
         if(!this.motion && entry.authored.mixer.time<entry.authored.duration) entry.authored.mixer.setTime(entry.authored.duration);
-        else if(entry.authored.mixer.time<entry.authored.duration){entry.authored.mixer.update(delta);animating=true;}
+        else if(entry.authored.mixer.time<entry.authored.duration){entry.authored.mixer.update(elapsed);animating=true;}
         entry.introComplete &&= entry.authored.mixer.time>=entry.authored.duration;
       }
       if (this.motion) for (const rotor of entry.rotors) rotor.object.rotation[rotor.axis] += delta * rotor.speed;
