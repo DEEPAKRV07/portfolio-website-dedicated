@@ -104,3 +104,6 @@ Open launch.html from the extracted source folder or serve index.html. Keeps the
 
 ## v22
 Open launch.html for the offline edition; run `python tools/build-release.py` for a minimal static deployment. GitHub Actions validates builds and deploys only from main. `tools/migrate-github.py` is the safe migration helper (see GITHUB-MIGRATION.md).
+
+## v23
+The physical project monitors display locally computed illustrative previews; these are not evidence of actual models. Campus activity and reduced-motion settings pause previews. No external rendering dependencies.

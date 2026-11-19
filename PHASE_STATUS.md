@@ -92,3 +92,6 @@ Preserve this version and v19/v20 as rollback references. No changes to campus l
 
 ## Phase 22 checkpoint
 Flight motion refinement and release tooling. Preserve contextual stations, clear monitors and full fidelity. Next: environmental microanimations, then rendering quality/performance and device QA.
+
+## Phase 23 checkpoint
+Preserve v22 layout, cinematic and contextual interaction. Phase 23 upgrades physical screen activity with bounded local simulations and selected-station approach lights. Next: moving-frame optimization without lowering visual fidelity and comprehensive device QA.

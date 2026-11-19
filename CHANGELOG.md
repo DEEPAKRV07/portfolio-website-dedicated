@@ -118,3 +118,8 @@
 - Cruise-height flight sequence with softened ascent/descent and conservative station-envelope clearance.
 - Retained v21 content, geometry, camera framing, rounded panels and monitor presentation.
 - Added a clean GitHub Pages CI/build and migration helper.
+
+## v23 — Living monitor refinement
+- Physical monitors use local vision, tracking and queue simulations in both renderers; one atlas, no duplicate screen overlay.
+- Selected station approach lights; pause screen activity with reduced motion or the campus toggle.
+- Fix CI race: wait for visible monitor after animated arrival.
