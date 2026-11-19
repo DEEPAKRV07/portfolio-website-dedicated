@@ -1,0 +1,230 @@
+{
+  "format": "glTF 2.0 binary",
+  "authoring": "tools/author-assets.cjs",
+  "assets": [
+    {
+      "id": "console",
+      "file": "assets/models/console.glb",
+      "triangles": 212,
+      "bytes": 16512,
+      "use": "Reusable monitor and metal display frame",
+      "runtime": true
+    },
+    {
+      "id": "core",
+      "file": "assets/models/core.glb",
+      "triangles": 1352,
+      "bytes": 99380,
+      "use": "Archived previous design; excluded from embedded runtime",
+      "runtime": false
+    },
+    {
+      "id": "data",
+      "file": "assets/models/data.glb",
+      "triangles": 1408,
+      "bytes": 107280,
+      "use": "Lead Generator server racks",
+      "runtime": true
+    },
+    {
+      "id": "devbench",
+      "file": "assets/models/devbench.glb",
+      "triangles": 640,
+      "bytes": 48888,
+      "use": "Engineering workstation bench",
+      "runtime": true
+    },
+    {
+      "id": "forge",
+      "file": "assets/models/forge.glb",
+      "triangles": 892,
+      "bytes": 66456,
+      "use": "Original generic modernization gantry; no game assets",
+      "runtime": true
+    },
+    {
+      "id": "library",
+      "file": "assets/models/library.glb",
+      "triangles": 840,
+      "bytes": 66508,
+      "use": "Education archive shelving",
+      "runtime": true
+    },
+    {
+      "id": "pavilion",
+      "file": "assets/models/pavilion.glb",
+      "triangles": 300,
+      "bytes": 24392,
+      "use": "Archived shared pavilion; replaced by district-specific architecture in v12",
+      "runtime": false
+    },
+    {
+      "id": "probe",
+      "file": "assets/models/probe.glb",
+      "triangles": 860,
+      "bytes": 61016,
+      "use": "Archived previous design; excluded from embedded runtime",
+      "runtime": false
+    },
+    {
+      "id": "probeEco",
+      "file": "assets/models/probeEco.glb",
+      "triangles": 160,
+      "bytes": 12960,
+      "use": "Archived previous design; excluded from embedded runtime",
+      "runtime": false
+    },
+    {
+      "id": "vision",
+      "file": "assets/models/vision.glb",
+      "triangles": 1016,
+      "bytes": 74620,
+      "use": "SightMate stereo-vision exhibit",
+      "runtime": true
+    },
+    {
+      "id": "wayfinder",
+      "file": "assets/models/wayfinder.glb",
+      "triangles": 22,
+      "bytes": 2916,
+      "use": "Archived earlier navigation design; not embedded in v11",
+      "runtime": false
+    },
+    {
+      "id": "codeform",
+      "file": "assets/models/codeform.glb",
+      "triangles": 204,
+      "bytes": 15892,
+      "use": "Software-themed identity sculpture",
+      "runtime": true
+    },
+    {
+      "id": "droneEco",
+      "file": "assets/models/droneEco.glb",
+      "triangles": 588,
+      "bytes": 37140,
+      "use": "Default exploration drone: four separated rotors and underslung camera",
+      "runtime": true
+    },
+    {
+      "id": "drone",
+      "file": "assets/models/drone.glb",
+      "triangles": 888,
+      "bytes": 56356,
+      "use": "Detailed follow-view drone; propellers animated in browser",
+      "runtime": true
+    },
+    {
+      "id": "planter",
+      "file": "assets/models/planter.glb",
+      "triangles": 124,
+      "bytes": 11016,
+      "use": "Low-poly architectural landscaping",
+      "runtime": true
+    },
+    {
+      "id": "visionStudio",
+      "file": "assets/models/visionStudio.glb",
+      "triangles": 192,
+      "bytes": 15972,
+      "use": "Open computer-vision research studio; archived in v17",
+      "runtime": false
+    },
+    {
+      "id": "exchangeHall",
+      "file": "assets/models/exchangeHall.glb",
+      "triangles": 232,
+      "bytes": 19096,
+      "use": "Data exchange server hall; archived in v17",
+      "runtime": false
+    },
+    {
+      "id": "neuralForum",
+      "file": "assets/models/neuralForum.glb",
+      "triangles": 176,
+      "bytes": 14732,
+      "use": "Open neural forum",
+      "runtime": true
+    },
+    {
+      "id": "studioLouver",
+      "file": "assets/models/studioLouver.glb",
+      "triangles": 216,
+      "bytes": 17844,
+      "use": "Warm slatted workshop and library frame",
+      "runtime": true
+    },
+    {
+      "id": "careerGallery",
+      "file": "assets/models/careerGallery.glb",
+      "triangles": 156,
+      "bytes": 13168,
+      "use": "Ascending career gallery portals",
+      "runtime": true
+    },
+    {
+      "id": "campusBench",
+      "file": "assets/models/campusBench.glb",
+      "triangles": 96,
+      "bytes": 8476,
+      "use": "Campus seating",
+      "runtime": true
+    },
+    {
+      "id": "arrivalAtrium",
+      "file": "assets/models/arrivalAtrium.glb",
+      "triangles": 328,
+      "bytes": 26084,
+      "use": "Curved entry portal and glazed rear elevation",
+      "runtime": true
+    },
+    {
+      "id": "visionArcade",
+      "file": "assets/models/visionArcade.glb",
+      "triangles": 340,
+      "bytes": 27520,
+      "use": "Three-bay optical research laboratory",
+      "runtime": true
+    },
+    {
+      "id": "dataFacade",
+      "file": "assets/models/dataFacade.glb",
+      "triangles": 220,
+      "bytes": 18156,
+      "use": "Fin-clad server hall rear elevation",
+      "runtime": true
+    },
+    {
+      "id": "learningCanopy",
+      "file": "assets/models/learningCanopy.glb",
+      "triangles": 248,
+      "bytes": 20344,
+      "use": "Timber archive pavilion",
+      "runtime": true
+    },
+    {
+      "id": "campusTree",
+      "file": "assets/models/campusTree.glb",
+      "triangles": 232,
+      "bytes": 16140,
+      "use": "Faceted landscape tree and planter",
+      "runtime": true
+    },
+    {
+      "id": "pathLantern",
+      "file": "assets/models/pathLantern.glb",
+      "triangles": 48,
+      "bytes": 4732,
+      "use": "Pedestrian scale path light",
+      "runtime": true
+    },
+    {
+      "id": "droneGimbal",
+      "file": "assets/models/droneGimbal.glb",
+      "use": "Independently articulated optical camera simulation",
+      "runtime": true,
+      "triangles": 100,
+      "bytes": 8292
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+const assert=require('node:assert/strict'),E=require('../lab-engine.js');
+for(let scene=0;scene<9;scene++){const low=E.vision(scene,.3),high=E.vision(scene,.99);assert.equal(low.detections.length,3);assert.equal(high.detections.length,0);assert.deepEqual(high.nearest,[12,12,12]);assert.equal(high.choice,'CENTER')}
+let f=E.football();for(let i=0;i<120;i++)E.footballTick(f,.1);assert.equal(f.tracks.length,8);assert.equal(f.next,9);assert(f.speed>0);assert(f.possession[0]>0&&f.possession[1]>0);assert(f.history.length<=25);
+for(let workers of [1,3,4]){let p=E.pipeline(workers);for(let i=0;i<100;i++){E.pipelineTick(p);assert(p.queue.filter(r=>r.state==='running').length<=workers)}let c=E.pipelineCounts(p);assert.deepEqual([c.exported,c.duplicate,c.invalid,c.queued,c.running,c.retry],[6,1,1,0,0,0]);assert.equal(p.queue.reduce((a,r)=>a+r.attempts,0),10)}
+assert.equal(E.compatibility({}).passed,0);assert.equal(E.compatibility({arm:true,il2cpp:true,ids:true,refs:true}).passed,4);console.log('4 lab engine suites passed: confidence filtering and lane selection; stable tracking and possession; queue capacity, retry, deduplication, validation; compatibility rules.');

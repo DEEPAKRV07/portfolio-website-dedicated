@@ -1,0 +1,6 @@
+const assert=require('node:assert/strict'),d=require('../drone-motion.js');
+const f={sx:0,sz:28.5,sy:1.6,x:-27,z:-17.5};let a=d.flightSample(f,0),b=d.flightSample(f,1);assert.deepEqual([a.x,a.y,a.z],[0,1.6,28.5]);assert.deepEqual([b.x,b.y,b.z],[-27,1.6,-17.5]);
+for(let i=0;i<=1000;i++){let p=d.flightSample(f,i/1000);assert(p.y>=1.599&&p.y<=12&&Number.isFinite(p.x));if(p.travel>0&&p.travel<1)assert(p.y>=12);}
+const q=[{x:0,z:18}];assert.equal(d.clearance(0,18,q),11.5);assert.equal(d.clearance(0,40,q),1.6);assert(d.clearance(0,30,q)<d.clearance(0,27,q));assert.equal(d.clearance(0,28.5,q),1.6);
+let bank={pitch:0,roll:0};for(let i=0;i<60;i++)bank=d.attitude(11,-11,0,bank,1/60);assert(bank.pitch<-.15&&bank.roll<-.15);assert(Math.abs(bank.pitch)<=.22&&Math.abs(bank.roll)<=.24);for(let i=0;i<60;i++)bank=d.attitude(0,0,0,bank,1/60);assert(Math.abs(bank.roll)<.001&&Math.abs(bank.pitch)<.001);
+const m=d.matrix(.7,-.2,.18),x=d.transform(m,1,0,0),y=d.transform(m,0,1,0);assert(Math.abs(Math.hypot(...x)-1)<1e-9);assert(Math.abs(x.reduce((v,n,i)=>v+n*y[i],0))<1e-9);assert.deepEqual(d.transform(d.matrix(0,0,0),1,2,3),[1,2,3]);console.log('Drone: endpoints, 1001 travel samples, clearance, banking, stabilization and transforms PASS');

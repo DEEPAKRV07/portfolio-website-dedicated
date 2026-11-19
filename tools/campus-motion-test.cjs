@@ -1,0 +1,3 @@
+const assert=require('node:assert/strict');const {route,pointAt}=require('../campus-motion.js');
+const modules=[];for(let x of [-27,0,27])for(let z of [-28,-5,18,41])modules.push({x,z});
+let n=0;for(const a of modules)for(const b of modules){if(a===b)continue;const p=route(a,b);assert.deepEqual(p[0],[a.x,a.z+10.5]);assert.deepEqual(p.at(-1),[b.x,b.z+10.5]);for(let i=1;i<p.length;i++){let A=p[i-1],B=p[i];assert(A[0]===B[0]||A[1]===B[1]);if(A[0]===B[0])assert([-41,-14,14,41].includes(A[0]));}assert.deepEqual(pointAt(p,0),p[0]);assert.deepEqual(pointAt(p,1),p.at(-1));assert(pointAt(p,.5).every(Number.isFinite));n++;}console.log(`${n} ordered campus routes pass endpoint, aisle and interpolation checks`);
