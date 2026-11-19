@@ -95,3 +95,6 @@ Flight motion refinement and release tooling. Preserve contextual stations, clea
 
 ## Phase 23 checkpoint
 Preserve v22 layout, cinematic and contextual interaction. Phase 23 upgrades physical screen activity with bounded local simulations and selected-station approach lights. Next: moving-frame optimization without lowering visual fidelity and comprehensive device QA.
+
+## Phase 24 checkpoint
+Static projection reuse and source-region texture drawing implemented. CPU browser regression passed; first short movement benchmark was flat. Experimental indexed WebGL requires physical GPU testing. Next: Phase 25 cross-device and visual regression QA.

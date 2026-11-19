@@ -123,3 +123,7 @@
 - Physical monitors use local vision, tracking and queue simulations in both renderers; one atlas, no duplicate screen overlay.
 - Selected station approach lights; pause screen activity with reduced motion or the campus toggle.
 - Fix CI race: wait for visible monitor after animated arrival.
+
+## v24 — Rendering efficiency
+- Reuse exact static vertex projections, bound texture sampling to each triangle, and keep contextual monitor headings. No geometry, lighting, camera, or texture resolution reduction.
+- Optional indexed WebGL geometry (`?indexed=1`); default remains unchanged pending real GPU validation.

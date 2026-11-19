@@ -107,3 +107,6 @@ Open launch.html for the offline edition; run `python tools/build-release.py` fo
 
 ## v23
 The physical project monitors display locally computed illustrative previews; these are not evidence of actual models. Campus activity and reduced-motion settings pause previews. No external rendering dependencies.
+
+## v24 performance
+Rendering fidelity is preserved. An experimental indexed WebGL path is available using `?indexed=1` when WebGL is available; the default GPU draw path is unchanged pending validation.
