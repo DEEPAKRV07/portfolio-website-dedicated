@@ -98,3 +98,6 @@ Preserve v22 layout, cinematic and contextual interaction. Phase 23 upgrades phy
 
 ## Phase 24 checkpoint
 Static projection reuse and source-region texture drawing implemented. CPU browser regression passed; first short movement benchmark was flat. Experimental indexed WebGL requires physical GPU testing. Next: Phase 25 cross-device and visual regression QA.
+
+## Phase 25 checkpoint
+All six baseline viewports passed; the corrected build passed 24 station visits, animated docking and reading checks, plus dedicated cancellation, focus, and compact settings tests. Local browser tests used the inlined build and software rendering; HTTP tests are required in CI because local loopback navigation is blocked. Phase 26 should focus on production polish and physical-device verification.

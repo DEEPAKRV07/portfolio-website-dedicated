@@ -145,3 +145,6 @@ Before each new phase, verify: (1) section content is still context-specific, (2
 - Local JS syntax and release allow-list checks passed; 4 lab suites, 132 route checks, 12 lighting checks, 1,001 flight samples and banking/transform checks passed.
 - Chromium inline fallback: all 12 station content checks at 1440×900 and 390×844, animated flight/docking, and no-JS reading checks passed. Direct HTTP navigation was blocked by the environment; the CI workflow runs the served-page version. Hardware GPU and physical-device validation remain pending.
 - GitHub backup branch created; complete replacement and Pages deployment pending authenticated local push. The migration helper passed its source-validation mode only, not a remote push.
+
+## Phase 25 interaction QA
+Baseline: six viewport checks (320×568 through 1920×1080). After fixes: build, all four lab suites, 132 routes, 12 studio assertions, 1001 drone samples, 24 station visits, animated docking, no-JS edition, and dedicated interaction checks passed. Local Chromium ran the inlined build with WebGL disabled; HTTP loopback was blocked by environment policy. CI runs the HTTP regression. Physical GPU/device validation remains outstanding.

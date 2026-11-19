@@ -24,6 +24,7 @@ jobs:
           python -m pip install playwright
           python -m playwright install --with-deps chromium
           python tools/phase22-browser.py
+          python tools/phase25-browser.py
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:

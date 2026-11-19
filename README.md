@@ -110,3 +110,6 @@ The physical project monitors display locally computed illustrative previews; th
 
 ## v24 performance
 Rendering fidelity is preserved. An experimental indexed WebGL path is available using `?indexed=1` when WebGL is available; the default GPU draw path is unchanged pending validation.
+
+## v25 interaction quality
+Escape closes settings or reading mode and restores keyboard focus; station evidence opens only when requested for that trip. Opening reading mode cancels travel. CI includes the focused Phase 25 regression test.

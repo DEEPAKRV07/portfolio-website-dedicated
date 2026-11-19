@@ -127,3 +127,9 @@
 ## v24 — Rendering efficiency
 - Reuse exact static vertex projections, bound texture sampling to each triangle, and keep contextual monitor headings. No geometry, lighting, camera, or texture resolution reduction.
 - Optional indexed WebGL geometry (`?indexed=1`); default remains unchanged pending real GPU validation.
+
+## v25 — Interaction QA
+- Scope evidence-tab intent to individual journeys and cancel pending travel when opening reading mode.
+- Restore keyboard focus on Escape from inspectors, settings and reading mode; isolate reading mode from underlying controls.
+- Keep compact settings inside short viewports; correct version label and add embedded favicon.
+- Add targeted interaction regression to CI; rendering and camera composition unchanged.

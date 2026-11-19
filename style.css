@@ -266,3 +266,7 @@ body.caseExpanded #dock.monitorDock{border-radius:var(--radius-xl)!important}
 #dockBody .caseFlow li,#dockBody .labPanel,#dockBody .proofMedia,.wbCard {border-radius:12px;}
 #dockBody .terminal input,#dockBody select {border-radius:8px;}
 @media(max-width:759px){#exhibitBar>div{border-radius:11px;}#exhibitBar>button,#exitDock{border-radius:10px;}}
+
+/* v25: short-screen settings remain scrollable without covering the viewport. */
+#systemStrip.open{max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;}
+@media(max-height:420px){#systemStrip.open{max-height:calc(100dvh - 76px);}}
