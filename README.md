@@ -1,14 +1,14 @@
-# Neural Network Portfolio — Deepak R V
+# 3D Portfolio — Deepak R V
 
 [![Three.js](https://img.shields.io/badge/Three.js-3D%20WebGL-171717?style=flat-square&logo=threedotjs)](https://threejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-Build%20Tool-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES%20Modules-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-An interactive 3D personal portfolio that presents my work in AI/ML, computer vision and software engineering through a neural-network-inspired web experience.
+An interactive 3D personal portfolio that presents my work in AI/ML, computer vision and software engineering through an interactive 3D web experience.
 
 ## Concept
 
-Instead of a conventional static portfolio, this project uses a browser-rendered 3D environment as a visual metaphor for my interests in intelligent systems and creative technology. The goal is to combine an expressive visual identity with accessible professional content.
+Instead of a conventional static portfolio, this project uses a browser-rendered 3D environment to present my projects, skills and professional background. The goal is to combine an expressive visual identity with accessible professional content.
 
 ## Technology
 
